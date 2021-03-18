@@ -1,0 +1,4 @@
+## Interface: 30000
+## Title: LoseControl
+## Notes: Shows the duration of CC effects on your character.
+LoseControl.lua
