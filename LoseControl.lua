@@ -1,3 +1,13 @@
+--[[
+Updated by Wardz
+Changes:
+- Removed spell IDs that no longer exists.
+- Added Ice Nova (mage) and Rake (druid) to spell ID list
+- Fixed cooldown spiral
+]]
+
+local noBlizzCooldownCount = true -- set to false to enable blizzard omnicc
+
 --[[ Code Credits - to the people whose code I borrowed and learned from:
 Wowwiki
 Kollektiv
@@ -14,264 +24,261 @@ local UIParent = UIParent -- it's faster to keep local references to frequently 
 local UnitAura = UnitAura
 local GetTime = GetTime
 local SetPortraitToTexture = SetPortraitToTexture
+local pairs = pairs
+local SetScript = SetScript
+local OnEvent = OnEvent
+local CreateFrame = CreateFrame
+local SetTexture = SetTexture
+local SetCooldown = SetCooldown
+local SetAlpha, SetPoint = SetAlpha, SetPoint
 local print = print
 local debug = false -- type "/lc debug on" if you want to see UnitAura info logged to the console
 
 -------------------------------------------------------------------------------
 -- Thanks to all the people on the Curse.com and WoWInterface forums who help keep this list up to date :)
 local spellIds = {
+	----------------
 	-- Death Knight
-	[108194] = "CC",		-- Asphyxiate
-	[115001] = "CC",		-- Remorseless Winter
+	----------------
+	[108194] = "CC",			-- Asphyxiate
+	[115001] = "CC",			-- Remorseless Winter
 	[47476]  = "Silence",		-- Strangulate
-	[96294]  = "Root",		-- Chains of Ice (Chilblains)
-	[45524]  = "Snare",		-- Chains of Ice
-	[50435]  = "Snare",		-- Chilblains
-	--[43265]  = "Snare",		-- Death and Decay (Glyph of Death and Decay) - no way to distinguish between glyphed spell and normal. :(
-	[115000] = "Snare",		-- Remorseless Winter
+	[96294]  = "Root",			-- Chains of Ice (Chilblains)
+	[45524]  = "Snare",			-- Chains of Ice
+	[50435]  = "Snare",			-- Chilblains
+	[115000] = "Snare",			-- Remorseless Winter
 	[115018] = "Immune",		-- Desecrated Ground
 	[48707]  = "ImmuneSpell",	-- Anti-Magic Shell
-	[48792]  = "Other",		-- Icebound Fortitude
-	[49039]  = "Other",		-- Lichborne
-	--[51271] = "Other",		-- Pillar of Frost
-	-- Death Knight Ghoul
-	[91800]  = "CC",		-- Gnaw
-	[91797]  = "CC",		-- Monstrous Blow (Dark Transformation)
-	[91807]  = "Root",		-- Shambling Rush (Dark Transformation)
+	[48792]  = "Other",			-- Icebound Fortitude
+	[49039]  = "Other",			-- Lichborne
+	
+		----------------
+		-- Death Knight Ghoul
+		----------------
+
+		[91800]  = "CC",			-- Gnaw
+		[91797]  = "CC",			-- Monstrous Blow (Dark Transformation)
+		[91807]  = "Root",			-- Shambling Rush (Dark Transformation)
+	
+	----------------
 	-- Druid
-	[113801] = "CC",		-- Bash (Force of Nature - Feral Treants)
-	[102795] = "CC",		-- Bear Hug
-	[33786]  = "CC",		-- Cyclone
-	[99]     = "CC",		-- Disorienting Roar
-	[2637]   = "CC",		-- Hibernate
-	[22570]  = "CC",		-- Maim
-	[5211]   = "CC",		-- Mighty Bash
-	[9005]   = "CC",		-- Pounce
-	[102546] = "CC",		-- Pounce (Incarnation)
+	----------------
+
+	[33786]  = "CC",			-- Cyclone
+	[99]     = "CC",			-- Incapacitating Roar
+	[163505] = "CC",       	 	-- Rake
+	[22570]  = "CC",			-- Maim
+	[5211]   = "CC",			-- Mighty Bash
 	[114238] = "Silence",		-- Fae Silence (Glyph of Fae Silence)
 	[81261]  = "Silence",		-- Solar Beam
-	[339]    = "Root",		-- Entangling Roots
-	[113770] = "Root",		-- Entangling Roots (Force of Nature - Balance Treants)
-	[19975]  = "Root",		-- Entangling Roots (Nature's Grasp)
-	[45334]  = "Root",		-- Immobilized (Wild Charge - Bear)
-	[102359] = "Root",		-- Mass Entanglement
-	[50259]  = "Snare",		-- Dazed (Wild Charge - Cat)
-	[58180]  = "Snare",		-- Infected Wounds
-	[61391]  = "Snare",		-- Typhoon
-	[127797] = "Snare",		-- Ursol's Vortex
-	--[???] = "Snare",		-- Wild Mushroom: Detonate
-	-- Druid Symbiosis
-	[110698] = "CC",		-- Hammer of Justice (Paladin)
-	[113004] = "CC",		-- Intimidating Roar [Fleeing in fear] (Warrior)
-	[113056] = "CC",		-- Intimidating Roar [Cowering in fear] (Warrior)
-	[126458] = "Disarm",		-- Grapple Weapon (Monk)
-	[110693] = "Root",		-- Frost Nova (Mage)
-	--[110610] = "Snare",		-- Ice Trap (Hunter)
-	[110617] = "Immune",		-- Deterrence (Hunter)
-	[110715] = "Immune",		-- Dispersion (Priest)
-	[110700] = "Immune",		-- Divine Shield (Paladin)
-	[110696] = "Immune",		-- Ice Block (Mage)
-	[110570] = "ImmuneSpell",	-- Anti-Magic Shell (Death Knight)
-	[110788] = "ImmuneSpell",	-- Cloak of Shadows (Rogue)
-	[113002] = "ImmuneSpell",	-- Spell Reflection (Warrior)
-	[110791] = "Other",		-- Evasion (Rogue)
-	[110575] = "Other",		-- Icebound Fortitude (Death Knight)
-	[122291] = "Other",		-- Unending Resolve (Warlock)
+	[339]    = "Root",			-- Entangling Roots
+	[113770] = "Root",			-- Entangling Roots (Force of Nature - Balance Treants)
+	[45334]  = "Root",			-- Immobilized (Wild Charge - Bear)
+	[102359] = "Root",			-- Mass Entanglement
+	[50259]  = "Snare",			-- Dazed (Wild Charge - Cat)
+	[58180]  = "Snare",			-- Infected Wounds
+	[61391]  = "Snare",			-- Typhoon
+	[127797] = "Snare",			-- Ursol's Vortex
+
+	----------------
 	-- Hunter
-	[117526] = "CC",		-- Binding Shot
-	[3355]   = "CC",		-- Freezing Trap
-	[1513]   = "CC",		-- Scare Beast
-	[19503]  = "CC",		-- Scatter Shot
-	[19386]  = "CC",		-- Wyvern Sting
-	[34490]  = "Silence",		-- Silencing Shot
-	[19185]  = "Root",		-- Entrapment
-	[64803]  = "Root",		-- Entrapment
-	[128405] = "Root",		-- Narrow Escape
-	[35101]  = "Snare",		-- Concussive Barrage
-	[5116]   = "Snare",		-- Concussive Shot
-	[61394]  = "Snare",		-- Frozen Wake (Glyph of Freezing Trap)
-	[13810]  = "Snare",		-- Ice Trap
+	----------------
+
+	[117526] = "CC",			-- Binding Shot
+	[3355]   = "CC",			-- Freezing Trap
+	[13809] = "Snare",			-- Ice Trap 1
+	[19386]  = "CC",			-- Wyvern Sting
+	[128405] = "Root",			-- Narrow Escape
+	[5116]   = "Snare",			-- Concussive Shot
+	[61394]  = "Snare",			-- Frozen Wake (Glyph of Freezing Trap)
+	[13810]  = "Snare",			-- Ice Trap 2
 	[19263]  = "Immune",		-- Deterrence
+
+	----------------
 	-- Hunter Pets
-	[90337]  = "CC",		-- Bad Manner (Monkey)
-	[24394]  = "CC",		-- Intimidation
-	[126246] = "CC",		-- Lullaby (Crane)
-	[126355] = "CC",		-- Paralyzing Quill (Porcupine)
-	[126423] = "CC",		-- Petrifying Gaze (Basilisk)
-	[50519]  = "CC",		-- Sonic Blast (Bat)
-	[56626]  = "CC",		-- Sting (Wasp)
-	[96201]  = "CC",		-- Web Wrap (Shale Spider)
-	[50541]  = "Disarm",		-- Clench (Scorpid)
-	[91644]  = "Disarm",		-- Snatch (Bird of Prey)
-	[90327]  = "Root",		-- Lock Jaw (Dog)
-	[50245]  = "Root",		-- Pin (Crab)
-	[54706]  = "Root",		-- Venom Web Spray (Silithid)
-	[4167]   = "Root",		-- Web (Spider)
-	[50433]  = "Snare",		-- Ankle Crack (Crocolisk)
-	[54644]  = "Snare",		-- Frost Breath (Chimaera)
-	[54216]  = "Other",		-- Master's Call (root and snare immune only)
+	----------------
+		[24394]  = "CC",		-- Intimidation
+		[50433]  = "Snare",		-- Ankle Crack (Crocolisk)
+		[54644]  = "Snare",		-- Frost Breath (Chimaera)
+		[54216]  = "Other",		-- Master's Call (root and snare immune only)
+		[137798] = "Other",		-- Reflective Armor Plating
+
+	----------------
 	-- Mage
-	[118271] = "CC",		-- Combustion Impact
-	[44572]  = "CC",		-- Deep Freeze
-	[31661]  = "CC",		-- Dragon's Breath
-	[118]    = "CC",		-- Polymorph
-	[61305]  = "CC",		-- Polymorph: Black Cat
-	[28272]  = "CC",		-- Polymorph: Pig
-	[61721]  = "CC",		-- Polymorph: Rabbit
-	[61780]  = "CC",		-- Polymorph: Turkey
-	[28271]  = "CC",		-- Polymorph: Turtle
-	[82691]  = "CC",		-- Ring of Frost
+	----------------
+
+	[44572]  = "CC",			-- Deep Freeze
+	[31661]  = "CC",			-- Dragon's Breath
+	[118]    = "CC",			-- Polymorph
+	[61305]  = "CC",			-- Polymorph: Black Cat
+	[28272]  = "CC",			-- Polymorph: Pig
+	[61721]  = "CC",			-- Polymorph: Rabbit
+	[61780]  = "CC",			-- Polymorph: Turkey
+	[28271]  = "CC",			-- Polymorph: Turtle
+	[82691]  = "CC",			-- Ring of Frost
+	[140376] = "CC",			-- Ring of Frost
 	[102051] = "Silence",		-- Frostjaw (also a root)
-	[55021]  = "Silence",		-- Silenced - Improved Counterspell
-	[122]    = "Root",		-- Frost Nova
-	[111340] = "Root",		-- Ice Ward
-	[121288] = "Snare",		-- Chilled (Frost Armor)
-	[120]    = "Snare",		-- Cone of Cold
-	[116]    = "Snare",		-- Frostbolt
-	[44614]  = "Snare",		-- Frostfire Bolt
-	[113092] = "Snare",		-- Frost Bomb
-	[31589]  = "Snare",		-- Slow
+	[122]    = "Root",			-- Frost Nova
+	[111340] = "Root",			-- Ice Ward
+	[120]    = "Snare",			-- Cone of Cold
+	[116]    = "Snare",			-- Frostbolt
+	[44614]  = "Snare",			-- Frostfire Bolt
+	[31589]  = "Snare",			-- Slow
+	[10]	 = "Snare",			-- Blizzard
 	[45438]  = "Immune",		-- Ice Block
 	[115760] = "ImmuneSpell",	-- Glyph of Ice Block
-	-- Mage Water Elemental
-	[33395]  = "Root",		-- Freeze
+	[157997] = "CC",			-- Ice Nova
+	[66309]  = "CC",			-- Ice Nova
+	[110959] = "Other",			-- Greater Invisibility
+
+		----------------
+		-- Mage Water Elemental
+		----------------
+		[33395]  = "Root",		-- Freeze
+
+
+	----------------
 	-- Monk
-	[123393] = "CC",		-- Breath of Fire (Glyph of Breath of Fire)
-	[126451] = "CC",		-- Clash
-	[122242] = "CC",		-- Clash (not sure which one is right)
-	[119392] = "CC",		-- Charging Ox Wave
-	[120086] = "CC",		-- Fists of Fury
-	[119381] = "CC",		-- Leg Sweep
-	[115078] = "CC",		-- Paralysis
-	[117368] = "Disarm",		-- Grapple Weapon
+	----------------
+
+	[123393] = "CC",			-- Breath of Fire (Glyph of Breath of Fire)
+	[119392] = "CC",			-- Charging Ox Wave
+	[120086] = "CC",			-- Fists of Fury
+	[119381] = "CC",			-- Leg Sweep
+	[115078] = "CC",			-- Paralysis
 	[140023] = "Disarm",		-- Ring of Peace
-	[137461] = "Disarm",		-- Disarmed (Ring of Peace)
 	[137460] = "Silence",		-- Silenced (Ring of Peace)
-	[116709] = "Silence",		-- Spear Hand Strike
-	[116706] = "Root",		-- Disable
-	[113275] = "Root",		-- Entangling Roots (Symbiosis)
-	[123407] = "Root",		-- Spinning Fire Blossom
-	[116095] = "Snare",		-- Disable
-	[118585] = "Snare",		-- Leer of the Ox
-	[123727] = "Snare",		-- Dizzying Haze
-	[123586] = "Snare",		-- Flying Serpent Kick
-	[131523] = "ImmuneSpell",	-- Zen Meditation
+	[116706] = "Root",			-- Disable
+	[116095] = "Snare",			-- Disable
+	[118585] = "Snare",			-- Leer of the Ox
+	[123586] = "Snare",			-- Flying Serpent Kick
+
+
+	----------------
 	-- Paladin
-	[105421] = "CC",		-- Blinding Light
-	[115752] = "CC",		-- Blinding Light (Glyph of Blinding Light)
-	[105593] = "CC",		-- Fist of Justice
-	[853]    = "CC",		-- Hammer of Justice
-	[119072] = "CC",		-- Holy Wrath
-	[20066]  = "CC",		-- Repentance
-	[10326]  = "CC",		-- Turn Evil
-	[145067] = "CC",		-- Turn Evil (Evil is a Point of View)
+	----------------
+
+	[105421] = "CC",			-- Blinding Light
+	[105593] = "CC",			-- Fist of Justice
+	[853]    = "CC",			-- Hammer of Justice
+	[20066]  = "CC",			-- Repentance
 	[31935]  = "Silence",		-- Avenger's Shield
-	[110300] = "Snare",		-- Burden of Guilt
-	[63529]  = "Snare",		-- Dazed - Avenger's Shield
-	[20170]  = "Snare",		-- Seal of Justice
+	[110300] = "Snare",			-- Burden of Guilt
+	[63529]  = "Snare",			-- Dazed - Avenger's Shield
+	[20170]  = "Snare",			-- Seal of Justice
 	[642]    = "Immune",		-- Divine Shield
-	[31821]  = "Other",		-- Aura Mastery
-	[1022]   = "Other",		-- Hand of Protection
+	[31821]  = "Other",			-- Aura Mastery
+	[1022]   = "Other",			-- Hand of Protection
+
+	----------------
 	-- Priest
-	[113506] = "CC",		-- Cyclone (Symbiosis)
-	[605]    = "CC",		-- Dominate Mind
-	[88625]  = "CC",		-- Holy Word: Chastise
-	[64044]  = "CC",		-- Psychic Horror
-	[8122]   = "CC",		-- Psychic Scream
-	[113792] = "CC",		-- Psychic Terror (Psyfiend)
-	[9484]   = "CC",		-- Shackle Undead
-	[87204]  = "CC",		-- Sin and Punishment
+	----------------
+
+	[605]    = "CC",			-- Dominate Mind
+	[88625]  = "CC",			-- Holy Word: Chastise
+	[64044]  = "CC",			-- Psychic Horror
+	[8122]   = "CC",			-- Psychic Scream
+	[9484]   = "CC",			-- Shackle Undead
+	[87204]  = "CC",			-- Sin and Punishment
 	[15487]  = "Silence",		-- Silence
 	[64058]  = "Disarm",		-- Psychic Horror
-	[113275] = "Root",		-- Entangling Roots (Symbiosis)
-	[87194]  = "Root",		-- Glyph of Mind Blast
-	[114404] = "Root",		-- Void Tendril's Grasp
-	[15407]  = "Snare",		-- Mind Flay
+	[87194]  = "Root",			-- Glyph of Mind Blast
+	[114404] = "Root",			-- Void Tendril's Grasp
+	[15407]  = "Snare",			-- Mind Flay
 	[47585]  = "Immune",		-- Dispersion
 	[114239] = "ImmuneSpell",	-- Phantasm
+	[586] 	 = "Other",			-- Fade (Aura mastery when glyphed, dunno which id is right)
+	[159628] = "Other",			-- Fade
+
+	----------------
 	-- Rogue
-	[2094]   = "CC",		-- Blind
-	[1833]   = "CC",		-- Cheap Shot
-	[1776]   = "CC",		-- Gouge
-	[408]    = "CC",		-- Kidney Shot
-	[113953] = "CC",		-- Paralysis (Paralytic Poison)
-	[6770]   = "CC",		-- Sap
+	----------------
+
+	[2094]   = "CC",			-- Blind
+	[1833]   = "CC",			-- Cheap Shot
+	[1776]   = "CC",			-- Gouge
+	[408]    = "CC",			-- Kidney Shot
+	[6770]   = "CC",			-- Sap
 	[1330]   = "Silence",		-- Garrote - Silence
-	[51722]  = "Disarm",		-- Dismantle
-	[115197] = "Root",		-- Partial Paralysis
-	[3409]   = "Snare",		-- Crippling Poison
-	[26679]  = "Snare",		-- Deadly Throw
-	[119696] = "Snare",		-- Debilitation
+	[3409]   = "Snare",			-- Crippling Poison
+	[26679]  = "Snare",			-- Deadly Throw
+	[119696] = "Snare",			-- Debilitation
 	[31224]  = "ImmuneSpell",	-- Cloak of Shadows
-	[45182]  = "Other",		-- Cheating Death
-	[5277]   = "Other",		-- Evasion
-	--[76577]  = "Other",		-- Smoke Bomb
-	[88611]  = "Other",		-- Smoke Bomb
+	[45182]  = "Other",			-- Cheating Death
+	[5277]   = "Other",			-- Evasion
+	[76577]  = "Other",			-- Smoke Bomb
+	[88611]  = "Other",			-- Smoke Bomb
+
+	----------------
 	-- Shaman
-	[76780]  = "CC",		-- Bind Elemental
-	[77505]  = "CC",		-- Earthquake
-	[51514]  = "CC",		-- Hex
-	[118905] = "CC",		-- Static Charge (Capacitor Totem)
-	[113287] = "Silence",		-- Solar Beam (Symbiosis)
-	[64695]  = "Root",		-- Earthgrab (Earthgrab Totem)
-	[63685]  = "Root",		-- Freeze (Frozen Power)
-	[3600]   = "Snare",		-- Earthbind (Earthbind Totem)
-	[116947] = "Snare",		-- Earthbind (Earthgrab Totem)
-	[77478]  = "Snare",		-- Earthquake (Glyph of Unstable Earth)
-	[8034]   = "Snare",		-- Frostbrand Attack
-	[8056]   = "Snare",		-- Frost Shock
-	[51490]  = "Snare",		-- Thunderstorm
+	----------------
+
+	[77505]  = "CC",			-- Earthquake
+	[51514]  = "CC",			-- Hex
+	[118905] = "CC",			-- Static Charge (Capacitor Totem)
+	[64695]  = "Root",			-- Earthgrab (Earthgrab Totem)
+	[63685]  = "Root",			-- Freeze (Frozen Power)
+	[3600]   = "Snare",			-- Earthbind (Earthbind Totem)
+	[116947] = "Snare",			-- Earthbind (Earthgrab Totem)
+	[77478]  = "Snare",			-- Earthquake (Glyph of Unstable Earth)
+	[8056]   = "Snare",			-- Frost Shock
+	[51490]  = "Snare",			-- Thunderstorm
 	[8178]   = "ImmuneSpell",	-- Grounding Totem Effect (Grounding Totem)
-	-- Shaman Primal Earth Elemental
-	[118345] = "CC",		-- Pulverize
+	
+		----------------
+		-- Shaman Primal Earth Elemental
+		----------------
+		[118345] = "CC",		-- Pulverize
+
+	----------------
 	-- Warlock
-	[710]    = "CC",		-- Banish
-	[137143] = "CC",		-- Blood Horror
-	[54786]  = "CC",		-- Demonic Leap (Metamorphosis)
-	[5782]   = "CC",		-- Fear
-	[118699] = "CC",		-- Fear
-	[130616] = "CC",		-- Fear (Glyph of Fear)
-	[5484]   = "CC",		-- Howl of Terror
-	[22703]  = "CC",		-- Infernal Awakening
-	[6789]   = "CC",		-- Mortal Coil
-	[132412] = "CC",		-- Seduction (Grimoire of Sacrifice)
-	[30283]  = "CC",		-- Shadowfury
-	[104045] = "CC",		-- Sleep (Metamorphosis)
-	[132409] = "Silence",		-- Spell Lock (Grimoire of Sacrifice)
+	----------------
+
+	[710]    = "CC",			-- Banish
+	[137143] = "CC",			-- Blood Horror
+	[5782]   = "CC",			-- Fear
+	[118699] = "CC",			-- Fear
+	[130616] = "CC",			-- Fear (Glyph of Fear)
+	[5484]   = "CC",			-- Howl of Terror
+	[22703]  = "CC",			-- Infernal Awakening
+	[6789]   = "CC",			-- Mortal Coil
+	[30283]  = "CC",			-- Shadowfury
 	[31117]  = "Silence",		-- Unstable Affliction
-	[18223]  = "Snare",		-- Curse of Exhaustion
-	[47960]  = "Snare",		-- Shadowflame
-	[110913] = "Other",		-- Dark Bargain
-	[104773] = "Other",		-- Unending Resolve
-	-- Warlock Pets
-	[89766]  = "CC",		-- Axe Toss (Felguard/Wrathguard)
-	[115268] = "CC",		-- Mesmerize (Shivarra)
-	[6358]   = "CC",		-- Seduction (Succubus)
-	[115782] = "Silence",		-- Optical Blast (Observer)
-	[24259]  = "Silence",		-- Spell Lock (Felhunter)
-	[118093] = "Disarm",		-- Disarm (Voidwalker/Voidlord)
+	[110913] = "Other",			-- Dark Bargain
+	[104773] = "Other",			-- Unending Resolve
+
+		----------------
+		-- Warlock Pets
+		----------------
+		[89766]  = "CC",		-- Axe Toss (Felguard/Wrathguard)
+		[115268] = "CC",		-- Mesmerize (Shivarra)
+		[6358]   = "CC",		-- Seduction (Succubus)
+
+
+	----------------
 	-- Warrior
-	[7922]   = "CC",		-- Charge Stun
-	[118895] = "CC",		-- Dragon Roar
-	[5246]   = "CC",		-- Intimidating Shout (aoe)
-	[20511]  = "CC",		-- Intimidating Shout (targeted)
-	[132168] = "CC",		-- Shockwave
-	[107570] = "CC",		-- Storm Bolt
-	[132169] = "CC",		-- Storm Bolt
+	----------------
+	[118895] = "CC",			-- Dragon Roar
+	[5246]   = "CC",			-- Intimidating Shout (aoe)
+	[132168] = "CC",			-- Shockwave
+	[107570] = "CC",			-- Storm Bolt
+	[132169] = "CC",			-- Storm Bolt
 	[18498]  = "Silence",		-- Silenced - Gag Order (PvE only)
-	[676]    = "Disarm",		-- Disarm
-	[107566] = "Root",		-- Staggering Shout
-	[105771] = "Root",		-- Warbringer
-	[147531] = "Snare",		-- Bloodbath
-	[1715]   = "Snare",		-- Hamstring
-	[12323]  = "Snare",		-- Piercing Howl
-	[129923] = "Snare",		-- Sluggish (Glyph of Hindering Strikes)
-	[137637] = "Snare",		-- Warbringer
+	[107566] = "Root",			-- Staggering Shout
+	[105771] = "Root",			-- Warbringer
+	[147531] = "Snare",			-- Bloodbath
+	[1715]   = "Snare",			-- Hamstring
+	[12323]  = "Snare",			-- Piercing Howl
+	[129923] = "Snare",			-- Sluggish (Glyph of Hindering Strikes)
 	[46924]  = "Immune",		-- Bladestorm
 	[23920]  = "ImmuneSpell",	-- Spell Reflection
 	[114028] = "ImmuneSpell",	-- Mass Spell Reflection
-	[18499]  = "Other",		-- Berserker Rage
+	[18499]  = "Other",			-- Berserker Rage
+
+	----------------
 	-- Other
+	----------------
+
 	[30217]  = "CC",		-- Adamantite Grenade
 	[67769]  = "CC",		-- Cobalt Frag Bomb
 	[30216]  = "CC",		-- Fel Iron Bomb
@@ -476,7 +483,7 @@ local LoseControlDB -- local reference to the addon settings. this gets initiali
 
 -------------------------------------------------------------------------------
 -- Create the main class
-local LoseControl = CreateFrame("Cooldown", nil, UIParent) -- Exposes the SetCooldown method
+local LoseControl = CreateFrame("Cooldown", nil, UIParent, "CooldownFrameTemplate") -- Exposes the SetCooldown method
 
 function LoseControl:OnEvent(event, ...) -- functions created in "object:method"-style have an implicit first parameter of "self", which points to object
 	self[event](self, ...) -- route event parameters to LoseControl:event methods
@@ -526,6 +533,9 @@ function LoseControl:ADDON_LOADED(arg1)
 		end
 		LoseControlDB = _G.LoseControlDB
 		self.noCooldownCount = LoseControlDB.noCooldownCount
+		--if LoseControlDB.noCooldownCount then
+			self:SetHideCountdownNumbers(noBlizzCooldownCount)
+		--end
 	end
 end
 LoseControl:RegisterEvent("ADDON_LOADED")
@@ -687,9 +697,10 @@ end
 
 -- Constructor method
 function LoseControl:new(unitId)
-	local o = CreateFrame("Cooldown", addonName .. unitId) --, UIParent)
+	local o = CreateFrame("Cooldown", addonName .. unitId, nil, 'CooldownFrameTemplate') --, UIParent)
 	setmetatable(o, self)
 	self.__index = self
+	o:SetDrawEdge(false)
 
 	-- Init class members
 	o.unitId = unitId -- ties the object to a unit
