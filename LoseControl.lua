@@ -1,4 +1,8 @@
 --[[
+Updated for 7.0.3 (Legion) by Hid@Emeriss
+- Added a large amount of spells, hopefully I didn't miss anything (important)
+
+
 Updated by Wardz
 Changes:
 - Removed spell IDs that no longer exists.
@@ -37,6 +41,17 @@ local debug = false -- type "/lc debug on" if you want to see UnitAura info logg
 -------------------------------------------------------------------------------
 -- Thanks to all the people on the Curse.com and WoWInterface forums who help keep this list up to date :)
 local spellIds = {
+    ----------------
+    -- Demonhunter
+    ----------------
+    [179057] = "CC",            -- Chaos Nova
+    [205630] = "CC",            -- Illidan's Grasp
+    [202138] = "Snare",         -- Sigil of Chains
+    [207684] = "CC",            -- Sigil of Misery
+    [202137] = "Silence",       -- Sigil of Silence
+    [211881] = "CC",            -- Fel Eruption
+--    [183752] = "Interrupt",              -- Consume Magic
+
 	----------------
 	-- Death Knight
 	----------------
@@ -51,6 +66,10 @@ local spellIds = {
 	[48707]  = "ImmuneSpell",	-- Anti-Magic Shell
 	[48792]  = "Other",			-- Icebound Fortitude
 	[49039]  = "Other",			-- Lichborne
+
+    -- Legion
+    [107079] = "Snare",         -- Chill Streak
+    [207167] = "CC",            -- Blinding Sleet
 	
 		----------------
 		-- Death Knight Ghoul
@@ -94,6 +113,12 @@ local spellIds = {
 	[13810]  = "Snare",			-- Ice Trap 2
 	[19263]  = "Immune",		-- Deterrence
 
+    -- Legion
+    [209789] = "CC",              -- Freezing Arrow
+    [202914] = "Silence",         -- Spider Sting
+    [213691] = "CC",              -- Scatter Shot
+    [186265] = "Immune",          -- Deterrence (aspect of the turtle)
+
 	----------------
 	-- Hunter Pets
 	----------------
@@ -131,6 +156,10 @@ local spellIds = {
 	[66309]  = "CC",			-- Ice Nova
 	[110959] = "Other",			-- Greater Invisibility
 
+    -- Legion
+    [198144] = "Other",         -- Ice form (stun/knockback immune)
+    [198111] = "Other",         -- Temporal Shield (heals all damage taken after 4 sec)
+
 		----------------
 		-- Mage Water Elemental
 		----------------
@@ -152,6 +181,10 @@ local spellIds = {
 	[116095] = "Snare",			-- Disable
 	[118585] = "Snare",			-- Leer of the Ox
 	[123586] = "Snare",			-- Flying Serpent Kick
+
+    -- Legion
+    [107079] = "CC",            -- Quaking palm
+    [198898] = "CC",            -- Song of Chi-Ji
 
 
 	----------------
@@ -190,6 +223,13 @@ local spellIds = {
 	[586] 	 = "Other",			-- Fade (Aura mastery when glyphed, dunno which id is right)
 	[159628] = "Other",			-- Fade
 
+    -- Legion
+    [205369] = "CC",            -- Mind Bomb
+    [88625]  = "CC",            -- Holy Word: Chastise
+    [204263] = "Snare",         -- Shining Force
+
+
+
 	----------------
 	-- Rogue
 	----------------
@@ -209,6 +249,12 @@ local spellIds = {
 	[76577]  = "Other",			-- Smoke Bomb
 	[88611]  = "Other",			-- Smoke Bomb
 
+    -- Legion rogue
+    [199804] = "CC",            -- Between the eyes
+    [207777] = "Disarm",        -- Dismantle
+    [185767] = "Snare",         -- Cannonball Barrage
+    [207736] = "Other",         -- Shadowy Duel (smoke bomb effect)
+
 	----------------
 	-- Shaman
 	----------------
@@ -225,6 +271,10 @@ local spellIds = {
 	[51490]  = "Snare",			-- Thunderstorm
 	[8178]   = "ImmuneSpell",	-- Grounding Totem Effect (Grounding Totem)
 	
+    -- Legion
+	[204336] = "ImmuneSpell",	-- Grounding Totem Effect (Grounding Totem)
+    [192058] = "CC",            -- Lightning Surge totem (capacitor totem)
+
 		----------------
 		-- Shaman Primal Earth Elemental
 		----------------
@@ -246,6 +296,9 @@ local spellIds = {
 	[31117]  = "Silence",		-- Unstable Affliction
 	[110913] = "Other",			-- Dark Bargain
 	[104773] = "Other",			-- Unending Resolve
+
+    -- Legion
+	[212295] = "ImmuneSpell",	-- Netherward (reflects spells)
 
 		----------------
 		-- Warlock Pets
@@ -274,6 +327,9 @@ local spellIds = {
 	[23920]  = "ImmuneSpell",	-- Spell Reflection
 	[114028] = "ImmuneSpell",	-- Mass Spell Reflection
 	[18499]  = "Other",			-- Berserker Rage
+
+    -- Legion
+    [198817] = "Other",         -- Sharpen Blade (70% heal reduction)
 
 	----------------
 	-- Other
