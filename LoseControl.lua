@@ -126,6 +126,7 @@ local spellIds = {
 	[6358]  = "CC",		-- Seduction (Succubus)
 	[30283] = "CC",		-- Shadowfury
 	[24259] = "Silence",	-- Spell Lock (Felhunter)
+	[31117] = "Silence",	-- Unstable Affliction
 	--[93974] = "Root",	-- Aura of Foreboding (duplicate debuff names not allowed atm, need to figure out how to support this later)
 	[18118] = "Snare",	-- Aftermath
 	[18223] = "Snare",	-- Curse of Exhaustion
@@ -390,9 +391,11 @@ end
 
 local WYVERN_STING = GetSpellInfo(19386)
 local PSYCHIC_HORROR = GetSpellInfo(64058)
+local UNSTABLE_AFFLICTION = GetSpellInfo(31117)
 local BERSERK = GetSpellInfo(50334)
 local UnitDebuff = UnitDebuff
 local UnitBuff = UnitBuff
+
 -- This is the main event
 function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	if unitId ~= self.unitId or not self.frame.enabled or not self.anchor:IsVisible() then return end
@@ -418,7 +421,8 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			if self.wyvernsting == 2 then
 				name = nil -- hack to skip the next if condition since LUA doesn't have a "continue" statement
 			end
-		elseif name == PSYCHIC_HORROR and icon == "Interface\\Icons\\Ability_Warrior_Disarm" then -- hack to remove Psychic Horror disarm effect
+		elseif (name == PSYCHIC_HORROR and icon ~= "Interface\\Icons\\Spell_Shadow_PsychicHorrors") or -- hack to remove Psychic Horror disarm effect
+			(name == UNSTABLE_AFFLICTION and icon ~= "Interface\\Icons\\Spell_Holy_Silence") then
 			name = nil
 		end
 
