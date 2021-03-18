@@ -11,195 +11,255 @@ Thanks! :)
 
 local addonName, L = ...
 local UIParent = UIParent -- it's faster to keep local references to frequently used global vars
-
 local function log(msg) DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for convenience
+local debug = false
 
 -------------------------------------------------------------------------------
 local spellIds = {
 	-- Death Knight
-	[47481] = "CC",		-- Gnaw (Ghoul)
-	[49203] = "CC",		-- Hungering Cold
-	[91797] = "CC",		-- Monstrous Blow (Super ghoul)
-	[47476] = "Silence",	-- Strangulate
-	[45524] = "Snare",	-- Chains of Ice (can also be a root with Chilblains but no way to differentiate?)
-	[55666] = "Snare",	-- Desecration
-	[50040] = "Snare",	-- Chilblains
+	[108194] = "CC",		-- Asphyxiate
+	[115001] = "CC",		-- Remorseless Winter
+	[47476]  = "Silence",		-- Strangulate
+	[96294]  = "Root",		-- Chains of Ice (Chilblains)
+	[45524]  = "Snare",		-- Chains of Ice
+	[50435]  = "Snare",		-- Chilblains
+	--[43265]  = "Snare",		-- Death and Decay (Glyph of Death and Decay) - no way to distinguish between glyphed spell and normal.
+	[115000] = "Snare",		-- Remorseless Winter
+	[115018] = "Immune",		-- Desecrated Ground
+	[48707]  = "ImmuneSpell",	-- Anti-Magic Shell
+	[48792]  = "Other",		-- Icebound Fortitude
+	[49039]  = "Other",		-- Lichborne
+	--[51271] = "Other",		-- Pillar of Frost
+	-- Death Knight Ghoul
+	--[47481]  = "CC",		-- Gnaw?
+	[91800]  = "CC",		-- Gnaw
+	[91797]  = "CC",		-- Monstrous Blow (Dark Transformation)
+	[91807]  = "Root",		-- Shambling Rush (Dark Transformation)
 	-- Druid
-	[5211]  = "CC",		-- Bash (also Shaman Spirit Wolf ability)
-	[33786] = "CC",		-- Cyclone
-	[2637]  = "CC",		-- Hibernate
-	[22570] = "CC",		-- Maim
-	[9005]  = "CC",		-- Pounce
-	[81261] = "Silence",	-- Solar Beam
-	[339]   = "Root",	-- Entangling Roots
-	[45334] = "Root",	-- Feral Charge Effect
-	[58179] = "Snare",	-- Infected Wounds
-	[61391] = "Snare",	-- Typhoon
+	[102795] = "CC",		-- Bear Hug
+	[33786]  = "CC",		-- Cyclone
+	[99]     = "CC",		-- Disorienting Roar
+	[2637]   = "CC",		-- Hibernate
+	[22570]  = "CC",		-- Maim
+	[5211]   = "CC",		-- Mighty Bash
+	[9005]   = "CC",		-- Pounce
+	[114238] = "Silence",		-- Fae Silence (Glyph of Fae Silence)
+	[81261]  = "Silence",		-- Solar Beam
+	[339]    = "Root",		-- Entangling Roots
+	[45334]  = "Root",		-- Immobilized (Wild Charge - Bear)
+	[102359] = "Root",		-- Mass Entanglement
+	[50259]  = "Snare",		-- Dazed (Wild Charge - Cat)
+	[58180]  = "Snare",		-- Infected Wounds
+	[61391]  = "Snare",		-- Typhoon
+	[127797] = "Snare",		-- Ursol's Vortex
+	--[dontknow] = "Snare",		-- Wild Mushroom: Detonate
+	-- Druid Symbiosis
+	[110698] = "CC",		-- Hammer of Justice (Paladin)
+	[113004] = "CC",		-- Intimidating Roar [Fleeing in fear] (Warrior)
+	[113056] = "CC",		-- Intimidating Roar [Cowering in fear] (Warrior)
+	[126458] = "Disarm",		-- Grapple Weapon (Monk)
+	[110693] = "Root",		-- Frost Nova (Mage)
+	[110610] = "Snare",		-- Ice Trap (Hunter)
+	[110617] = "Immune",		-- Deterrence (Hunter)
+	[110715] = "Immune",		-- Dispersion (Priest)
+	[110700] = "Immune",		-- Divine Shield (Paladin)
+	[110696] = "Immune",		-- Ice Block (Mage)
+	[110570] = "ImmuneSpell",	-- Anti-Magic Shell (Death Knight)
+	[110788] = "ImmuneSpell",	-- Cloak of Shadows (Rogue)
+	[113002] = "ImmuneSpell",	-- Spell Reflection (Warrior)
+	[110791] = "Other",		-- Evasion (Rogue)
+	[110575] = "Other",		-- Icebound Fortitude (Death Knight)
+	[122291] = "Other",		-- Unending Resolve (Warlock)
 	-- Hunter
-	[3355]  = "CC",		-- Freezing Trap Effect
-	[24394] = "CC",		-- Intimidation
-	[1513]  = "CC",		-- Scare Beast
-	[19503] = "CC",		-- Scatter Shot
-	[19386] = "CC",		-- Wyvern Sting
-	[34490] = "Silence",	-- Silencing Shot
-	[19306] = "Root",	-- Counterattack
-	[19185] = "Root",	-- Entrapment
-	[35101] = "Snare",	-- Concussive Barrage
-	[5116]  = "Snare",	-- Concussive Shot
-	[13810] = "Snare",	-- Frost Trap Aura
-	[61394] = "Snare",	-- Glyph of Freezing Trap
-	[2974]  = "Snare",	-- Wing Clip
+	[117526] = "CC",		-- Binding Shot
+	[3355]   = "CC",		-- Freezing Trap
+	[1513]   = "CC",		-- Scare Beast
+	[19503]  = "CC",		-- Scatter Shot
+	[19386]  = "CC",		-- Wyvern Sting
+	[34490]  = "Silence",		-- Silencing Shot
+	[19185]  = "Root",		-- Entrapment
+	[128405] = "Root",		-- Narrow Escape
+	[35101]  = "Snare",		-- Concussive Barrage
+	[5116]   = "Snare",		-- Concussive Shot
+	[61394]  = "Snare",		-- Frozen Wake (Glyph of Freezing Trap)
+	[13810]  = "Snare",		-- Ice Trap
+	[19263]  = "Immune",		-- Deterrence
 	-- Hunter Pets
-	[50519] = "CC",		-- Sonic Blast (Bat)
-	[50541] = "Disarm",	-- Snatch (Bird of Prey)
-	[54644] = "Snare",	-- Froststorm Breath (Chimera)
-	[50245] = "Root",	-- Pin (Crab)
-	[50271] = "Snare",	-- Tendon Rip (Hyena)
-	[90337] = "CC",		-- Bad Manner (Monkey)
-	[54706] = "Root",	-- Venom Web Spray (Silithid)
-	[4167]  = "Root",	-- Web (Spider)
+	[90337]  = "CC",		-- Bad Manner (Monkey)
+	[24394]  = "CC",		-- Intimidation
+	[50519]  = "CC",		-- Sonic Blast (Bat)
+	[56626]  = "CC",		-- Sting (Wasp)
+	[50541]  = "Disarm",		-- Clench (Scorpid)
+	[91644]  = "Disarm",		-- Snatch (Bird of Prey)
+	[50245]  = "Root",		-- Pin (Crab)
+	[54706]  = "Root",		-- Venom Web Spray (Silithid)
+	[4167]   = "Root",		-- Web (Spider)
+	[50433]  = "Snare",		-- Ankle Crack (Crocolisk)
+	[54644]  = "Snare",		-- Frost Breath (Chimaera)
+	[19574]  = "Immune",		-- Bestial Wrath
+	[54216]  = "Other",		-- Master's Call (root and snare immune only)
 	-- Mage
-	[44572] = "CC",		-- Deep Freeze
-	[31661] = "CC",		-- Dragon's Breath
-	[12355] = "CC",		-- Impact
-	[83047] = "CC",		-- Improved Polymorph
-	[118]   = "CC",		-- Polymorph
-	[82691] = "CC",		-- Ring of Frost
-	[18469] = "Silence",	-- Silenced - Improved Counterspell
-	[64346] = "Disarm",	-- Fiery Payback
-	[33395] = "Root",	-- Freeze (Water Elemental)
-	[122]   = "Root",	-- Frost Nova
-	[83302] = "Root",	-- Improved Cone of Cold
-	[55080] = "Root",	-- Shattered Barrier
-	[11113] = "Snare",	-- Blast Wave
-	[6136]  = "Snare",	-- Chilled (generic effect, used by lots of spells [looks weird on Improved Blizzard, might want to comment out])
-	[120]   = "Snare",	-- Cone of Cold
-	[116]   = "Snare",	-- Frostbolt
-	[44614] = "Snare",	-- Frostfire Bolt
-	[31589] = "Snare",	-- Slow
+	[118271] = "CC",		-- Combustion Impact
+	[44572]  = "CC",		-- Deep Freeze
+	[31661]  = "CC",		-- Dragon's Breath
+	[118]    = "CC",		-- Polymorph
+	[61305]  = "CC",		-- Polymorph: Black Cat
+	[28272]  = "CC",		-- Polymorph: Pig
+	[61721]  = "CC",		-- Polymorph: Rabbit
+	[61780]  = "CC",		-- Polymorph: Turkey
+	[28271]  = "CC",		-- Polymorph: Turtle
+	[82691]  = "CC",		-- Ring of Frost
+	[102051] = "Silence",		-- Frostjaw (also a root)
+	[55021]  = "Silence",		-- Silenced - Improved Counterspell
+	[122]    = "Root",		-- Frost Nova
+	[111340] = "Root",		-- Ice Ward
+	[11113]  = "Snare",		-- Blast Wave - gone?
+	[121288] = "Snare",		-- Chilled (Frost Armor)
+	[120]    = "Snare",		-- Cone of Cold
+	[116]    = "Snare",		-- Frostbolt
+	[44614]  = "Snare",		-- Frostfire Bolt
+	[113092] = "Snare",		-- Frost Bomb
+	[31589]  = "Snare",		-- Slow
+	[45438]  = "Immune",		-- Ice Block
+	[115760] = "ImmuneSpell",	-- Glyph of Ice Block
+	-- Mage Water Elemental
+	[33395]  = "Root",		-- Freeze
+	-- Monk
+	[123393] = "CC",		-- Breath of Fire (Glyph of Breath of Fire)
+	[126451] = "CC",		-- Clash
+	[122242] = "CC",		-- Clash (not sure which one is right)
+	[119392] = "CC",		-- Charging Ox Wave
+	[119381] = "CC",		-- Leg Sweep
+	[115078] = "CC",		-- Paralysis
+	[117368] = "Disarm",		-- Grapple Weapon
+	[116709] = "Silence",		-- Spear Hand Strike
+	[116706] = "Root",		-- Disable
+	[113275] = "Root",		-- Entangling Roots (Symbiosis)
+	[123407] = "Root",		-- Spinning Fire Blossom
+	[116095] = "Snare",		-- Disable
+	[118585] = "Snare",		-- Leer of the Ox
+	[123727] = "Snare",		-- Dizzying Haze
+	[123586] = "Snare",		-- Flying Serpent Kick
+	[131523] = "ImmuneSpell",	-- Zen Meditation
 	-- Paladin
-	[853]   = "CC",		-- Hammer of Justice
-	[2812]  = "CC",		-- Holy Wrath
-	[20066] = "CC",		-- Repentance
-	[10326] = "CC",		-- Turn Evil
-	[31935] = "Silence",	-- Avenger's Shield
-	[63529] = "Snare",	-- Dazed - Avenger's Shield
-	[20170] = "Snare",	-- Seal of Justice (100% movement snare; druids and shamans might want this though)
+	[105421] = "CC",		-- Blinding Light
+	[115752] = "CC",		-- Blinding Light (Glyph of Blinding Light)
+	[105593] = "CC",		-- Fist of Justice
+	[853]    = "CC",		-- Hammer of Justice
+	[119072] = "CC",		-- Holy Wrath
+	[20066]  = "CC",		-- Repentance
+	[10326]  = "CC",		-- Turn Evil
+	[31935]  = "Silence",		-- Avenger's Shield
+	[110300] = "Snare",		-- Burden of Guilt
+	[63529]  = "Snare",		-- Dazed - Avenger's Shield
+	[20170]  = "Snare",		-- Seal of Justice
+	[642]    = "Immune",		-- Divine Shield
+	[31821]  = "Other",		-- Aura Mastery
 	-- Priest
-	[605]   = "CC",		-- Mind Control
-	[64044] = "CC",		-- Psychic Horror
-	[8122]  = "CC",		-- Psychic Scream
-	[9484]  = "CC",		-- Shackle Undead
-	[87204] = "CC",		-- Sin and Punishment
-	[15487] = "Silence",	-- Silence
-	--[64058] = "Disarm",	-- Psychic Horror (duplicate debuff names not allowed atm, need to figure out how to support this later)
-	[87194] = "Root",	-- Paralysis
-	[15407] = "Snare",	-- Mind Flay
+	[113506] = "CC",		-- Cyclone (Symbiosis)
+	[605]    = "CC",		-- Dominate Mind
+	[64044]  = "CC",		-- Psychic Horror
+	[8122]   = "CC",		-- Psychic Scream
+	[113792] = "CC",		-- Psychic Terror (Psyfiend)
+	[9484]   = "CC",		-- Shackle Undead
+	[87204]  = "CC",		-- Sin and Punishment
+	[15487]  = "Silence",		-- Silence
+	[64058]  = "Disarm",		-- Psychic Horror
+	[113275] = "Root",		-- Entangling Roots (Symbiosis)
+	[87194]  = "Root",		-- Glyph of Mind Blast
+	[114404] = "Root",		-- Void Tendril's Grasp
+	[15407]  = "Snare",		-- Mind Flay
+	[47585]  = "Immune",		-- Dispersion
+	[114239] = "ImmuneSpell",	-- Phantasm
 	-- Rogue
-	[2094]  = "CC",		-- Blind
-	[1833]  = "CC",		-- Cheap Shot
-	[1776]  = "CC",		-- Gouge
-	[408]   = "CC",		-- Kidney Shot
-	[6770]  = "CC",		-- Sap
-	[76577] = "CC",		-- Smoke Bomb
-	[1330]  = "Silence",	-- Garrote - Silence
-	[18425] = "Silence",	-- Silenced - Improved Kick
-	[51722] = "Disarm",	-- Dismantle
-	[31125] = "Snare",	-- Blade Twisting
-	[3409]  = "Snare",	-- Crippling Poison
-	[26679] = "Snare",	-- Deadly Throw
+	[2094]   = "CC",		-- Blind
+	[1833]   = "CC",		-- Cheap Shot
+	[1776]   = "CC",		-- Gouge
+	[408]    = "CC",		-- Kidney Shot
+	[113953] = "CC",		-- Paralysis (Paralytic Poison)
+	[6770]   = "CC",		-- Sap
+	[1330]   = "Silence",		-- Garrote - Silence
+	[51722]  = "Disarm",		-- Dismantle
+	[115197] = "Root",		-- Partial Paralysis (is this actually used?)
+	[3409]   = "Snare",		-- Crippling Poison
+	[26679]  = "Snare",		-- Deadly Throw
+	[119696] = "Snare",		-- Debilitation
+	[31224]  = "ImmuneSpell",	-- Cloak of Shadows
+	[45182]  = "Other",		-- Cheating Death
+	[5277]   = "Other",		-- Evasion
+	--[76577]  = "Other",		-- Smoke Bomb
+	[88611]  = "Other",		-- Smoke Bomb
 	-- Shaman
-	[76780] = "CC",		-- Bind Elemental
-	[61882] = "CC",		-- Earthquake
-	[51514] = "CC",		-- Hex
-	[39796] = "CC",		-- Stoneclaw Stun
-	[64695] = "Root",	-- Earthgrab (Earth's Grasp)
-	[63685] = "Root",	-- Freeze (Frozen Power)
-	[3600]  = "Snare",	-- Earthbind (5 second duration per pulse, but will keep re-applying the debuff as long as you stand within the pulse radius)
-	[8056]  = "Snare",	-- Frost Shock
-	[8034]  = "Snare",	-- Frostbrand Attack
+	[76780]  = "CC",		-- Bind Elemental
+	[77505]  = "CC",		-- Earthquake
+	[51514]  = "CC",		-- Hex
+	[118905] = "CC",		-- Static Charge (Capacitor Totem)
+	[113287] = "Silence",		-- Solar Beam (Symbiosis)
+	[64695]  = "Root",		-- Earthgrab (Earthgrab Totem)
+	[63685]  = "Root",		-- Freeze (Frozen Power)
+	[3600]   = "Snare",		-- Earthbind (Earthbind Totem)
+	[77478]  = "Snare",		-- Earthquake (Glyph of Unstable Earth)
+	[8034]   = "Snare",		-- Frostbrand Attack
+	[8056]   = "Snare",		-- Frost Shock
+	[51490]  = "Snare",		-- Thunderstorm
+	[8178]   = "ImmuneSpell",	-- Grounding Totem Effect (Grounding Totem)
+	-- Shaman Primal Earth Elemental
+	[118345] = "CC",		-- Pulverize
 	-- Warlock
-	[93986] = "CC",		-- Aura of Foreboding
-	[89766] = "CC",		-- Axe Toss (Felguard)
-	[710]   = "CC",		-- Banish
-	[6789]  = "CC",		-- Death Coil
-	[54786] = "CC",		-- Demon Leap
-	[5782]  = "CC",		-- Fear
-	[5484]  = "CC",		-- Howl of Terror
-	[6358]  = "CC",		-- Seduction (Succubus)
-	[30283] = "CC",		-- Shadowfury
-	[24259] = "Silence",	-- Spell Lock (Felhunter)
-	[31117] = "Silence",	-- Unstable Affliction
-	--[93974] = "Root",	-- Aura of Foreboding (duplicate debuff names not allowed atm, need to figure out how to support this later)
-	[18118] = "Snare",	-- Aftermath
-	[18223] = "Snare",	-- Curse of Exhaustion
-	[63311] = "Snare",	-- Shadowsnare (Glyph of Shadowflame)
+	[710]    = "CC",		-- Banish
+	[111397] = "CC",		-- Blood Fear - is this actually used? please test
+	[54786]  = "CC",		-- Demonic Leap (Metamorphosis)
+	--[5782]   = "CC",		-- Fear
+	[118699] = "CC",		-- Fear
+	[5484]   = "CC",		-- Howl of Terror
+	[6789]   = "CC",		-- Mortal Coil
+	[30283]  = "CC",		-- Shadowfury
+	[104045] = "CC",		-- Sleep (Metamorphosis)
+	[31117]  = "Silence",		-- Unstable Affliction
+	[18223]  = "Snare",		-- Curse of Exhaustion
+	[47960]  = "Snare",		-- Shadowflame
+	[104773] = "Other",		-- Unending Resolve
+	-- Warlock Pets
+	[89766]  = "CC",		-- Axe Toss (Felguard/Wrathguard)
+	[115268] = "CC",		-- Mesmerize (Shivarra)
+	[6358]   = "CC",		-- Seduction (Succubus)
+	[24259]  = "Silence",		-- Spell Lock (Felhunter/Observer)
+	[118093] = "Disarm",		-- Disarm (Voidwalker/Voidlord)
 	-- Warrior
-	[7922]  = "CC",		-- Charge Stun
-	[12809] = "CC",		-- Concussion Blow
-	[6544]  = "CC",		-- Heroic Leap
-	[20253] = "CC",		-- Intercept
-	[5246]  = "CC",		-- Intimidating Shout
-	[46968] = "CC",		-- Shockwave
-	[85388] = "CC",		-- Throwdown
-	[18498] = "Silence",	-- Silenced - Gag Order
-	[676]   = "Disarm",	-- Disarm
-	[23694] = "Root",	-- Improved Hamstring
-	[1715]  = "Snare",	-- Hamstring
-	[12323] = "Snare",	-- Piercing Howl
+	[7922]   = "CC",		-- Charge Stun
+	--[96273]  = "CC",		-- Charge Stun?
+	[118895] = "CC",		-- Dragon Roar
+	[5246]   = "CC",		-- Intimidating Shout (Cowering in fear)
+	[20511]  = "CC",		-- Intimidating Shout (Cowering in fear)
+	--[97933]  = "CC",		-- Intimidating Shout (Cowering in fear) - used?
+	--[97934]  = "CC",		-- Intimidating Shout (Intimidated) - used?
+	--[46968]  = "CC",		-- Shockwave?
+	[132168] = "CC",		-- Shockwave
+	[105771] = "CC",		-- Warbringer
+	[18498]  = "Silence",		-- Silenced - Gag Order
+	[676]    = "Disarm",		-- Disarm
+	[107566] = "Root",		-- Staggering Shout
+	[1715]   = "Snare",		-- Hamstring
+	[12323]  = "Snare",		-- Piercing Howl
+	[46924]  = "Immune",		-- Bladestorm
+	[23920]  = "ImmuneSpell",	-- Spell Reflection
+	[114028] = "ImmuneSpell",	-- Mass Spell Reflection
+	[18499]  = "Other",		-- Berserker Rage
 	-- Other
-	[30217] = "CC",		-- Adamantite Grenade
-	[67769] = "CC",		-- Cobalt Frag Bomb
-	[30216] = "CC",		-- Fel Iron Bomb
-	[13327] = "CC",		-- Reckless Charge
-	[56]    = "CC",		-- Stun
-	[20549] = "CC",		-- War Stomp
-	[25046] = "Silence",	-- Arcane Torrent
-	[39965] = "Root",	-- Frost Grenade
-	[55536] = "Root",	-- Frostweave Net
-	[13099] = "Root",	-- Net-o-Matic
-	[29703] = "Snare",	-- Dazed
-	-- CC Immunities
-	[19574] = "Immune",	-- Bestial Wrath (Hunter pet)
-	[46924] = "Immune",	-- Bladestorm (Warrior)
-	[19263] = "Immune",	-- Deterrence [except aoe?] (Hunter)
-	[47585] = "Immune",	-- Dispersion (Priest)
-	[642]   = "Immune",	-- Divine Shield (Paladin)
-	[45438] = "Immune",	-- Ice Block (Mage)
-	--[54216] = "Immune",	-- Master's Call (Hunter pet + target, root and snare immune only)
-	-- Spell Immunities
-	[48707] = "ImmuneSpell",	-- Anti-magic Shell (Death Knight)
-	[31224] = "ImmuneSpell",	-- Cloak of Shadows (Rogue)
-	[8178]  = "ImmuneSpell",	-- Grounding Totem Effect [exept aoe] (Shaman)
-	[23920] = "ImmuneSpell",	-- Spell Reflection [except aoe] (Warrior)
-	-- Other Immunities - optional, not sure how to handle these; many have durations that are quite long
-	--[18499] = "ImmuneFearIncapacitate",	-- Berserker Rage (Warrior)
-	--[45182] = "ImmuneDamage",	-- Cheating Death [only 90% immune] (Rogue)
-	--[5277]  = "ImmuneMelee",	-- Evasion [only +50% immune to melee, +25% to ranged] (Rogue)
-	--[48792] = "ImmuneStun",	-- Icebound Fortitude [stuns] (Death Knight)
-	--[49039] = "ImmuneFearPoly",	-- Lichborne [charm, fear, sleep, hex, polymorph] (Death Knight)
-	--[51271] = "ImmuneMove",	-- Pillar of Frost (Death Knight)
+	[30217]  = "CC",		-- Adamantite Grenade
+	[67769]  = "CC",		-- Cobalt Frag Bomb
+	[30216]  = "CC",		-- Fel Iron Bomb
+	[107079] = "CC",		-- Quaking Palm
+	[13327]  = "CC",		-- Reckless Charge
+	[20549]  = "CC",		-- War Stomp
+	[25046]  = "Silence",		-- Arcane Torrent
+	[39965]  = "Root",		-- Frost Grenade
+	[55536]  = "Root",		-- Frostweave Net
+	[13099]  = "Root",		-- Net-o-Matic
+	[1604]   = "Snare",		-- Dazed - lots of daze effects. try to find the right one.
 	-- PvE
-	[11428] = "PvE",	-- Knockdown (generic)
-	[28169] = "PvE",	-- Mutating Injection (Grobbulus)
-	[28059] = "PvE",	-- Positive Charge (Thaddius)
-	[28084] = "PvE",	-- Negative Charge (Thaddius)
-	[27819] = "PvE",	-- Detonate Mana (Kel'Thuzad)
-	[63024] = "PvE",	-- Gravity Bomb (XT-002 Deconstructor)
-	[63018] = "PvE",	-- Light Bomb (XT-002 Deconstructor)
-	[62589] = "PvE",	-- Nature's Fury (Freya, via Ancient Conservator)
-	[63276] = "PvE",	-- Mark of the Faceless (General Vezax)
-	[66770] = "PvE",	-- Ferocious Butt (Icehowl)
+	--[123456]  = "PvE",		-- not real, just an example
 }
-local abilities = {} -- localized names are saved here
-for k, v in pairs(spellIds) do
-	local name = GetSpellInfo(k)
-	if name then
-		abilities[name] = v
-	else -- Thanks to inph for this idea. Keeps things from breaking when Blizzard changes things.
-		log(addonName .. " unknown spellId: " .. k)
-	end
-end
 
 -------------------------------------------------------------------------------
 -- Global references for attaching icons to various unit frames
@@ -214,6 +274,10 @@ local anchors = {
 		party2 = "PartyMemberFrame2Portrait",
 		party3 = "PartyMemberFrame3Portrait",
 		party4 = "PartyMemberFrame4Portrait",
+		--party1pet = "PartyMemberFrame1PetFramePortrait",
+		--party2pet = "PartyMemberFrame2PetFramePortrait",
+		--party3pet = "PartyMemberFrame3PetFramePortrait",
+		--party4pet = "PartyMemberFrame4PetFramePortrait",
 		arena1 = "ArenaEnemyFrame1ClassPortrait",
 		arena2 = "ArenaEnemyFrame2ClassPortrait",
 		arena3 = "ArenaEnemyFrame3ClassPortrait",
@@ -265,17 +329,18 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 4.3, -- This is the settings version, not necessarily the same as the LoseControl version
+	version = 5.0, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
-	tracking = { -- To Do: Priority
-		Immune		= false, --100
-		ImmuneSpell	= false, -- 90
-		CC		= true,  -- 80
-		PvE		= true,  -- 70
-		Silence		= true,  -- 60
-		Disarm		= true,  -- 50
-		Root		= false, -- 40
-		Snare		= false, -- 30
+	priority = {		-- higher numbers have more priority; 0 = disabled
+		PvE		= 90,
+		Immune		= 80,
+		ImmuneSpell	= 70,
+		CC		= 60,
+		Silence		= 50,
+		Disarm		= 40,
+		Other		= 0,
+		Root		= 0,
+		Snare		= 0,
 	},
 	frames = {
 		player = {
@@ -359,6 +424,10 @@ local DBdefaults = {
 	},
 }
 local LoseControlDB -- local reference to the addon settings. this gets initialized when the ADDON_LOADED event fires
+local LCframes = {} -- table that will hold all of our frame objects
+for k in pairs(DBdefaults.frames) do
+	LCframes[k] = {}
+end
 
 -------------------------------------------------------------------------------
 -- Create the main class
@@ -374,18 +443,8 @@ function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == addonName then
 		if _G.LoseControlDB and _G.LoseControlDB.version then
 			if _G.LoseControlDB.version < DBdefaults.version then
-				if _G.LoseControlDB.version == 4.1 then -- upgrade gracefully
-					_G.LoseControlDB.version = 4.3
-					_G.LoseControlDB.frames.pet = {
-						enabled = true,
-						size = 36,
-						alpha = 1,
-						anchor = "Blizzard",
-					}
-				else
-					_G.LoseControlDB = CopyTable(DBdefaults)
-					log(L["LoseControl reset."])
-				end
+				_G.LoseControlDB = CopyTable(DBdefaults)
+				log(L["LoseControl reset."])
 			end
 		else -- never installed before
 			_G.LoseControlDB = CopyTable(DBdefaults)
@@ -419,134 +478,135 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	self:Hide()
 end
 
-local WYVERN_STING = GetSpellInfo(19386)
-local PSYCHIC_HORROR = GetSpellInfo(64058)
-local UNSTABLE_AFFLICTION = GetSpellInfo(31117)
-local SMOKE_BOMB = GetSpellInfo(76577)
-local SOLAR_BEAM = GetSpellInfo(81261)
-local GROUNDING_TOTEM = GetSpellInfo(8178)
-local UnitDebuff = UnitDebuff
-local UnitBuff = UnitBuff
+local UnitAura = UnitAura
 local GetTime = GetTime
+--local UIFrameFadeOut = UIFrameFadeOut
+
+-- Check for (de)buffs and update the frame icon and cooldown
+function LoseControl:Update()
+	if self.frame.enabled and self.anchor:IsVisible() then
+
+		local unitId = self.unitId
+		local maxPriority = 1
+		local maxExpirationTime = 0
+		local priority = LoseControlDB.priority
+		local _, name, icon, Icon, duration, Duration, expirationTime, spellId, Priority
+
+		-- Check debuffs
+		for i = 1, 40 do
+			name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i, "HARMFUL")
+			if not spellId then break end -- no more debuffs, terminate the loop
+			if debug then log(unitId .. " debuff " .. i .. ") " .. name .. " | " .. expirationTime .. " | " .. spellId) end
+
+			-- exceptions
+			if spellId == 88611 and unitId ~= "player" then -- Smoke Bomb
+				expirationTime = GetTime() + 1 -- normal expirationTime = 0
+			elseif spellId == 81261  -- Solar Beam
+			    or spellId == 127797 -- Ursol's Vortex
+			then
+				expirationTime = GetTime() + 1 -- normal expirationTime = 0
+			end
+
+			Priority = priority[spellIds[spellId]]
+			if Priority then
+				if Priority == maxPriority and expirationTime > maxExpirationTime then
+					maxExpirationTime = expirationTime
+					Duration = duration
+					Icon = icon
+				elseif Priority > maxPriority then
+					maxPriority = Priority
+					maxExpirationTime = expirationTime
+					Duration = duration
+					Icon = icon
+				end
+			end
+		end
+
+		-- Check buffs
+		if unitId ~= "player" and (priority.Immune > 0 or priority.ImmuneSpell > 0 or priority.Other > 0) then
+			for i = 1, 40 do
+				name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
+				if not spellId then break end
+				if debug then log(unitId .. " buff " .. i .. ") " .. name .. " | " .. expirationTime .. " | " .. spellId) end
+
+				-- exceptions
+				if spellId == 8178 then -- Grounding Totem Effect
+					expirationTime = GetTime() + 15 -- hack, normal expirationTime = 0
+				end
+
+				Priority = priority[spellIds[spellId]]
+				if Priority then
+					if Priority == maxPriority and expirationTime > maxExpirationTime then
+						maxExpirationTime = expirationTime
+						Duration = duration
+						Icon = icon
+					elseif Priority > maxPriority then
+						maxPriority = Priority
+						maxExpirationTime = expirationTime
+						Duration = duration
+						Icon = icon
+					end
+				end
+			end
+		end
+
+		if maxExpirationTime == 0 then -- no (de)buffs found
+			self.maxExpirationTime = 0
+			if self.anchor ~= UIParent and self.drawlayer then
+				self.anchor:SetDrawLayer(self.drawlayer) -- restore the original draw layer
+			end
+			self:Hide()
+		elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
+			self.maxExpirationTime = maxExpirationTime
+			if self.anchor ~= UIParent then
+				self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()) -- must be dynamic, frame level changes all the time
+				if not self.drawlayer and self.anchor.GetDrawLayer then
+					self.drawlayer = self.anchor:GetDrawLayer() -- back up the current draw layer
+				end
+				if self.drawlayer and self.anchor.SetDrawLayer then
+					self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
+				end
+			end
+			if self.frame.anchor == "Blizzard" then
+				SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits. TO DO: mask the cooldown frame somehow so the corners don't stick out of the portrait frame. Maybe apply a circular alpha mask in the OVERLAY draw layer.
+			else
+				self.texture:SetTexture(Icon)
+			end
+			self:Show()
+			if Duration > 0 then
+				self:SetCooldown( maxExpirationTime - Duration, Duration )
+			end
+			--UIFrameFadeOut(self, Duration, self.frame.alpha, 0)
+			self:SetAlpha(self.frame.alpha) -- hack to apply transparency to the cooldown timer
+		end
+	end
+end
 
 -- This is the main event
 function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
-	if unitId ~= self.unitId or not self.frame.enabled or not self.anchor:IsVisible() then return end
-
-	local maxExpirationTime = 0
-	local _, name, icon, Icon, duration, Duration, expirationTime, wyvernsting
-
-	for i = 1, 40 do
-		name, _, icon, _, _, duration, expirationTime = UnitDebuff(unitId, i)
-		if not name then break end -- no more debuffs, terminate the loop
-		--log(i .. ") " .. name .. " | " .. rank .. " | " .. icon .. " | " .. count .. " | " .. debuffType .. " | " .. duration .. " | " .. expirationTime )
-
-		-- exceptions
-		if name == WYVERN_STING then
-			wyvernsting = 1
-			if not self.wyvernsting then
-				self.wyvernsting = 1 -- this is the first time the debuff has been applied
-			elseif expirationTime > self.wyvernsting_expirationTime then
-				self.wyvernsting = 2 -- this is the second time the debuff has been applied
-			end
-			self.wyvernsting_expirationTime = expirationTime
-			if self.wyvernsting == 2 then
-				name = nil -- hack to skip the next if condition since LUA doesn't have a "continue" statement
-			end
-		elseif (name == PSYCHIC_HORROR and icon ~= "Interface\\Icons\\Spell_Shadow_PsychicHorrors") or -- hack to remove Psychic Horror disarm effect
-			(name == UNSTABLE_AFFLICTION and icon ~= "Interface\\Icons\\Spell_Holy_Silence") then
-			name = nil
-		elseif name == SMOKE_BOMB then
-			expirationTime = GetTime() + 5 -- hack, normal expirationTime = 0
-		elseif name == SOLAR_BEAM then
-			expirationTime = GetTime() + 10 -- hack, normal expirationTime = 0
-		end
-
-		if expirationTime > maxExpirationTime and LoseControlDB.tracking[abilities[name]] then
-			maxExpirationTime = expirationTime
-			Duration = duration
-			Icon = icon
-		end
-	end
-
-	-- continue hack for Wyvern Sting
-	if self.wyvernsting == 2 and not wyvernsting then -- dot either removed or expired
-		self.wyvernsting = nil
-	end
-
-	-- Track Immunities
-	local Immune = LoseControlDB.tracking.Immune
-	local ImmuneSpell = LoseControlDB.tracking.ImmuneSpell
-	if (Immune or ImmuneSpell) and unitId ~= "player" then
-		for i = 1, 40 do
-			name, _, icon, _, _, duration, expirationTime = UnitBuff(unitId, i)
-			if not name then break end
-
-			-- exceptions
-			if name == GROUNDING_TOTEM then
-				expirationTime = GetTime() + 45 -- hack, normal expirationTime = 0
-			end
-
-			if expirationTime > maxExpirationTime and (
-				(Immune and abilities[name] == "Immune") or
-				(ImmuneSpell and abilities[name] == "ImmuneSpell")
-			) then
-				maxExpirationTime = expirationTime
-				Duration = duration
-				Icon = icon
-			end
-		end
-	end
-
-	if maxExpirationTime == 0 then -- no (de)buffs found
-		self.maxExpirationTime = 0
-		if self.anchor ~= UIParent and self.drawlayer then
-			self.anchor:SetDrawLayer(self.drawlayer) -- restore the original draw layer
-		end
-		self:Hide()
-	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
-		self.maxExpirationTime = maxExpirationTime
-		if self.anchor ~= UIParent then
-			self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()) -- must be dynamic, frame level changes all the time
-			if not self.drawlayer and self.anchor.GetDrawLayer then
- 				self.drawlayer = self.anchor:GetDrawLayer() -- back up the current draw layer
- 			end
-			if self.drawlayer and self.anchor.SetDrawLayer then
-				self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
-			end
-		end
-		if self.frame.anchor == "Blizzard" then
-			SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits. TO DO: mask the cooldown frame somehow so the corners don't stick out of the portrait frame. Maybe apply a circular alpha mask in the OVERLAY draw layer.
-		else
-			self.texture:SetTexture(Icon)
-		end
-		self:Show()
-		if Duration > 0 then
-			self:SetCooldown( maxExpirationTime - Duration, Duration )
-		end
-		self:SetAlpha(self.frame.alpha) -- hack to apply transparency to the cooldown timer
+	if LCframes[unitId] then
+		LCframes[unitId]:Update() -- dispatch the update to the proper frame.
 	end
 end
+LoseControl:RegisterEvent("UNIT_AURA")
 
 function LoseControl:PLAYER_FOCUS_CHANGED()
-	self:UNIT_AURA("focus")
+	LCframes.focus:Update()
 end
+LoseControl:RegisterEvent("PLAYER_FOCUS_CHANGED")
 
 function LoseControl:PLAYER_TARGET_CHANGED()
-	self:UNIT_AURA("target")
+	LCframes.target:Update()
 end
+LoseControl:RegisterEvent("PLAYER_TARGET_CHANGED")
 
-local UnitDropDown -- declared here, initialized below in the options panel code
-local AnchorDropDown
+
 -- Handle mouse dragging
 function LoseControl:StopMoving()
 	local frame = self.frame --LoseControlDB.frames[self.unitId]
 	frame.point, frame.anchor, frame.relativePoint, frame.x, frame.y = self:GetPoint()
 	if not frame.anchor then
 		frame.anchor = "None"
-		if UIDropDownMenu_GetSelectedValue(UnitDropDown) == self.unitId then
-			UIDropDownMenu_SetSelectedValue(AnchorDropDown, "None") -- update the drop down to show that the frame has been detached from the anchor
-		end
 	end
 	self.anchor = _G[anchors[frame.anchor][self.unitId]] or UIParent
 	self:StopMovingOrSizing()
@@ -564,12 +624,18 @@ function LoseControl:new(unitId)
 	o.texture:SetAllPoints(o) -- anchor the texture to the frame
 	o:SetReverse(true) -- makes the cooldown shade from light to dark instead of dark to light
 
-	--[[ Rufio's code to make the frame border pretty. Maybe use this somehow to mask cooldown corners in Blizzard frames.
-	o.overlay = o:CreateTexture(nil, "OVERLAY");
-	o.overlay:SetTexture("Interface\\AddOns\\LoseControl\\gloss");
-	o.overlay:SetPoint("TOPLEFT", -1, 1);
-	o.overlay:SetPoint("BOTTOMRIGHT", 1, -1);
-	o.overlay:SetVertexColor(0.25, 0.25, 0.25);]]
+	--o.region = o:CreateTitleRegion() -- Create a title region for dragging the frame. Only works if the frame is mouse enabled.
+
+	-- Rufio's code to make the frame border pretty. Maybe use this somehow to mask cooldown corners in Blizzard frames.
+	--o.overlay = o:CreateTexture(nil, "OVERLAY") -- displays the alpha mask for making rounded corners
+	--o.overlay:SetTexture("\\MINIMAP\UI-Minimap-Background")
+	--o.overlay:SetTexture("Interface\\AddOns\\LoseControl\\gloss")
+	--SetPortraitToTexture(o.overlay, "Textures\\MinimapMask")
+	--o.overlay:SetBlendMode("BLEND") -- maybe ALPHAKEY or ADD?
+	--o.overlay:SetAllPoints(o) -- anchor the texture to the frame
+	--o.overlay:SetPoint("TOPLEFT", -1, 1)
+	--o.overlay:SetPoint("BOTTOMRIGHT", 1, -1)
+	--o.overlay:SetVertexColor(0.25, 0.25, 0.25)
 	o:Hide()
 
 	-- Handle events
@@ -577,20 +643,13 @@ function LoseControl:new(unitId)
 	o:SetScript("OnDragStart", self.StartMoving) -- this function is already built into the Frame class
 	o:SetScript("OnDragStop", self.StopMoving) -- this is a custom function
 	o:RegisterEvent("PLAYER_ENTERING_WORLD")
-	o:RegisterEvent("UNIT_AURA")
-	if unitId == "focus" then
-		o:RegisterEvent("PLAYER_FOCUS_CHANGED")
-	elseif unitId == "target" then
-		o:RegisterEvent("PLAYER_TARGET_CHANGED")
-	end
 
 	return o
 end
 
 -- Create new object instance for each frame
-local LC = {}
 for k in pairs(DBdefaults.frames) do
-	LC[k] = LoseControl:new(k)
+	LCframes[k] = LoseControl:new(k)
 end
 
 -------------------------------------------------------------------------------
@@ -620,12 +679,12 @@ function Unlock:OnClick()
 		for k in pairs(spellIds) do
 			tinsert(keys, k)
 		end
-		for k, v in pairs(LC) do
+		LoseControl:UnregisterEvent("UNIT_AURA")
+		LoseControl:UnregisterEvent("PLAYER_FOCUS_CHANGED")
+		LoseControl:UnregisterEvent("PLAYER_TARGET_CHANGED")
+		for k, v in pairs(LCframes) do
 			local frame = LoseControlDB.frames[k]
 			if frame.enabled and (_G[anchors[frame.anchor][k]] or frame.anchor == "None") then -- only unlock frames whose anchor exists
-				v:UnregisterEvent("UNIT_AURA")
-				v:UnregisterEvent("PLAYER_FOCUS_CHANGED")
-				v:UnregisterEvent("PLAYER_TARGET_CHANGED")
 				v:SetMovable(true)
 				v:RegisterForDrag("LeftButton")
 				v:EnableMouse(true)
@@ -642,19 +701,15 @@ function Unlock:OnClick()
 		end
 	else
 		_G[O.."UnlockText"]:SetText(L["Unlock"])
-		for k, v in pairs(LC) do
-			--local frame = LoseControlDB.frames[k]
-			v:RegisterEvent("UNIT_AURA")
-			if k == "focus" then
-				v:RegisterEvent("PLAYER_FOCUS_CHANGED")
-			elseif k == "target" then
-				v:RegisterEvent("PLAYER_TARGET_CHANGED")
-			end
+		LoseControl:RegisterEvent("UNIT_AURA")
+		LoseControl:RegisterEvent("PLAYER_FOCUS_CHANGED")
+		LoseControl:RegisterEvent("PLAYER_TARGET_CHANGED")
+		for k, v in pairs(LCframes) do
 			v:SetMovable(false)
 			v:RegisterForDrag()
 			v:EnableMouse(false)
 			v:SetParent(v.anchor:GetParent()) -- or UIParent)
-			--v:SetFrameStrata(frame.strata or "LOW")
+			--v:SetFrameStrata(LoseControlDB.frames[k].strata or "LOW")
 			v:Hide()
 		end
 	end
@@ -662,63 +717,81 @@ end
 Unlock:SetScript("OnClick", Unlock.OnClick)
 
 local DisableCooldownCount = CreateFrame("CheckButton", O.."DisableCooldownCount", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."DisableCooldownCountText"]:SetText(L["Disable OmniCC/CooldownCount Support"])
+_G[O.."DisableCooldownCountText"]:SetText(L["Disable OmniCC Support"])
 DisableCooldownCount:SetScript("OnClick", function(self)
 	LoseControlDB.noCooldownCount = self:GetChecked()
 	LoseControl.noCooldownCount = LoseControlDB.noCooldownCount
 end)
 
-local Tracking = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-Tracking:SetText(L["Tracking"])
+local Priority = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+Priority:SetText(L["Priority"])
 
-local TrackCCs = CreateFrame("CheckButton", O.."TrackCCs", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackCCsText"]:SetText(L["CC"])
-TrackCCs:SetScript("OnClick", function(self)
-	LoseControlDB.tracking.CC = self:GetChecked()
-end)
+local PriorityDescription = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+PriorityDescription:SetText(L["PriorityDescription"])
 
-local TrackSilences = CreateFrame("CheckButton", O.."TrackSilences", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackSilencesText"]:SetText(L["Silence"])
-TrackSilences:SetScript("OnClick", function(self)
-	LoseControlDB.tracking.Silence = self:GetChecked()
-end)
+-------------------------------------------------------------------------------
+-- Slider helper function, thanks to Kollektiv
+local function CreateSlider(text, parent, low, high, step)
+	local name = parent:GetName() .. text
+	local slider = CreateFrame("Slider", name, parent, "OptionsSliderTemplate")
+	slider:SetWidth(160)
+	slider:SetMinMaxValues(low, high)
+	slider:SetValueStep(step)
+	--_G[name .. "Text"]:SetText(text)
+	_G[name .. "Low"]:SetText(low)
+	_G[name .. "High"]:SetText(high)
+	return slider
+end
 
-local TrackDisarms = CreateFrame("CheckButton", O.."TrackDisarms", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackDisarmsText"]:SetText(L["Disarm"])
-TrackDisarms:SetScript("OnClick", function(self)
-	LoseControlDB.tracking.Disarm = self:GetChecked()
-end)
+local PrioritySlider = {}
+for k in pairs(DBdefaults.priority) do
+	PrioritySlider[k] = CreateSlider(L[k], OptionsPanel, 0, 100, 10)
+	PrioritySlider[k]:SetScript("OnValueChanged", function(self, value)
+		_G[self:GetName() .. "Text"]:SetText(L[k] .. " (" .. value .. ")")
+		LoseControlDB.priority[k] = value
+	end)
+end
 
-local TrackRoots = CreateFrame("CheckButton", O.."TrackRoots", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackRootsText"]:SetText(L["Root"])
-TrackRoots:SetScript("OnClick", function(self)
-	LoseControlDB.tracking.Root = self:GetChecked()
-end)
+-------------------------------------------------------------------------------
+-- Arrange all the options neatly
+title:SetPoint("TOPLEFT", 16, -16)
+subText:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
 
-local TrackSnares = CreateFrame("CheckButton", O.."TrackSnares", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackSnaresText"]:SetText(L["Snare"])
-TrackSnares:SetScript("OnClick", function(self)
-	LoseControlDB.tracking.Snare = self:GetChecked()
-end)
+Unlock:SetPoint("TOPLEFT", subText, "BOTTOMLEFT", 0, -16)
+DisableCooldownCount:SetPoint("TOPLEFT", Unlock, "BOTTOMLEFT", 0, -2)
 
-local TrackImmune = CreateFrame("CheckButton", O.."TrackImmune", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackImmuneText"]:SetText(L["Immune"])
-TrackImmune:SetScript("OnClick", function(self)
-	LoseControlDB.tracking.Immune = self:GetChecked()
-end)
+Priority:SetPoint("TOPLEFT", DisableCooldownCount, "BOTTOMLEFT", 0, -12)
+PriorityDescription:SetPoint("TOPLEFT", Priority, "BOTTOMLEFT", 0, -8)
+PrioritySlider.PvE:SetPoint("TOPLEFT", PriorityDescription, "BOTTOMLEFT", 0, -24)
+PrioritySlider.Immune:SetPoint("TOPLEFT", PrioritySlider.PvE, "BOTTOMLEFT", 0, -24)
+PrioritySlider.ImmuneSpell:SetPoint("TOPLEFT", PrioritySlider.Immune, "BOTTOMLEFT", 0, -24)
+PrioritySlider.CC:SetPoint("TOPLEFT", PrioritySlider.ImmuneSpell, "BOTTOMLEFT", 0, -24)
+PrioritySlider.Silence:SetPoint("TOPLEFT", PrioritySlider.CC, "BOTTOMLEFT", 0, -24)
+PrioritySlider.Disarm:SetPoint("TOPLEFT", PrioritySlider.Silence, "BOTTOMLEFT", 0, -24)
+PrioritySlider.Root:SetPoint("TOPLEFT", PrioritySlider.Disarm, "BOTTOMLEFT", 0, -24)
+PrioritySlider.Snare:SetPoint("TOPLEFT", PrioritySlider.Root, "BOTTOMLEFT", 0, -24)
+PrioritySlider.Other:SetPoint("TOPLEFT", PrioritySlider.Snare, "BOTTOMLEFT", 0, -24)
 
-local TrackImmuneSpell = CreateFrame("CheckButton", O.."TrackImmuneSpell", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackImmuneSpellText"]:SetText(L["Immune to Spells"])
-TrackImmuneSpell:SetScript("OnClick", function(self)
-	LoseControlDB.tracking.ImmuneSpell = self:GetChecked()
-end)
+-------------------------------------------------------------------------------
+OptionsPanel.default = function() -- This method will run when the player clicks "defaults".
+	_G.LoseControlDB = nil
+	LoseControl:ADDON_LOADED(addonName)
+	for _, v in pairs(LCframes) do
+		v:PLAYER_ENTERING_WORLD()
+	end
+end
 
-local TrackPvE = CreateFrame("CheckButton", O.."TrackPvE", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackPvEText"]:SetText(L["PvE"])
-TrackPvE:SetScript("OnClick", function(self)
-	LoseControlDB.tracking.PvE = self:GetChecked()
-end)
+OptionsPanel.refresh = function() -- This method will run when the Interface Options frame calls its OnShow function and after defaults have been applied via the panel.default method described above.
+	DisableCooldownCount:SetChecked(LoseControlDB.noCooldownCount)
+	local priority = LoseControlDB.priority
+	for k in pairs(priority) do
+		PrioritySlider[k]:SetValue(priority[k])
+	end
+end
 
+InterfaceOptions_AddCategory(OptionsPanel)
+
+--[[
 -------------------------------------------------------------------------------
 -- DropDownMenu helper function
 local info = UIDropDownMenu_CreateInfo()
@@ -731,27 +804,13 @@ local function AddItem(owner, text, value)
 	UIDropDownMenu_AddButton(info)
 end
 
-local UnitDropDownLabel = OptionsPanel:CreateFontString(O.."UnitDropDownLabel", "ARTWORK", "GameFontNormal")
-UnitDropDownLabel:SetText(L["Unit Configuration"])
-UnitDropDown = CreateFrame("Frame", O.."UnitDropDown", OptionsPanel, "UIDropDownMenuTemplate")
-function UnitDropDown:OnClick()
-	UIDropDownMenu_SetSelectedValue(UnitDropDown, self.value)
-	OptionsPanel.refresh() -- easy way to update all the other controls
-end
-UIDropDownMenu_Initialize(UnitDropDown, function() -- sets the initialize function and calls it
-	for _, v in ipairs({ "player", "pet", "target", "focus", "party1", "party2", "party3", "party4", "arena1", "arena2", "arena3", "arena4", "arena5" }) do -- indexed manually so they appear in order
-		AddItem(UnitDropDown, L[v], v)
-	end
-end)
-UIDropDownMenu_SetSelectedValue(UnitDropDown, "player") -- set the initial drop down choice
-
 local AnchorDropDownLabel = OptionsPanel:CreateFontString(O.."AnchorDropDownLabel", "ARTWORK", "GameFontNormal")
 AnchorDropDownLabel:SetText(L["Anchor"])
 AnchorDropDown = CreateFrame("Frame", O.."AnchorDropDown", OptionsPanel, "UIDropDownMenuTemplate")
 function AnchorDropDown:OnClick()
 	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
 	local frame = LoseControlDB.frames[unit]
-	local icon = LC[unit]
+	local icon = LCframes[unit]
 
 	UIDropDownMenu_SetSelectedValue(AnchorDropDown, self.value)
 	frame.anchor = self.value
@@ -761,9 +820,9 @@ function AnchorDropDown:OnClick()
 		frame.x = nil
 		frame.y = nil
 	end
-
-	icon.anchor = _G[anchors[frame.anchor][unit]] or UIParent
-
+]]
+--	icon.anchor = _G[anchors[frame.anchor][unit]] or UIParent
+--[[
 	if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
 		icon:SetParent(icon.anchor:GetParent())
 	end
@@ -781,174 +840,178 @@ function AnchorDropDown:initialize() -- called from OptionsPanel.refresh() and e
 	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
 	AddItem(self, L["None"], "None")
 	AddItem(self, "Blizzard", "Blizzard")
-	if _G[anchors["Perl"][unit]] then AddItem(self, "Perl", "Perl") end
-	if _G[anchors["XPerl"][unit]] then AddItem(self, "XPerl", "XPerl") end
-	if _G[anchors["LUI"][unit]] then AddItem(self, "LUI", "LUI") end
+]]
+--	if _G[anchors["Perl"][unit]] then AddItem(self, "Perl", "Perl") end
+--	if _G[anchors["XPerl"][unit]] then AddItem(self, "XPerl", "XPerl") end
+--	if _G[anchors["LUI"][unit]] then AddItem(self, "LUI", "LUI") end
+--[[
 end
+]]
 
-local StrataDropDownLabel = OptionsPanel:CreateFontString(O.."StrataDropDownLabel", "ARTWORK", "GameFontNormal")
-StrataDropDownLabel:SetText(L["Strata"])
-local StrataDropDown = CreateFrame("Frame", O.."StrataDropDown", OptionsPanel, "UIDropDownMenuTemplate")
-function StrataDropDown:OnClick()
-	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
-	UIDropDownMenu_SetSelectedValue(StrataDropDown, self.value)
-	LoseControlDB.frames[unit].strata = self.value
-	LC[unit]:SetFrameStrata(self.value)
-end
-function StrataDropDown:initialize() -- called from OptionsPanel.refresh() and every time the drop down menu is opened
-	for _, v in ipairs({ "HIGH", "MEDIUM", "LOW", "BACKGROUND" }) do -- indexed manually so they appear in order
-		AddItem(self, v, v)
+-------------------------------------------------------------------------------
+-- Create sub-option frames
+for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
+	local OptionsPanelFrame = CreateFrame("Frame", O .. v)
+	OptionsPanelFrame.parent = addonName
+	OptionsPanelFrame.name = L[v]
+
+	local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanelFrame, 16, 512, 4)
+	SizeSlider:SetScript("OnValueChanged", function(self, value)
+		_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
+		local frames = { v }
+		if v == "party" then
+			frames = { "party1", "party2", "party3", "party4" }
+		elseif v == "arena" then
+			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+		end
+		for _, frame in ipairs(frames) do
+			LoseControlDB.frames[frame].size = value
+			LCframes[frame]:SetWidth(value)
+			LCframes[frame]:SetHeight(value)
+		end
+	end)
+
+	local AlphaSlider = CreateSlider(L["Opacity"], OptionsPanelFrame, 0, 100, 5) -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
+	AlphaSlider:SetScript("OnValueChanged", function(self, value)
+		_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
+		local frames = { v }
+		if v == "party" then
+			frames = { "party1", "party2", "party3", "party4" }
+		elseif v == "arena" then
+			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+		end
+		for _, frame in ipairs(frames) do
+			LoseControlDB.frames[frame].alpha = value / 100 -- the real alpha value
+			LCframes[frame]:SetAlpha(value / 100)
+		end
+	end)
+
+	local Enabled = CreateFrame("CheckButton", O .. v .."Enabled", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+	_G[O..v.."EnabledText"]:SetText(L["Enabled"])
+	Enabled:SetScript("OnClick", function(self)
+		local enabled = self:GetChecked()
+		if enabled then
+			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
+			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
+		else
+			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
+			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
+		end
+		local frames = { v }
+		if v == "party" then
+			frames = { "party1", "party2", "party3", "party4" }
+		elseif v == "arena" then
+			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+		end
+		for _, frame in ipairs(frames) do
+			LoseControlDB.frames[frame].enabled = enabled
+		end
+	end)
+
+	Enabled:SetPoint("TOPLEFT", 16, -32)
+	SizeSlider:SetPoint("TOPLEFT", Enabled, "BOTTOMLEFT", 0, -32)
+	AlphaSlider:SetPoint("TOPLEFT", SizeSlider, "BOTTOMLEFT", 0, -32)
+	--AnchorDropDownLabel:SetPoint("TOPLEFT", UnitDropDown, "BOTTOMLEFT", 0, -12)
+	--AnchorDropDown:SetPoint("TOPLEFT", AnchorDropDownLabel, "BOTTOMLEFT", 0, -8)
+
+	OptionsPanelFrame.default = OptionsPanel.default
+	OptionsPanelFrame.refresh = function()
+		local frame = v
+		if frame == "party" then frame = "party1"
+		elseif frame == "arena" then frame = "arena1"
+		end
+		frame = LoseControlDB.frames[frame]
+		Enabled:SetChecked(frame.enabled)
+		if frame.enabled then
+			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
+			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
+		else
+			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
+			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
+		end
+		SizeSlider:SetValue(frame.size)
+		AlphaSlider:SetValue(frame.alpha * 100)
 	end
+
+	InterfaceOptions_AddCategory(OptionsPanelFrame)
 end
-
--------------------------------------------------------------------------------
--- Slider helper function, thanks to Kollektiv
-local function CreateSlider(text, parent, low, high, step)
-	local name = parent:GetName() .. text
-	local slider = CreateFrame("Slider", name, parent, "OptionsSliderTemplate")
-	slider:SetWidth(160)
-	slider:SetMinMaxValues(low, high)
-	slider:SetValueStep(step)
-	--_G[name .. "Text"]:SetText(text)
-	_G[name .. "Low"]:SetText(low)
-	_G[name .. "High"]:SetText(high)
-	return slider
-end
-
-local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanel, 16, 512, 4)
-SizeSlider:SetScript("OnValueChanged", function(self, value)
-	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
-	_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
-	LoseControlDB.frames[unit].size = value
-	LC[unit]:SetWidth(value)
-	LC[unit]:SetHeight(value)
-end)
-
-local AlphaSlider = CreateSlider(L["Opacity"], OptionsPanel, 0, 100, 5) -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
-AlphaSlider:SetScript("OnValueChanged", function(self, value)
-	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
-	_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
-	LoseControlDB.frames[unit].alpha = value / 100 -- the real alpha value
-	LC[unit]:SetAlpha(value / 100)
-end)
-
--------------------------------------------------------------------------------
--- Defined last because it references earlier declared variables
-local Enabled = CreateFrame("CheckButton", O.."Enabled", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."EnabledText"]:SetText(L["Enabled"])
-function Enabled:OnClick()
-	local enabled = self:GetChecked()
-	LoseControlDB.frames[UIDropDownMenu_GetSelectedValue(UnitDropDown)].enabled = enabled
-	if enabled then
-		UIDropDownMenu_EnableDropDown(AnchorDropDown)
-		UIDropDownMenu_EnableDropDown(StrataDropDown)
-		BlizzardOptionsPanel_Slider_Enable(SizeSlider)
-		BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
-	else
-		UIDropDownMenu_DisableDropDown(AnchorDropDown)
-		UIDropDownMenu_DisableDropDown(StrataDropDown)
-		BlizzardOptionsPanel_Slider_Disable(SizeSlider)
-		BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
-	end
-end
-Enabled:SetScript("OnClick", Enabled.OnClick)
-
--------------------------------------------------------------------------------
--- Arrange all the options neatly
-title:SetPoint("TOPLEFT", 16, -16)
-subText:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
-
-Unlock:SetPoint("TOPLEFT", subText, "BOTTOMLEFT", 0, -16)
-DisableCooldownCount:SetPoint("TOPLEFT", Unlock, "BOTTOMLEFT", 0, -2)
-
-Tracking:SetPoint("TOPLEFT", DisableCooldownCount, "BOTTOMLEFT", 0, -12)
-TrackCCs:SetPoint("TOPLEFT", Tracking, "BOTTOMLEFT", 0, -4)
-TrackSilences:SetPoint("TOPLEFT", TrackCCs, "TOPRIGHT", 100, 0)
-TrackDisarms:SetPoint("TOPLEFT", TrackSilences, "TOPRIGHT", 100, 0)
-TrackRoots:SetPoint("TOPLEFT", TrackCCs, "BOTTOMLEFT", 0, -2)
-TrackSnares:SetPoint("TOPLEFT", TrackSilences, "BOTTOMLEFT", 0, -2)
-TrackImmune:SetPoint("TOPLEFT", TrackDisarms, "BOTTOMLEFT", 0, -2)
-TrackImmuneSpell:SetPoint("TOPLEFT", TrackImmune, "BOTTOMLEFT", 0, -2)
-TrackPvE:SetPoint("TOPLEFT", TrackRoots, "BOTTOMLEFT", 0, -2)
-
-UnitDropDownLabel:SetPoint("TOPLEFT", TrackPvE, "BOTTOMLEFT", 0, -12)
-UnitDropDown:SetPoint("TOPLEFT", UnitDropDownLabel, "BOTTOMLEFT", 0, -8)	Enabled:SetPoint("TOPLEFT", UnitDropDownLabel, "BOTTOMLEFT", 200, -8)
-
-AnchorDropDownLabel:SetPoint("TOPLEFT", UnitDropDown, "BOTTOMLEFT", 0, -12)	--StrataDropDownLabel:SetPoint("TOPLEFT", UnitDropDown, "BOTTOMLEFT", 200, -12)
-AnchorDropDown:SetPoint("TOPLEFT", AnchorDropDownLabel, "BOTTOMLEFT", 0, -8)	--StrataDropDown:SetPoint("TOPLEFT", StrataDropDownLabel, "BOTTOMLEFT", 0, -8)
-
-SizeSlider:SetPoint("TOPLEFT", AnchorDropDown, "BOTTOMLEFT", 0, -24)		AlphaSlider:SetPoint("TOPLEFT", AnchorDropDown, "BOTTOMLEFT", 200, -24)
-
--------------------------------------------------------------------------------
-OptionsPanel.default = function() -- This method will run when the player clicks "defaults".
-	_G.LoseControlDB = nil
-	LoseControl:ADDON_LOADED(addonName)
-	for _, v in pairs(LC) do
-		v:PLAYER_ENTERING_WORLD()
-	end
-end
-
-OptionsPanel.refresh = function() -- This method will run when the Interface Options frame calls its OnShow function and after defaults have been applied via the panel.default method described above, and after the Unit Configuration dropdown is changed.
-	local tracking = LoseControlDB.tracking
-	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
-	local frame = LoseControlDB.frames[unit]
-	DisableCooldownCount:SetChecked(LoseControlDB.noCooldownCount)
-	TrackCCs:SetChecked(tracking.CC)
-	TrackSilences:SetChecked(tracking.Silence)
-	TrackDisarms:SetChecked(tracking.Disarm)
-	TrackRoots:SetChecked(tracking.Root)
-	TrackSnares:SetChecked(tracking.Snare)
-	TrackImmune:SetChecked(tracking.Immune)
-	TrackImmuneSpell:SetChecked(tracking.ImmuneSpell)
-	TrackPvE:SetChecked(tracking.PvE)
-	Enabled:SetChecked(frame.enabled)
-	Enabled:OnClick()
-	AnchorDropDown:initialize()
-	UIDropDownMenu_SetSelectedValue(AnchorDropDown, frame.anchor)
-	StrataDropDown:initialize()
-	UIDropDownMenu_SetSelectedValue(StrataDropDown, frame.strata or "LOW")
-	SizeSlider:SetValue(frame.size)
-	AlphaSlider:SetValue(frame.alpha * 100)
-end
-
-InterfaceOptions_AddCategory(OptionsPanel)
 
 -------------------------------------------------------------------------------
 SLASH_LoseControl1 = "/lc"
 SLASH_LoseControl2 = "/losecontrol"
 SlashCmdList[addonName] = function(cmd)
-	cmd = cmd:lower()
-	if cmd == "reset" then
+	local args = {}
+	for word in cmd:lower():gmatch("%S+") do
+		tinsert(args, word)
+	end
+	if args[1] == "debug" and args[2] == "on" then
+		debug = true
+		log(addonName .. ": debugging enabled")
+	elseif args[1] == "debug" and args[2] == "off" then
+		debug = false
+		log(addonName .. ": debugging disabled")
+	elseif args[1] == "reset" then
 		OptionsPanel.default()
 		OptionsPanel.refresh()
-	elseif cmd == "lock" then
+	elseif args[1] == "lock" then
 		Unlock:SetChecked(false)
 		Unlock:OnClick()
 		log(addonName .. " locked.")
-	elseif cmd == "unlock" then
+	elseif args[1] == "unlock" then
 		Unlock:SetChecked(true)
 		Unlock:OnClick()
 		log(addonName .. " unlocked.")
-	elseif cmd:sub(1, 6) == "enable" then
-		local unit = cmd:sub(8, 14)
+	elseif args[1] == "enable" then
+		local unit = args[2]
 		if LoseControlDB.frames[unit] then
 			LoseControlDB.frames[unit].enabled = true
 			log(addonName .. ": " .. unit .. " frame enabled.")
 		end
-	elseif cmd:sub(1, 7) == "disable" then
-		local unit = cmd:sub(9, 15)
+	elseif args[1] == "disable" then
+		local unit = args[2]
 		if LoseControlDB.frames[unit] then
 			LoseControlDB.frames[unit].enabled = false
 			log(addonName .. ": " .. unit .. " frame disabled.")
 		end
-	elseif cmd:sub(1, 4) == "help" then
+--[[	elseif args[1] == "priority" then
+		local priority = LoseControlDB.priority
+		local categories = {
+			cc = "CC",
+			silence = "Silence",
+			disarm = "Disarm",
+			root = "Root",
+			snare = "Snare",
+			immune = "Immune",
+			immunespell = "ImmuneSpell",
+			other = "Other",
+			pve = "PvE",
+		}
+]]--		local category = categories[args[2]] -- translate args[2] back into the proper key
+--[[		local value = tonumber(args[3])
+		if priority[category] and value >= 0 and value <= 100 then
+			priority[category] = value
+			log(addonName .. ": " .. category .. " priority set to " .. value)
+		end
+		local sortedpriority = {}
+		for k, v in pairs(priority) do
+			tinsert(sortedpriority, {k, v})
+		end
+		sort(sortedpriority, function(a, b) return a[2] < b[2] end)
+		log(addonName .. " priorities:")
+		for _, v in ipairs(sortedpriority) do
+]]--			log(L[v[1]] .. ": " .. v[2])
+--		end
+	elseif args[1] == "help" then
 		log(addonName .. " slash commands:")
 		log("    reset")
 		log("    lock")
 		log("    unlock")
 		log("    enable <unit>")
 		log("    disable <unit>")
+		--log("    priority <category> <value>")
 		log("<unit> can be: player, pet, target, focus, party1 ... party4, arena1 ... arena5")
+		--log("<category> can be: cc, silence, disarm, root, snare, immune, immunespell, other, pve")
+		--log("<value> can be any number between 0 and 100")
 	else
 		log(addonName .. ": Type \"/lc help\" for more options.")
 		InterfaceOptionsFrame_OpenToCategory(OptionsPanel)
