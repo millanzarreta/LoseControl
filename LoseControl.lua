@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.09
+-- Version: 6.10
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -60,7 +60,12 @@ local UIParent = UIParent -- it's faster to keep local references to frequently 
 local UnitAura = UnitAura
 local GetTime = GetTime
 local SetPortraitToTexture = SetPortraitToTexture
+local ipairs = ipairs
 local pairs = pairs
+local next = next
+local strfind = string.find
+local tblinsert = table.insert
+local bit_band = bit.band
 local SetScript = SetScript
 local OnEvent = OnEvent
 local CreateFrame = CreateFrame
@@ -79,12 +84,15 @@ local interruptsIds = {
 	[1766]   = 5,		-- Kick (Rogue)
 	[2139]   = 6,		-- Counterspell (Mage)
 	[6552]   = 4,		-- Pummel (Warrior)
+	[13491]  = 5,		-- Pummel (Iron Knuckles Item)
 	[19647]  = 6,		-- Spell Lock (felhunter) (Warlock)
+	[29443]  = 10,		-- Counterspell (Clutch of Foresight)
 	[47528]  = 3,		-- Mind Freeze (Death Knight)
 	[57994]  = 3,		-- Wind Shear (Shaman)
 	[91802]  = 2,		-- Shambling Rush (Death Knight)
 	[96231]  = 4,		-- Rebuke (Paladin)
-	[106839] = 4,		-- Skull Bash (Feral)
+	[93985]  = 4,		-- Skull Bash (Druid Feral)
+	[97547]  = 5,		-- Solar Beam (Druid Balance)
 	[115781] = 6,		-- Optical Blast (Warlock)
 	[116705] = 4,		-- Spear Hand Strike (Monk)
 	[132409] = 6,		-- Spell Lock (command demon) (Warlock)
@@ -118,8 +126,8 @@ local spellIds = {
 	[213405] = "Snare",				-- Master of the Glaive
 	[210003] = "Snare",				-- Razor Spikes
 	[198813] = "Snare",				-- Vengeful Retreat
+	[198589] = "Other",				-- Blur
 	
-
 	----------------
 	-- Death Knight
 	----------------
@@ -131,9 +139,10 @@ local spellIds = {
 	[115018] = "Other",				-- Desecrated Ground (Immune to CC)
 	[207319] = "Immune",			-- Corpse Shield (not immune, 90% damage redirected to pet)
 	[48707]  = "ImmuneSpell",		-- Anti-Magic Shell
-	[48792]  = "Other",				-- Icebound Fortitude
-	[49039]  = "Other",				-- Lichborne
 	[51271]  = "Other",				-- Pillar of Frost
+	[48792]  = "Other",				-- Icebound Fortitude
+	[287081] = "Other",				-- Lichborne
+	[145629] = "ImmuneSpell",		-- Anti-Magic Zone (not immune, 60% damage reduction)
 	[207167] = "CC",				-- Blinding Sleet
 	[207165] = "CC",				-- Abomination's Might
 	[207171] = "Root",				-- Winter is Coming
@@ -192,7 +201,6 @@ local spellIds = {
 	[58180]  = "Snare",				-- Infected Wounds
 	[61391]  = "Snare",				-- Typhoon
 	[127797] = "Snare",				-- Ursol's Vortex
-	[50259]  = "Snare",				-- Wild Charge (Dazed)
 	[102543] = "Other",				-- Incarnation: King of the Jungle
 	[106951] = "Other",				-- Berserk
 	[102558] = "Other",				-- Incarnation: Guardian of Ursoc
@@ -227,6 +235,7 @@ local spellIds = {
 	[212638] = "CC",				-- Tracker's Net (pvp honor talent) -- Also -80% hit chance melee & range physical (CC and Root category)
 	[186387] = "Snare",				-- Bursting Shot
 	[224729] = "Snare",				-- Bursting Shot
+	[266779] = "Other",				-- Coordinated Assault
 	[203337] = "CC",				-- Freezing Trap (Diamond Ice - pvp honor talent)
 	[202748] = "Immune",			-- Survival Tactics (pvp honor talent) (not immune, 99% damage reduction)
 	[248519] = "ImmuneSpell",		-- Interlope (pvp honor talent)
@@ -250,8 +259,10 @@ local spellIds = {
 		[263446] = "Snare",				-- Acid Spit (Worm)
 		[263423] = "Snare",				-- Lock Jaw (Dog)
 		[50285]  = "Snare",				-- Dust Cloud (Tallstrider)
+		[263840] = "Snare",				-- Furious Bite (Wolf)
 		[54216]  = "Other",				-- Master's Call (root and snare immune only)
 		[53148]  = "Root",				-- Charge (tenacity ability)
+		[26064]  = "Immune",			-- Shell Shield (damage taken reduced 50%) (Turtle)
 		[90339]  = "Immune",			-- Harden Carapace (damage taken reduced 50%) (Beetle)
 		[160063] = "Immune",			-- Solid Shell (damage taken reduced 50%) (Shale Spider)
 		[264022] = "Immune",			-- Niuzao's Fortitude (damage taken reduced 60%) (Oxen)
@@ -260,12 +271,10 @@ local spellIds = {
 		[279410] = "Immune",			-- Bulwark (damage taken reduced 50%) (Krolusk)
 		[263938] = "Immune",			-- Silverback (damage taken reduced 60%) (Gorilla)
 		[263869] = "Immune",			-- Bristle (damage taken reduced 50%) (Boar)
-		[263840] = "Immune",			-- Furious Bite (damage taken reduced 50%) (Wolf)
 		[263868] = "Immune",			-- Defense Matrix (damage taken reduced 50%) (Mechanical)
-		[263934] = "Immune",			-- Thick Fur (damage taken reduced 50%) (Bear)
+		[263926] = "Immune",			-- Thick Fur (damage taken reduced 60%) (Bear)
 		[263865] = "Immune",			-- Scale Shield (damage taken reduced 50%) (Scalehide)
 		[279400] = "Immune",			-- Ancient Hide (damage taken reduced 60%) (Pterrordax)
-		[26064]  = "Immune",			-- Shell Shield (damage taken reduced 50%) (Turtle)
 		[160058] = "Immune",			-- Thick Hide (damage taken reduced 60%) (Clefthoof)
 
 	----------------
@@ -313,6 +322,7 @@ local spellIds = {
 	[110959] = "Other",				-- Greater Invisibility
 	[198144] = "Other",				-- Ice form (stun/knockback immune)
 	[12042]  = "Other",				-- Arcane Power
+	[190319] = "Other",				-- Combustion
 	[198111] = "Immune",			-- Temporal Shield (heals all damage taken after 4 sec)
 
 		----------------
@@ -335,12 +345,18 @@ local spellIds = {
 	[196733] = "Snare",				-- Special Delivery
 	[205320] = "Snare",				-- Strike of the Windlord (artifact trait)
 	[125174] = "Immune",			-- Touch of Karma
+	[122783] = "ImmuneSpell",		-- Diffuse Magic (not immune, 60% magic damage reduction)
 	[198909] = "CC",				-- Song of Chi-Ji
 	[233759] = "Disarm",			-- Grapple Weapon
 	[202274] = "CC",				-- Incendiary Brew (honor talent)
 	[202346] = "CC",				-- Double Barrel (honor talent)
 	[123407] = "Root",				-- Spinning Fire Blossom (honor talent)
 	[214326] = "Other",				-- Exploding Keg (artifact trait - blind)
+	[213664] = "Other",				-- Nimble Brew
+	[209584] = "Other",				-- Zen Focus Tea
+	[216113] = "Other",				-- Way of the Crane
+	[137639] = "Other",				-- Storm, Earth, and Fire
+	[152173] = "Other",				-- Serenity
 	[199387] = "Snare",				-- Spirit Tether (artifact trait)
 
 	----------------
@@ -359,8 +375,12 @@ local spellIds = {
 	[642]    = "Immune",			-- Divine Shield
 	[184662] = "Other",				-- Shield of Vengeance
 	[31821]  = "Other",				-- Aura Mastery
+	[210256] = "Other",				-- Blessing of Sanctuary
+	[210294] = "Other",				-- Divine Favor
 	[1022]   = "ImmunePhysical",	-- Hand of Protection
 	[204018] = "ImmuneSpell",		-- Blessing of Spellwarding
+	[31884]  = "Other",				-- Avenging Wrath
+	[216331] = "Other",				-- Avenging Crusader
 	[228050] = "Immune",			-- Divine Shield (Guardian of the Forgotten Queen)
 	[205273] = "Snare",				-- Wake of Ashes (artifact trait) (snare)
 	[205290] = "CC",				-- Wake of Ashes (artifact trait) (stun)
@@ -386,6 +406,7 @@ local spellIds = {
 	[213602] = "Immune",			-- Greater Fade (pvp honor talent - protects vs spells. melee, ranged attacks + 50% speed)
 	[232707] = "Immune",			-- Ray of Hope (pvp honor talent - not immune, only delay damage and heal)
 	[213610] = "Other",				-- Holy Ward (pvp honor talent - wards against the next loss of control effect)
+	[289655] = "Other",				-- Holy Word: Concentration
 	[226943] = "CC",				-- Mind Bomb
 	[200196] = "CC",				-- Holy Word: Chastise
 	[200200] = "CC",				-- Holy Word: Chastise (talent)
@@ -416,6 +437,7 @@ local spellIds = {
 	[13750]  = "Other",				-- Adrenaline Rush
 	[199754] = "Other",				-- Riposte
 	[1966]   = "Other",				-- Feint
+	[121471] = "Other",				-- Shadow Blades
 	[45182]  = "Immune",			-- Cheating Death (-85% damage taken)
 	[5277]   = "Other",				-- Evasion
 	[212183] = "Other",				-- Smoke Bomb
@@ -455,6 +477,11 @@ local spellIds = {
 	[147732] = "Snare",				-- Frostbrand Attack
 	[197385] = "Snare",				-- Fury of Air
 	[207498] = "Other",				-- Ancestral Protection (prevent the target from dying)
+	[290641] = "Other",				-- Ancestral Gift (PvP Talent) (immune to Silence and Interrupt effects)
+	[108271] = "Other",				-- Astral Shift
+	[114050] = "Other",				-- Ascendance (Elemental)
+	[114051] = "Other",				-- Ascendance (Enhancement)
+	[114052] = "Other",				-- Ascendance (Restoration)
 	[8178]   = "ImmuneSpell",		-- Grounding Totem Effect (Grounding Totem)
 	[204399] = "CC",				-- Earthfury (PvP Talent)
 	[192058] = "CC",				-- Lightning Surge totem (capacitor totem)
@@ -487,6 +514,8 @@ local spellIds = {
 	[285155] = "Silence",			-- Unstable Affliction
 	[110913] = "Other",				-- Dark Bargain
 	[104773] = "Other",				-- Unending Resolve
+	[113860] = "Other",				-- Dark Soul: Misery
+	[113858] = "Other",				-- Dark Soul: Instability
 	[212295] = "ImmuneSpell",		-- Netherward (reflects spells)
 	[233582] = "Root",				-- Entrenched in Flame (pvp honor talent)
 
@@ -533,8 +562,14 @@ local spellIds = {
 	[213915] = "ImmuneSpell",		-- Mass Spell Reflection
 	[114028] = "ImmuneSpell",		-- Mass Spell Reflection
 	[18499]  = "Other",				-- Berserker Rage
+	[107574] = "Other",				-- Avatar
+	[262228] = "Other",				-- Deadly Calm
 	[118038] = "Other",				-- Die by the Sword
 	[198819] = "Other",				-- Sharpen Blade (70% heal reduction)
+	[236321] = "Other",				-- War Banner
+	[236438] = "Other",				-- War Banner
+	[236439] = "Other",				-- War Banner
+	[236273] = "Other",				-- Duel
 	[198760] = "ImmunePhysical",	-- Intercept (pvp honor talent) (intercept the next ranged or melee hit)
 	[176289] = "CC",				-- Siegebreaker
 	[199085] = "CC",				-- Warpath
@@ -547,17 +582,22 @@ local spellIds = {
 	----------------
 	[56]     = "CC",				-- Stun (low lvl weapons proc)
 	[835]    = "CC",				-- Tidal Charm (trinket)
+	[15534]  = "CC",				-- Polymorph (trinket)
+	[15535]  = "CC",				-- Enveloping Winds (Six Demon Bag trinket)
+	[23103]  = "CC",				-- Enveloping Winds (Six Demon Bag trinket)
+	[25189]  = "CC",				-- Enveloping Winds (Six Demon Bag trinket)
 	[30217]  = "CC",				-- Adamantite Grenade
 	[67769]  = "CC",				-- Cobalt Frag Bomb
 	[67890]  = "CC",				-- Cobalt Frag Bomb (belt)
 	[30216]  = "CC",				-- Fel Iron Bomb
 	[224074] = "CC",				-- Devilsaur's Bite (trinket)
 	[127723] = "Root",				-- Covered In Watermelon (trinket)
+	[42803]  = "Snare",				-- Frostbolt (trinket)
 	[195342] = "Snare",				-- Shrink Ray (trinket)
-	[13327]  = "CC",				-- Reckless Charge
-	[107079] = "CC",				-- Quaking Palm (pandaren racial)
 	[20549]  = "CC",				-- War Stomp (tauren racial)
+	[107079] = "CC",				-- Quaking Palm (pandaren racial)
 	[255723] = "CC",				-- Bull Rush (highmountain tauren racial)
+	[287712] = "CC",				-- Haymaker (kul tiran racial)
 	[214459] = "Silence",			-- Choking Flames (trinket)
 	[19821]  = "Silence",			-- Arcane Bomb
 	[131510] = "Immune",			-- Uncontrolled Banish
@@ -565,11 +605,14 @@ local spellIds = {
 	[39965]  = "Root",				-- Frost Grenade
 	[55536]  = "Root",				-- Frostweave Net
 	[13099]  = "Root",				-- Net-o-Matic (trinket)
+	[13119]  = "Root",				-- Net-o-Matic (trinket)
 	[16566]  = "Root",				-- Net-o-Matic (trinket)
+	[13138]  = "Root",				-- Net-o-Matic (trinket)
 	[148526] = "Root",				-- Sticky Silk
 	[15752]  = "Disarm",			-- Linken's Boomerang (trinket)
 	[15753]  = "CC",				-- Linken's Boomerang (trinket)
 	[1604]   = "Snare",				-- Dazed
+	[295048] = "Immune",			-- Touch of the Everlasting (not immune, damage taken reduced 85%)
 	[221792] = "CC",				-- Kidney Shot (Vanessa VanCleef (Rogue Bodyguard))
 	[222897] = "CC",				-- Storm Bolt (Dvalen Ironrune (Warrior Bodyguard))
 	[222317] = "CC",				-- Mark of Thassarian (Thassarian (Death Knight Bodyguard))
@@ -583,6 +626,8 @@ local spellIds = {
 	[30506]  = "CC",				-- Poultryized! (trinket)
 	[46567]  = "CC",				-- Rocket Launch (trinket)
 	[24753]  = "CC",				-- Trick
+	[141928] = "CC",				-- Growing Pains (Whole-Body Shrinka' toy)
+	[285643] = "CC",				-- Battle Screech
 	[245855] = "CC",				-- Belly Smash
 	[262177] = "CC",				-- Into the Storm
 	[255978] = "CC",				-- Pallid Glare
@@ -615,12 +660,326 @@ local spellIds = {
 	[299769] = "CC",				-- Undercut
 	[299772] = "CC",				-- Tsunami Slam
 	[299805] = "Root",				-- Undertow
+	[310126] = "Immune",			-- Psychic Shell (not immune, 99% damage reduction) (Lingering Psychic Shell trinket)
+	[314585] = "Immune",			-- Psychic Shell (not immune, 50-80% damage reduction) (Lingering Psychic Shell trinket)
+	[313448] = "CC",				-- Realized Truth (Corrupted Ring - Face the Truth ring)
+	[8312]   = "Root",				-- Trap (Hunting Net trinket)
+	[17308]  = "CC",				-- Stun (Hurd Smasher fist weapon)
+	[23454]  = "CC",				-- Stun (The Unstoppable Force weapon)
+	[9179]   = "CC",				-- Stun (Tigule and Foror's Strawberry Ice Cream item)
+	[13327]  = "CC",				-- Reckless Charge (Goblin Rocket Helmet)
+	[13181]  = "CC",				-- Gnomish Mind Control Cap (Gnomish Mind Control Cap helmet)
+	[26740]  = "CC",				-- Gnomish Mind Control Cap (Gnomish Mind Control Cap helmet)
+	[8345]   = "CC",				-- Control Machine (Gnomish Universal Remote trinket)
+	[13235]  = "CC",				-- Forcefield Collapse (Gnomish Harm Prevention belt)
+	[13158]  = "CC",				-- Rocket Boots Malfunction (Engineering Rocket Boots)
+	[13466]  = "CC",				-- Goblin Dragon Gun (engineering trinket malfunction)
+	[8224]   = "CC",				-- Cowardice (Savory Deviate Delight effect)
+	[8225]   = "CC",				-- Run Away! (Savory Deviate Delight effect)
+	[23131]  = "ImmuneSpell",		-- Frost Reflector (Gyrofreeze Ice Reflector trinket) (only reflect frost spells)
+	[23097]  = "ImmuneSpell",		-- Fire Reflector (Hyper-Radiant Flame Reflector trinket) (only reflect fire spells)
+	[23132]  = "ImmuneSpell",		-- Shadow Reflector (Ultra-Flash Shadow Reflector trinket) (only reflect shadow spells)
+	[30003]  = "ImmuneSpell",		-- Sheen of Zanza
+	[23444]  = "CC",				-- Transporter Malfunction
+	[23447]  = "CC",				-- Transporter Malfunction
+	[23456]  = "CC",				-- Transporter Malfunction
+	[23457]  = "CC",				-- Transporter Malfunction
+	[8510]   = "CC",				-- Large Seaforium Backfire
+	[7144]   = "ImmunePhysical",	-- Stone Slumber
+	[12843]  = "Immune",			-- Mordresh's Shield
+	[25282]  = "Immune",			-- Shield of Rajaxx
+	[27619]  = "Immune",			-- Ice Block
+	[21892]  = "Immune",			-- Arcane Protection
+	[13237]  = "CC",				-- Goblin Mortar
+	[5134]   = "CC",				-- Flash Bomb
+	[4064]   = "CC",				-- Rough Copper Bomb
+	[4065]   = "CC",				-- Large Copper Bomb
+	[4066]   = "CC",				-- Small Bronze Bomb
+	[4067]   = "CC",				-- Big Bronze Bomb
+	[4068]   = "CC",				-- Iron Grenade
+	[4069]   = "CC",				-- Big Iron Bomb
+	[12543]  = "CC",				-- Hi-Explosive Bomb
+	[12562]  = "CC",				-- The Big One
+	[12421]  = "CC",				-- Mithril Frag Bomb
+	[19784]  = "CC",				-- Dark Iron Bomb
+	[19769]  = "CC",				-- Thorium Grenade
+	[13808]  = "CC",				-- M73 Frag Grenade
+	[21188]  = "CC",				-- Stun Bomb Attack
+	[9159]   = "CC",				-- Sleep (Green Whelp Armor chest)
+	--[9774]   = "Other",				-- Immune Root (spider belt)
+	[18278]  = "Silence",			-- Silence (Silent Fang sword)
+	[16470]  = "CC",				-- Gift of Stone
+	[700]    = "CC",				-- Sleep (Slumber Sand item)
+	[1090]   = "CC",				-- Sleep
+	[12098]  = "CC",				-- Sleep
+	[20663]  = "CC",				-- Sleep
+	[20669]  = "CC",				-- Sleep
+	[20989]  = "CC",				-- Sleep
+	[24004]  = "CC",				-- Sleep
+	[24664]  = "CC",				-- Sleep
+	[17446]  = "CC",				-- The Black Sleep
+	[29848]  = "CC",				-- Polymorph
+	[29124]  = "CC",				-- Polymorph
+	[14621]  = "CC",				-- Polymorph
+	[27760]  = "CC",				-- Polymorph
+	[28406]  = "CC",				-- Polymorph Backfire
+	[851]    = "CC",				-- Polymorph: Sheep
+	[785]    = "CC",				-- True Fulfillment
+	[17172]  = "CC",				-- Hex
+	[24053]  = "CC",				-- Hex
+	[16707]  = "CC",				-- Hex
+	[16708]  = "CC",				-- Hex
+	[16709]  = "CC",				-- Hex
+	[18503]  = "CC",				-- Hex
+	[20683]  = "CC",				-- Highlord's Justice
+	[17286]  = "CC",				-- Crusader's Hammer
+	[17820]  = "Other",				-- Veil of Shadow
+	[24178]  = "CC",				-- Will of Hakkar
+	[12096]  = "CC",				-- Fear
+	[26070]  = "CC",				-- Fear
+	[26580]  = "CC",				-- Fear
+	[27641]  = "CC",				-- Fear
+	[27990]  = "CC",				-- Fear
+	[29168]  = "CC",				-- Fear
+	[30002]  = "CC",				-- Fear
+	[26042]  = "CC",				-- Psychic Scream
+	[9915]   = "Root",				-- Frost Nova
+	[14907]  = "Root",				-- Frost Nova
+	[22645]  = "Root",				-- Frost Nova
+	[29849]  = "Root",				-- Frost Nova
+	[30094]  = "Root",				-- Frost Nova
+	[15091]  = "Snare",				-- Blast Wave
+	[17277]  = "Snare",				-- Blast Wave
+	[23039]  = "Snare",				-- Blast Wave
+	[23113]  = "Snare",				-- Blast Wave
+	[30092]  = "Snare",				-- Blast Wave
+	[12548]  = "Snare",				-- Frost Shock
+	[22582]  = "Snare",				-- Frost Shock
+	[23115]  = "Snare",				-- Frost Shock
+	[19133]  = "Snare",				-- Frost Shock
+	[21030]  = "Snare",				-- Frost Shock
+	[11538]  = "Snare",				-- Frostbolt
+	[21369]  = "Snare",				-- Frostbolt
+	[20297]  = "Snare",				-- Frostbolt
+	[20806]  = "Snare",				-- Frostbolt
+	[20819]  = "Snare",				-- Frostbolt
+	[12737]  = "Snare",				-- Frostbolt
+	[20792]  = "Snare",				-- Frostbolt
+	[28478]  = "Snare",				-- Frostbolt
+	[28479]  = "Snare",				-- Frostbolt
+	[17503]  = "Snare",				-- Frostbolt
+	[23412]  = "Snare",				-- Frostbolt
+	[24942]  = "Snare",				-- Frostbolt
+	[23102]  = "Snare",				-- Frostbolt
+	[20828]  = "Snare",				-- Cone of Cold
+	[22746]  = "Snare",				-- Cone of Cold
+	[30095]  = "Snare",				-- Cone of Cold
+	[20717]  = "Snare",				-- Sand Breath
+	[16568]  = "Snare",				-- Mind Flay
+	[23953]  = "Snare",				-- Mind Flay
+	[28310]  = "Snare",				-- Mind Flay
+	[29407]  = "Snare",				-- Mind Flay
+	[26044]  = "CC",				-- Mind Flay
+	[16094]  = "Snare",				-- Frost Breath
+	[16099]  = "Snare",				-- Frost Breath
+	[16340]  = "Snare",				-- Frost Breath
+	[17174]  = "Snare",				-- Concussive Shot
+	[27634]  = "Snare",				-- Concussive Shot
+	[20654]  = "Root",				-- Entangling Roots
+	[22800]  = "Root",				-- Entangling Roots
+	[24648]  = "Root",				-- Entangling Roots
+	[26071]  = "Root",				-- Entangling Roots
+	[12520]  = "Root",				-- Teleport from Azshara Tower
+	[12521]  = "Root",				-- Teleport from Azshara Tower
+	[12024]  = "Root",				-- Net
+	[12023]  = "Root",				-- Web
+	[13608]  = "Root",				-- Hooked Net
+	[10017]  = "Root",				-- Frost Hold
+	[3542]   = "Root",				-- Naraxis Web
+	[5567]   = "Root",				-- Miring Mud
+	[4932]   = "ImmuneSpell",		-- Ward of Myzrael
+	[7383]   = "ImmunePhysical",	-- Water Bubble
+	[101]    = "CC",				-- Trip
+	[3109]   = "CC",				-- Presence of Death
+	[3143]   = "CC",				-- Glacial Roar
+	[5403]   = "Root",				-- Crash of Waves
+	[6605]   = "CC",				-- Terrifying Screech
+	[3242]   = "CC",				-- Ravage
+	[3260]   = "CC",				-- Violent Shield Effect
+	[3263]   = "CC",				-- Touch of Ravenclaw
+	[3271]   = "CC",				-- Fatigued
+	[5106]   = "CC",				-- Crystal Flash
+	[6266]   = "CC",				-- Kodo Stomp
+	[6730]   = "CC",				-- Head Butt
+	[6982]   = "CC",				-- Gust of Wind
+	[6749]   = "CC",				-- Wide Swipe
+	[6754]   = "CC",				-- Slap!
+	[6927]   = "CC",				-- Shadowstalker Slash
+	[7961]   = "CC",				-- Azrethoc's Stomp
+	[8151]   = "CC",				-- Surprise Attack
+	[3635]   = "CC",				-- Crystal Gaze
+	[6869]   = "CC",				-- Fall down
+	[8646]   = "CC",				-- Snap Kick
+	[24671]  = "CC",				-- Snap Kick
+	[27620]  = "Silence",			-- Snap Kick
+	[27814]  = "Silence",			-- Kick
+	[19725]  = "CC",				-- Turn Undead
+	[19469]  = "CC",				-- Poison Mind
+	[10134]  = "CC",				-- Sand Storm
+	[12613]  = "CC",				-- Dark Iron Taskmaster Death
+	[13488]  = "CC",				-- Firegut Fear Storm
+	[17738]  = "CC",				-- Curse of the Plague Rat
+	[20019]  = "CC",				-- Engulfing Flames
+	[19136]  = "CC",				-- Stormbolt
+	[20685]  = "CC",				-- Storm Bolt
+	[16803]  = "CC",				-- Flash Freeze
+	[14100]  = "CC",				-- Terrifying Roar
+	[29685]  = "CC",				-- Terrifying Roar
+	[17276]  = "CC",				-- Scald
+	[18812]  = "CC",				-- Knockdown
+	[19128]  = "CC",				-- Knockdown
+	[11430]  = "CC",				-- Slam
+	[28335]  = "CC",				-- Whirlwind
+	[16451]  = "CC",				-- Judge's Gavel
+	[23601]  = "CC",				-- Scatter Shot
+	[24261]  = "CC",				-- Brain Wash
+	[25260]  = "CC",				-- Wings of Despair
+	[23275]  = "CC",				-- Dreadful Fright
+	[24919]  = "CC",				-- Nauseous
+	[29484]  = "CC",				-- Web Spray
+	[21167]  = "CC",				-- Snowball
+	[9612]   = "CC",				-- Ink Spray (Chance to hit reduced by 50%)
+	[4320]   = "Silence",			-- Trelane's Freezing Touch
+	[9552]   = "Silence",			-- Searing Flames
+	[12943]  = "Silence",			-- Fell Curse Effect
+	[10851]  = "Disarm",			-- Grab Weapon
+	[6576]   = "CC",				-- Intimidating Growl
+	[7093]   = "CC",				-- Intimidation
+	[8715]   = "CC",				-- Terrifying Howl
+	[8817]   = "CC",				-- Smoke Bomb
+	[3442]   = "CC",				-- Enslave
+	[3651]   = "ImmuneSpell",		-- Shield of Reflection
+	[20223]  = "ImmuneSpell",		-- Magic Reflection
+	[25772]  = "CC",				-- Mental Domination
+	[16053]  = "CC",				-- Dominion of Soul (Orb of Draconic Energy)
+	[15859]  = "CC",				-- Dominate Mind
+	[20740]  = "CC",				-- Dominate Mind
+	[21330]  = "CC",				-- Corrupted Fear (Deathmist Raiment set)
+	[27868]  = "Root",				-- Freeze (Magister's and Sorcerer's Regalia sets)
+	[17333]  = "Root",				-- Spider's Kiss (Spider's Kiss set)
+	[26108]  = "CC",				-- Glimpse of Madness (Dark Edge of Insanity axe)
+	[9462]   = "Snare",				-- Mirefin Fungus
+	[19137]  = "Snare",				-- Slow
+	[21847]  = "CC",				-- Snowman
+	[21848]  = "CC",				-- Snowman
+	[21980]  = "CC",				-- Snowman
+	[6724]   = "Immune",			-- Light of Elune
+	[24360]  = "CC",				-- Greater Dreamless Sleep Potion
+	[15822]  = "CC",				-- Dreamless Sleep Potion
+	[15283]  = "CC",				-- Stunning Blow (Dark Iron Pulverizer weapon)
+	[21152]  = "CC",				-- Earthshaker (Earthshaker weapon)
+	[16600]  = "CC",				-- Might of Shahram (Blackblade of Shahram sword)
+	[16597]  = "Snare",				-- Curse of Shahram (Blackblade of Shahram sword)
+	[13496]  = "Snare",				-- Dazed (Mug O' Hurt mace)
+	[3238]   = "Other",				-- Nimble Reflexes
+	[5990]   = "Other",				-- Nimble Reflexes
+	[6615]   = "Other",				-- Free Action Potion
+	[11359]  = "Other",				-- Restorative Potion
+	[24364]  = "Other",				-- Living Free Action
+	[23505]  = "Other",				-- Berserking
+	[24378]  = "Other",				-- Berserking
+	[19135]  = "Other",				-- Avatar
+	[17624]  = "CC",				-- Flask of Petrification
+	[13534]  = "Disarm",			-- Disarm (The Shatterer weapon)
+	[13439]  = "Snare",				-- Frostbolt (some weapons)
+	[16621]  = "ImmunePhysical",	-- Self Invulnerability (Invulnerable Mail)
+	[27559]  = "Silence",			-- Silence (Jagged Obsidian Shield)
+	[13907]  = "CC",				-- Smite Demon (Enchant Weapon - Demonslaying)
+	[18798]  = "CC",				-- Freeze (Freezing Band)
 	
 	-- PvE
 	--[123456] = "PvE",				-- This is just an example, not a real spell
 	------------------------
 	---- PVE BFA
 	------------------------
+	-- Ny'alotha, The Waking City Raid
+	-- -- Trash
+	[313949] = "Immune",			-- Ny'alotha Gateway
+	[315071] = "Immune",			-- Ny'alotha Gateway
+	[315080] = "Immune",			-- Ny'alotha Gateway
+	[315214] = "Immune",			-- Ny'alotha Gateway
+	[311052] = "Immune",			-- Steadfast Defense (not immune, 75% damage reduction)
+	[311073] = "Immune",			-- Steadfast Defense (not immune, 75% damage reduction)
+	[310830] = "CC",				-- Disorienting Strike
+	[315013] = "Silence",			-- Bursting Shadows
+	[316951] = "CC",				-- Voracious Charge
+	[311552] = "CC",				-- Fear the Void
+	[311041] = "CC",				-- Drive to Madness
+	[318785] = "CC",				-- Corrupted Touch
+	[318880] = "Root",				-- Corrupted Touch
+	[316143] = "Snare",				-- Thunder Clap
+	-- -- Wrathion
+	[314347] = "CC",				-- Noxious Choke
+	[313175] = "Immune",			-- Hardened Core
+	[306995] = "Immune",			-- Smoke and Mirrors
+	-- -- Maut
+	[307586] = "CC",				-- Devoured Abyss
+	[309853] = "Silence",			-- Devoured Abyss
+	-- -- The Prophet Skitra
+	[313208] = "Immune",			-- Intangible Illusion
+	-- -- Dark Inquisitor
+	[314035] = "Immune",			-- Void Shield
+	[316211] = "CC",				-- Terror Wave
+	[305575] = "Snare",				-- Ritual Field
+	--[309569] = "CC",				-- Voidwoken (damage dealt reduced 99%)
+	--[312406] = "CC",				-- Voidwoken (damage dealt reduced 99%)
+	-- -- The Hivemind
+	[307202] = "Immune",			-- Shadow Veil (damage taken reduced by 99%)
+	[308873] = "CC",				-- Corrosive Venom
+	[313460] = "Other",				-- Nullification (healing received reduced by 100%)
+	-- -- Shad'har the Insatiable
+	[306928] = "CC",				-- Umbral Breath
+	[306930] = "Other",				-- Entropic Breath (healing received reduced by 50%)
+	-- -- Drest'agath
+	[310246] = "CC",				-- Void Grip
+	[310361] = "CC",				-- Unleashed Insanity
+	[310552] = "Snare",				-- Mind Flay
+	-- -- Il'gynoth
+	[311367] = "CC",				-- Touch of the Corruptor
+	[310322] = "CC",				-- Morass of Corruption
+	-- -- Vexiona
+	[307645] = "CC",				-- Heart of Darkness
+	[315932] = "CC",				-- Brutal Smash
+	[307729] = "CC",				-- Fanatical Ascension
+	[307075] = "CC",				-- Power of the Chosen
+	[316745] = "CC",				-- Power of the Chosen
+	[310323] = "Snare",				-- Desolation
+	-- -- Ra Den
+	[315207] = "CC",				-- Stunned
+	[306637] = "Silence",			-- Unstable Void Burst
+	[306645] = "Silence",			-- Consuming Void
+	[309777] = "Other",				-- Void Defilement (all healing taken reduced 50%)
+	-- -- Carapace of N'Zoth
+	[307832] = "CC",				-- Servant of N'Zoth
+	[312158] = "Immune",			-- Ashjra'kamas, Shroud of Resolve
+	[317165] = "CC",				-- Regenerative Expulsion
+	[306978] = "CC",				-- Madness Bomb
+	[306985] = "CC",				-- Insanity Bomb
+	[307071] = "Immune",			-- Synthesis
+	[307061] = "Snare",				-- Mycelial Growth
+	[317164] = "Immune",			-- Reactive Mass
+	-- -- N'Zoth
+	[308996] = "CC",				-- Servant of N'Zoth
+	[310073] = "CC",				-- Mindgrasp
+	[311392] = "CC",				-- Mindgrasp
+	[314843] = "CC",				-- Corruptor's Gift
+	[313793] = "CC",				-- Flames of Insanity
+	[319353] = "CC",				-- Flames of Insanity
+	[315675] = "CC",				-- Shattered Ego
+	[315672] = "CC",				-- Shattered Ego
+	[318976] = "CC",				-- Stupefying Glare
+	[310134] = "Immune",			-- Manifest Madness (99% damage reduction)
+	-- -- 
 	-- The Eternal Palace Raid
 	-- -- Trash
 	[303747] = "CC",				-- Ice Tomb
@@ -634,7 +993,6 @@ local spellIds = {
 	[295705] = "CC",				-- Toxic Bolt
 	[300882] = "Root",				-- Inversion Sickness
 	[300883] = "Root",				-- Inversion Sickness
-	-- -- Blackwater Behemoth
 	-- -- Radiance of Azshara
 	[295916] = "Immune",			-- Ancient Tempest (damage taken reduced 99%)
 	[296746] = "CC",				-- Arcane Bomb
@@ -782,7 +1140,6 @@ local spellIds = {
 	[278967] = "CC",				-- Winged Charge
 	[260275] = "CC",				-- Rumbling Stomp
 	[262375] = "CC",				-- Bellowing Roar
-	[263321] = "Snare",				-- Undulating Mass
 	-- -- Taloc
 	[271965] = "Immune",			-- Powered Down (damage taken reduced 99%)
 	-- -- Fetid Devourer
@@ -795,7 +1152,6 @@ local spellIds = {
 	[265212] = "CC",				-- Gestate
 	-- -- Zul, Reborn
 	[273434] = "CC",				-- Pit of Despair
-	[276031] = "CC",				-- Pit of Despair
 	[269965] = "CC",				-- Pit of Despair
 	[274271] = "CC",				-- Deathwish
 	-- -- Mythrax the Unraveler
@@ -829,8 +1185,167 @@ local spellIds = {
 	-- -- Ivus the Decayed
 	[287554] = "Immune",			-- Petrify
 	[282615] = "Immune",			-- Petrify
+	-- -- Grand Empress Shek'zara
+	[314306] = "CC",				-- Song of the Empress
+	------------------------
+	-- Horrific Visions of N'zoth
+	[317865] = "CC",				-- Emergency Cranial Defibrillation
+	[304816] = "CC",				-- Emergency Cranial Defibrillation
+	[291782] = "CC",				-- Controlled by the Vision
+	[311558] = "ImmuneSpell",		-- Volatile Intent
+	[306965] = "CC",				-- Shadow's Grasp
+	[316510] = "CC",				-- Split Personality
+	[306545] = "CC",				-- Haunting Shadows
+	[288545] = "CC",				-- Fear	(Madness: Terrified)
+	[292240] = "Other",				-- Entomophobia
+	[306583] = "Root",				-- Leaden Foot
+	[288560] = "Snare",				-- Slowed
+	[298514] = "CC",				-- Aqiri Mind Toxin
+	[313639] = "CC",				-- Hex
+	[305155] = "Snare",				-- Rupture
+	[296510] = "Snare",				-- Creepy Crawler
+	[78622]  = "CC",				-- Heroic Leap
+	[314723] = "CC",				-- War Stomp
+	[304969] = "CC",				-- Void Torrent
+	[298033] = "CC",				-- Touch of the Abyss
+	[299243] = "CC",				-- Touch of the Abyss
+	[300530] = "CC",				-- Mind Carver
+	[304634] = "CC",				-- Despair
+	[297574] = "CC",				-- Hopelessness
+	[283408] = "Snare",				-- Charge
+	[304350] = "CC",				-- Mind Trap
+	[299870] = "CC",				-- Mind Trap
+	[306828] = "CC",				-- Defiled Ground
+	[306726] = "CC",				-- Defiled Ground
+	[297746] = "CC",				-- Seismic Slam
+	[306646] = "CC",				-- Ring of Chaos
+	[305378] = "CC",				-- Horrifying Shout
+	[298630] = "CC",				-- Shockwave
+	[297958] = "Snare",				-- Punishing Throw
+	[314748] = "Snare",				-- Slow
+	[298701] = "CC",				-- Chains of Servitude
+	[298770] = "CC",				-- Chains of Servitude
+	[309648] = "CC",				-- Tainted Polymorph
+	[296674] = "Silence",			-- Lurking Appendage
+	[308172] = "Snare",				-- Mind Flay
+	[308375] = "CC",				-- Psychic Scream
+	[306748] = "CC",				-- Psychic Scream
+	[309882] = "CC",				-- Brutal Smash
+	[298584] = "Immune",			-- Repel (not immune, 75% damage reduction)
+	[312017] = "Immune",			-- Shrouded (not immune, 90% damage reduction)
+	[308481] = "CC",				-- Rift Strike
+	[308508] = "CC",				-- Rift Strike
+	[308575] = "Immune",			-- Shadow Shift	(not immune, 75% damage reduction)
+	[311373] = "Snare",				-- Numbing Poison
+	[283655] = "CC",				-- Cheap Shot
+	[283106] = "ImmuneSpell",		-- Cloak of Shadows
+	[283661] = "CC",				-- Kidney Shot
+	[315254] = "Snare",				-- Harsh Lesson
+	[315391] = "Snare",				-- Gladiator's Spite
+	[311042] = "CC",				-- Evacuation Protocol
+	[306552] = "CC",				-- Evacuation Protocol
+	[306465] = "CC",				-- Evacuation Protocol
+	[314916] = "CC",				-- Evacuation Protocol
+	[302460] = "CC",				-- Evacuation Protocol
+	[297286] = "CC",				-- Evacuation Protocol
+	[311036] = "CC",				-- Evacuation Protocol
+	[302493] = "CC",				-- Evacuation Protocol
+	[311020] = "CC",				-- Evacuation Protocol
+	[308654] = "Immune",			-- Shield Craggle (not immune, 90% damage reduction)
+	------------------------
+	-- Visions of N'zoth Assaults (Uldum, Vale of Eternal Blossoms and Misc)
+	[315818] = "CC",				-- Burning
+	[250490] = "CC",				-- Animated Strike
+	[317277] = "CC",				-- Storm Bolt
+	[316508] = "CC",				-- Thunderous Charge
+	[296820] = "CC",				-- Invoke Niuzao
+	[308969] = "CC",				-- Dusted
+	[166139] = "CC",				-- Blinding Radiance
+	[308890] = "CC",				-- Shockwave
+	[314193] = "CC",				-- Massive Shockwave
+	[314191] = "CC",				-- Massive Shockwave
+	[314880] = "CC",				-- Wave of Hysteria
+	[312678] = "CC",				-- Insanity
+	[312666] = "Other",				-- Soulbreak
+	[314796] = "CC",				-- Bursting Darkness
+	[157176] = "CC",				-- Grip of the Void
+	[309398] = "CC",				-- Blinding Radiance
+	[316997] = "CC",				-- Blinding Radiance
+	[315892] = "Silence",			-- Void of Silence
+	[314205] = "CC",				-- Maddening Gaze
+	[314614] = "CC",				-- Fear of the Void
+	[265721] = "Root",				-- Web Spray
+	[93585]  = "CC",				-- Serum of Torment
+	[316093] = "CC",				-- Terrifying Shriek
+	[314458] = "ImmuneSpell",		-- Magnetic Field
+	[315829] = "CC",				-- Evolution
+	[314077] = "CC",				-- Psychic Assault
+	[86699]  = "CC",				-- Shockwave
+	[88846]  = "CC",				-- Shockwave
+	[309696] = "CC",				-- Soul Wipe
+	[316353] = "CC",				-- Shield Bash
+	[310271] = "CC",				-- Bewildering Gaze
+	[242085] = "CC",				-- Disoriented
+	[242084] = "CC",				-- Fear
+	[242088] = "CC",				-- Polymorph
+	[242090] = "CC",				-- Sleep
+	[296661] = "CC",				-- Stomp
+	[306875] = "CC",				-- Electrostatic Burst
+	[308886] = "Root",				-- Grasp of the Stonelord
+	[313751] = "Snare",				-- Amber Burst
+	[313934] = "Immune",			-- Sticky Shield
+	[310239] = "CC",				-- Terror Gasp
+	[81210]  = "Root",				-- Net
+	[200434] = "CC",				-- Petrified!
+	[309709] = "CC",				-- Petrified
+	[312248] = "CC",				-- Amber Hibernation
+	[305141] = "Immune",			-- Azerite-Hardened Carapace
+	[317490] = "Snare",				-- Mind Flay
+	[97154]  = "Snare",				-- Concussive Shot
+	[126339] = "CC",				-- Shield Slam
+	[126580] = "CC",				-- Crippling Blow
+	[177578] = "CC",				-- Paralysis
+	[314591] = "CC",				-- Flesh to Stone
+	[314382] = "Silence",			-- Silence the Masses
+	[312884] = "CC",				-- Heaving Blow
+	[270444] = "Other",				-- Harden
+	[309463] = "CC",				-- Crystalline
+	[309889] = "Snare",				-- Grasp of N'Zoth
+	[309411] = "Immune",			-- Gift of Stone
+	[307327] = "Immune",			-- Expel Anima
+	[312933] = "Immune",			-- Void's Embrace
+	[306791] = "Immune",			-- Unexpected Results (not immune, 75% damage reduction)
+	[307234] = "CC",				-- Disciple of N'Zoth
+	[307786] = "CC",				-- Spirit Bind
+	[154793] = "Root",				-- Spirit Bind
+	[311522] = "CC",				-- Nightmarish Stare
+	[306222] = "CC",				-- Critical Failure
+	[304241] = "Root",				-- Distorting Reality
+	[316940] = "CC",				-- Assassin Spawn
+	[302338] = "CC",				-- Ice Trap
+	[302591] = "CC",				-- Ice Trap
+	[296810] = "Immune",			-- Fear of Death
+	[313275] = "CC",				-- Cowardice
+	[292451] = "CC",				-- Binding Shot
+	[306769] = "CC",				-- Mutilate
+	[302232] = "CC",				-- Crushing Charge
+	[314301] = "CC",				-- Doom
+	[299269] = "CC",				-- Eye Beam
+	[314118] = "CC",				-- Glimpse of Infinity
+	[306282] = "CC",				-- Knockdown
+	[303403] = "CC",				-- Sap
+	[296057] = "CC",				-- Seeker's Song
+	[299485] = "CC",				-- Surging Shadows
+	[311635] = "CC",				-- Throw Hefty Coin Sack
+	[303193] = "CC",				-- Trample
+	[313719] = "CC",				-- X-52 Personnel Armor: Overload
+	[313311] = "CC",				-- Underhanded Punch
+	[315850] = "CC",				-- Vomit
 	------------------------
 	-- Battle for Darkshore
+	[314516] = "CC",				-- Savage Charge
+	[314519] = "CC",				-- Ravage
+	[314884] = "CC",				-- Frozen Solid
 	[7964]   = "CC",				-- Smoke Bomb
 	[31274]  = "CC",				-- Knockdown
 	[283921] = "CC",				-- Lancer's Charge
@@ -846,6 +1361,8 @@ local spellIds = {
 	[31290]  = "Root",				-- Net
 	[286404] = "Root",				-- Grasping Bramble
 	[290013] = "Root",				-- Volatile Bulb
+	[311761] = "Root",				-- Entangling Roots
+	[311634] = "Root",				-- Entangling Roots
 	[22356]  = "Snare",				-- Slow
 	[284221] = "Snare",				-- Crippling Gash
 	[194584] = "Snare",				-- Crippling Slash
@@ -872,7 +1389,6 @@ local spellIds = {
 	[263665] = "CC",				-- Conflagration
 	[210131] = "CC",				-- Trampling Charge
 	[745]    = "Root",				-- Web
-	[4962]   = "Root",				-- Encasing Webs
 	[269680] = "Root",				-- Entanglement
 	[262610] = "Root",				-- Weighted Net
 	[20822]  = "Snare",				-- Frostbolt
@@ -937,6 +1453,7 @@ local spellIds = {
 	[290625] = "CC",				-- Creeping Decay
 	[290624] = "CC",				-- Necrotic Paralysis
 	[290623] = "CC",				-- Stone Prison
+	[245139] = "CC",				-- Petrified
 	[274794] = "CC",				-- Hex
 	[278808] = "CC",				-- Hex
 	[278809] = "CC",				-- Hex
@@ -1035,8 +1552,17 @@ local spellIds = {
 	[266158] = "Snare",				-- Frost Bomb
 	[263344] = "Snare",				-- Subjugate
 	[261095] = "Snare",				-- Vermin Parade
+	[245386] = "Other",				-- Darkest Darkness (healing taken reduced by 99%)
+	[274972] = "Other",				-- Breath of Darkness (healing taken reduced by 75%)
 	------------------------
 	-- BfA Mythics
+	-- --- Common to all 
+	[314483] = "CC",				-- Cascading Terror
+	[314411] = "Other",				-- Lingering Doubt (casting speed reduced by 70%)
+	[314308] = "Other",				-- Spirit Breaker (damage taken increased by 100%)
+	[314392] = "Snare",				-- Vile Corruption
+	[314592] = "Snare",				-- Mind Flay
+	[314406] = "Snare",				-- Crippling Pestilence
 	-- -- Operation: Mechagon
 	[297283] = "CC",				-- Cave In
 	[294995] = "CC",				-- Cave In
@@ -1047,6 +1573,9 @@ local spellIds = {
 	[304452] = "CC",				-- Mega Taze
 	[296150] = "CC",				-- Vent Blast
 	[299994] = "CC",				-- Vent Blast
+	[300650] = "CC",				-- Suffocating Smog
+	[291974] = "CC",				-- Obnoxious Monologue
+	[295130] = "CC",				-- Neutralize Threat
 	[283640] = "CC",				-- Rattled
 	[282943] = "CC",				-- Piston Smasher
 	[285460] = "CC",				-- Discom-BOMB-ulator
@@ -1054,8 +1583,6 @@ local spellIds = {
 	[299707] = "CC",				-- Trample
 	[296571] = "Immune",			-- Power Shield (damage taken reduced 99%)
 	[293986] = "Silence",			-- Sonic Pulse
-	[296150] = "CC",				-- Vent Blast
-	[299994] = "CC",				-- Vent Blast
 	[303264] = "CC",				-- Anti-Trespassing Field
 	[296279] = "CC",				-- Anti-Trespassing Teleport
 	[300514] = "Immune",			-- Stoneskin (damage taken reduced 75%)
@@ -1066,8 +1593,11 @@ local spellIds = {
 	[295183] = "CC",				-- Capacitor Discharge
 	[300436] = "Root",				-- Grasping Hex
 	[299475] = "Snare",				-- B.O.R.K
+	[300764] = "Snare",				-- Slimebolt
 	[296560] = "Snare",				-- Clinging Static
 	[285388] = "Snare",				-- Vent Jets
+	[298602] = "Other",				-- Smoke Cloud
+	[300675] = "Other",				-- Toxic Fog
 	-- -- Atal'Dazar
 	[255371] = "CC",				-- Terrifying Visage
 	[255041] = "CC",				-- Terrifying Screech
@@ -1189,6 +1719,7 @@ local spellIds = {
 	-- -- Siege of Boralus
 	[256957] = "Immune",			-- Watertight Shell
 	[257069] = "CC",				-- Watertight Shell
+	[261428] = "CC",				-- Hangman's Noose
 	[257292] = "CC",				-- Heavy Slash
 	[272874] = "CC",				-- Trample
 	[257169] = "CC",				-- Terrifying Roar
@@ -1501,6 +2032,392 @@ local spellIds = {
 	[248298] = "Silence",			-- Screech
 	[245706] = "CC",				-- Ruinous Strike
 	[248133] = "CC",				-- Stygian Blast
+	------------------------
+	---- PVE CLASSIC
+	------------------------
+	-- Molten Core Raid
+	-- -- Trash
+	[19364]  = "CC",				-- Ground Stomp
+	[19369]  = "CC",				-- Ancient Despair
+	[19641]  = "CC",				-- Pyroclast Barrage
+	[20276]  = "CC",				-- Knockdown
+	[19393]  = "Silence",			-- Soul Burn
+	[19636]  = "Root",				-- Fire Blossom
+	-- -- Lucifron
+	[20604]  = "CC",				-- Dominate Mind
+	-- -- Magmadar
+	[19408]  = "CC",				-- Panic
+	-- -- Gehennas
+	[20277]  = "CC",				-- Fist of Ragnaros
+	[19716]  = "Other",				-- Gehennas' Curse
+	-- -- Garr
+	[19496]  = "Snare",				-- Magma Shackles
+	-- -- Shazzrah
+	[19714]  = "ImmuneSpell",		-- Deaden Magic (not immune, 50% magical damage reduction)
+	-- -- Golemagg the Incinerator
+	[19820]  = "Snare",				-- Mangle
+	[22689]  = "Snare",				-- Mangle
+	-- -- Sulfuron Harbinger
+	[19780]  = "CC",				-- Hand of Ragnaros
+	-- -- Majordomo Executus
+	[20619]  = "ImmuneSpell",		-- Magic Reflection (not immune, 50% chance reflect spells)
+	[20229]  = "Snare",				-- Blast Wave
+	------------------------
+	-- Onyxia's Lair Raid
+	-- -- Onyxia
+	[18431]  = "CC",				-- Bellowing Roar
+	------------------------
+	-- Blackwing Lair Raid
+	-- -- Trash
+	[24375]  = "CC",				-- War Stomp
+	[22289]  = "CC",				-- Brood Power: Green
+	[22291]  = "CC",				-- Brood Power: Bronze
+	[22561]  = "CC",				-- Brood Power: Green
+	[22247]  = "Snare",				-- Suppression Aura
+	[22424]  = "Snare",				-- Blast Wave
+	[15548]  = "Snare",				-- Thunderclap
+	-- -- Razorgore the Untamed
+	[19872]  = "CC",				-- Calm Dragonkin
+	[23023]  = "CC",				-- Conflagration
+	[15593]  = "CC",				-- War Stomp
+	[16740]  = "CC",				-- War Stomp
+	[27758]  = "CC",				-- War Stomp
+	[28725]  = "CC",				-- War Stomp
+	[14515]  = "CC",				-- Dominate Mind
+	[22274]  = "CC",				-- Greater Polymorph
+	[13747]  = "Snare",				-- Slow
+	-- -- Broodlord Lashlayer
+	[23331]  = "Snare",				-- Blast Wave
+	[25049]  = "Snare",				-- Blast Wave
+	-- -- Chromaggus
+	[23310]  = "CC",				-- Time Lapse
+	[23312]  = "CC",				-- Time Lapse
+	[23174]  = "CC",				-- Chromatic Mutation
+	[23171]  = "CC",				-- Time Stop (Brood Affliction: Bronze)
+	[23153]  = "Snare",				-- Brood Affliction: Blue
+	[23169]  = "Other",				-- Brood Affliction: Green
+	-- -- Nefarian
+	[22666]  = "Silence",			-- Silence
+	[22667]  = "CC",				-- Shadow Command
+	[22663]  = "Immune",			-- Nefarian's Barrier
+	[22686]  = "CC",				-- Bellowing Roar
+	[39427]  = "CC",				-- Bellowing Roar
+	[22678]  = "CC",				-- Fear
+	[23603]  = "CC",				-- Wild Polymorph
+	[23364]  = "CC",				-- Tail Lash
+	[25654]  = "CC",				-- Tail Lash
+	[23365]  = "Disarm",			-- Dropped Weapon
+	[23415]  = "ImmunePhysical",	-- Improved Blessing of Protection
+	[23414]  = "Root",				-- Paralyze
+	[22687]  = "Other",				-- Veil of Shadow
+	------------------------
+	-- Classic World Bosses
+	-- -- Azuregos
+	[23186]  = "CC",				-- Aura of Frost
+	[243901] = "CC",				-- Mark of Frost
+	[21099]  = "CC",				-- Frost Breath
+	[22067]  = "ImmuneSpell",		-- Reflection
+	[27564]  = "ImmuneSpell",		-- Reflection
+	[243835] = "ImmuneSpell",		-- Reflection
+	[21098]  = "Snare",				-- Chill
+	-- -- Doom Lord Kazzak & Highlord Kruul
+	[8078]   = "Snare",				-- Thunderclap
+	[23931]  = "Snare",				-- Thunderclap
+	-- -- Dragons of Nightmare
+	[25043]  = "CC",				-- Aura of Nature
+	[24778]  = "CC",				-- Sleep (Dream Fog)
+	[24811]  = "CC",				-- Draw Spirit
+	[25806]  = "CC",				-- Creature of Nightmare
+	[12528]  = "Silence",			-- Silence
+	[23207]  = "Silence",			-- Silence
+	[26069]  = "Silence",			-- Silence
+	[29943]  = "Silence",			-- Silence
+	[30225]  = "Silence",			-- Silence
+	------------------------
+	-- Classic Dungeons
+	-- -- Ragefire Chasm
+	[8242]   = "CC",				-- Shield Slam
+	-- -- The Deadmines
+	[6304]   = "CC",				-- Rhahk'Zor Slam
+	[6713]   = "Disarm",			-- Disarm
+	[7399]   = "CC",				-- Terrify
+	[5213]   = "Snare",				-- Molten Metal
+	[6435]   = "CC",				-- Smite Slam
+	[6432]   = "CC",				-- Smite Stomp
+	[6264]   = "Other",				-- Nimble Reflexes (chance to parry increased by 75%)
+	[113]    = "Root",				-- Chains of Ice
+	[5159]   = "Snare",				-- Melt Ore
+	[228]    = "CC",				-- Polymorph: Chicken
+	[6466]   = "CC",				-- Axe Toss
+	[92614]  = "Immune",			-- Deflection
+	[88348]  = "CC",				-- Off-line
+	[91732]  = "CC",				-- Off-line
+	[92100]  = "CC",				-- Noxious Concoction
+	[88836]  = "CC",				-- Go For the Throat
+	[87901]  = "Snare",				-- Fists of Frost
+	[88177]  = "Snare",				-- Frost Blossom
+	[88288]  = "CC",				-- Charge
+	[91726]  = "CC",				-- Reaper Charge
+	[90958]  = "Other",				-- Evasion
+	[95491]  = "CC",				-- Cannonball
+	[135337] = "CC",				-- Cannonball
+	[89769]  = "CC",				-- Explode
+	[55041]  = "CC",				-- Freezing Trap Effect
+	-- -- Wailing Caverns
+	[8040]   = "CC",				-- Druid's Slumber
+	[8147]   = "Snare",				-- Thunderclap
+	[8142]   = "Root",				-- Grasping Vines
+	[5164]   = "CC",				-- Knockdown
+	[7967]   = "CC",				-- Naralex's Nightmare
+	[8150]   = "CC",				-- Thundercrack
+	-- -- Shadowfang Keep
+	[7295]   = "Root",				-- Soul Drain
+	[7139]   = "CC",				-- Fel Stomp
+	[13005]  = "CC",				-- Hammer of Justice
+	[9080]   = "Snare",				-- Hamstring
+	[7621]   = "CC",				-- Arugal's Curse
+	[7068]   = "Other",				-- Veil of Shadow
+	[23224]  = "Other",				-- Veil of Shadow
+	[7803]   = "CC",				-- Thundershock
+	[7074]   = "Silence",			-- Screams of the Past
+	[24021]  = "ImmuneSpell",		-- Anti-Magic Shield
+	[93956]  = "Other",				-- Cursed Veil	
+	[67781]  = "Snare",				-- Desecration
+	[93691]  = "Snare",				-- Desecration
+	[196178] = "Snare",				-- Desecration
+	[93697]  = "Snare",				-- Conjure Poisonous Mixture
+	[91220]  = "CC",				-- Cowering Roar
+	[93423]  = "CC",				-- Asphyxiate
+	[30615]  = "CC",				-- Fear
+	[15497]  = "Snare",				-- Frostbolt
+	[93930]  = "CC",				-- Spectral Ravaging
+	[93863]  = "Root",				-- Soul Drain
+	[29321]  = "CC",				-- Fear
+	-- -- Blackfathom Deeps
+	[246]    = "Snare",				-- Slow
+	[15531]  = "Root",				-- Frost Nova
+	[6533]   = "Root",				-- Net
+	[8399]   = "CC",				-- Sleep
+	[8379]   = "Disarm",			-- Disarm
+	[18972]  = "Snare",				-- Slow
+	[9672]   = "Snare",				-- Frostbolt
+	[8398]   = "Snare",				-- Frostbolt Volley
+	[8391]   = "CC",				-- Ravage
+	[7645]   = "CC",				-- Dominate Mind
+	[15043]  = "Snare",				-- Frostbolt
+	[151963] = "CC",				-- Crush
+	[150660] = "CC",				-- Crush
+	[152417] = "CC",				-- Crush
+	[149955] = "CC",				-- Devouring Blackness
+	[150634] = "CC",				-- Leviathan's Grip
+	[5424]   = "Root",				-- Claw Grasp
+	[149910] = "Root",				-- Catch of the Day
+	[302956] = "Root",				-- Catch of the Day
+	-- -- The Stockade
+	[3419]   = "Other",				-- Improved Blocking
+	[19134]  = "CC",				-- Intimidating Shout
+	[29544]  = "CC",				-- Intimidating Shout
+	[6253]   = "CC",				-- Backhand
+	[204735] = "Snare",				-- Frostbolt
+	[86740]  = "CC",				-- Dirty Blow
+	[86814]  = "CC",				-- Bash Head
+	-- -- Gnomeregan
+	[10831]  = "ImmuneSpell",		-- Reflection Field
+	[11820]  = "Root",				-- Electrified Net
+	[10852]  = "Root",				-- Battle Net
+	[10734]  = "Snare",				-- Hail Storm
+	[11264]  = "Root",				-- Ice Blast
+	[10730]  = "CC",				-- Pacify
+	[74720]  = "CC",				-- Pound
+	-- -- Razorfen Kraul
+	[8281]   = "Silence",			-- Sonic Burst
+	[23918]  = "Silence",			-- Sonic Burst
+	[39052]  = "Silence",			-- Sonic Burst
+	[8359]   = "CC",				-- Left for Dead
+	[8285]   = "CC",				-- Rampage
+	[8361]   = "Immune",			-- Purity
+	[6984]   = "Snare",				-- Frost Shot
+	[18802]  = "Snare",				-- Frost Shot
+	[6728]   = "CC",				-- Enveloping Winds
+	[3248]   = "Other",				-- Improved Blocking
+	[151583] = "Root",				-- Elemental Binding
+	[286963] = "CC",				-- Elemental Binding
+	[153550] = "Silence",			-- Solarshard Beam
+	[150357] = "Silence",			-- Solarshard Beam
+	[150859] = "Snare",				-- Wing Clip
+	[153214] = "CC",				-- Sonic Charge
+	[150651] = "Root",				-- Vine Line
+	[150304] = "Root",				-- Vine Line
+	-- -- Scarlet Monastery
+	[9438]   = "Immune",			-- Arcane Bubble
+	[13323]  = "CC",				-- Polymorph
+	[8988]   = "Silence",			-- Silence
+	[8989]   = "ImmuneSpell",		-- Whirlwind
+	[13874]  = "Immune",			-- Divine Shield
+	[9256]   = "CC",				-- Deep Sleep
+	[3639]   = "Other",				-- Improved Blocking
+	[6146]   = "Snare",				-- Slow
+	-- -- Razorfen Downs
+	[12252]  = "Root",				-- Web Spray
+	[15530]  = "Snare",				-- Frostbolt
+	[12946]  = "Silence",			-- Putrid Stench
+	[11443]  = "Snare",				-- Cripple
+	[11436]  = "Snare",				-- Slow
+	[12531]  = "Snare",				-- Chilling Touch
+	[12748]  = "Root",				-- Frost Nova
+	[152773] = "CC",				-- Possession
+	[150082] = "Snare",				-- Plagued Bite
+	[150707] = "CC",				-- Overwhelmed
+	[150485] = "Root",				-- Web Wrap
+	-- -- Uldaman
+	[11876]  = "CC",				-- War Stomp
+	[3636]   = "CC",				-- Crystalline Slumber
+	[9906]   = "ImmuneSpell",		-- Reflection
+	[10093]  = "Snare",				-- Harsh Winds
+	[25161]  = "Silence",			-- Harsh Winds
+	[55142]  = "CC",				-- Ground Tremor
+	-- -- Maraudon
+	[12747]  = "Root",				-- Entangling Roots
+	[21331]  = "Root",				-- Entangling Roots
+	[21793]  = "Snare",				-- Twisted Tranquility
+	[21808]  = "CC",				-- Landslide
+	[29419]  = "CC",				-- Flash Bomb
+	[22592]  = "CC",				-- Knockdown
+	[21869]  = "CC",				-- Repulsive Gaze
+	[11428]  = "CC",				-- Knockdown
+	[16790]  = "CC",				-- Knockdown
+	[11922]  = "Root",				-- Entangling Roots
+	-- -- Zul'Farrak
+	[11020]  = "CC",				-- Petrify
+	[13704]  = "CC",				-- Psychic Scream
+	[11089]  = "ImmunePhysical",	-- Theka Transform (also immune to shadow damage)
+	[12551]  = "Snare",				-- Frost Shot
+	[11836]  = "CC",				-- Freeze Solid
+	[11131]  = "Snare",				-- Icicle
+	[11641]  = "CC",				-- Hex
+	[12540]  = "CC",				-- Gouge
+	-- -- The Temple of Atal'Hakkar (Sunken Temple)
+	[12888]  = "CC",				-- Cause Insanity
+	[24327]  = "CC",				-- Cause Insanity
+	[26079]  = "CC",				-- Cause Insanity
+	[12480]  = "CC",				-- Hex of Jammal'an
+	[12890]  = "CC",				-- Deep Slumber
+	[25852]  = "CC",				-- Lash
+	[6607]   = "CC",				-- Lash
+	[6608]   = "Disarm",			-- Dropped Weapon
+	[25774]  = "CC",				-- Mind Shatter
+	[33126]  = "Disarm",			-- Dropped Weapon
+	[34259]  = "CC",				-- Fear
+	-- -- Blackrock Depths
+	[8994]   = "CC",				-- Banish
+	[15588]  = "Snare",				-- Thunderclap
+	[12674]  = "Root",				-- Frost Nova
+	[12675]  = "Snare",				-- Frostbolt
+	[15244]  = "Snare",				-- Cone of Cold
+	[15636]  = "ImmuneSpell",		-- Avatar of Flame
+	[7121]   = "ImmuneSpell",		-- Anti-Magic Shield
+	[15471]  = "Silence",			-- Enveloping Web
+	[3609]   = "CC",				-- Paralyzing Poison
+	[15474]  = "Root",				-- Web Explosion
+	[17492]  = "CC",				-- Hand of Thaurissan
+	[12169]  = "Other",				-- Shield Block
+	[15062]  = "Immune",			-- Shield Wall (not immune, 75% damage reduction)
+	[29061]  = "Immune",			-- Shield Wall (not immune, 75% damage reduction)
+	[14030]  = "Root",				-- Hooked Net
+	[14870]  = "CC",				-- Drunken Stupor
+	[13902]  = "CC",				-- Fist of Ragnaros
+	[15063]  = "Root",				-- Frost Nova
+	[6945]   = "CC",				-- Chest Pains
+	[3551]   = "CC",				-- Skull Crack
+	[15621]  = "CC",				-- Skull Crack
+	[11831]  = "Root",				-- Frost Nova
+	[15499]  = "Snare",				-- Frost Shock
+	[280494] = "CC",				-- Conflagration
+	[47442]  = "CC",				-- Barreled!
+	[21401]  = "Snare",				-- Frost Shock
+	-- -- Blackrock Spire
+	[16097]  = "CC",				-- Hex
+	[22566]  = "CC",				-- Hex
+	[15618]  = "CC",				-- Snap Kick
+	[16075]  = "CC",				-- Throw Axe
+	[16104]  = "CC",				-- Crystallize
+	[16508]  = "CC",				-- Intimidating Roar
+	[15609]  = "Root",				-- Hooked Net
+	[16497]  = "CC",				-- Stun Bomb
+	[5276]   = "CC",				-- Freeze
+	[18763]  = "CC",				-- Freeze
+	[16805]  = "CC",				-- Conflagration
+	[13579]  = "CC",				-- Gouge
+	[24698]  = "CC",				-- Gouge
+	[28456]  = "CC",				-- Gouge
+	[16046]  = "Snare",				-- Blast Wave
+	[15744]  = "Snare",				-- Blast Wave
+	[16249]  = "Snare",				-- Frostbolt
+	[16469]  = "Root",				-- Web Explosion
+	[15532]  = "Root",				-- Frost Nova
+	-- -- Stratholme
+	[17405]  = "CC",				-- Domination
+	[17246]  = "CC",				-- Possessed
+	[15655]  = "CC",				-- Shield Slam
+	[19645]  = "ImmuneSpell",		-- Anti-Magic Shield
+	[16799]  = "Snare",				-- Frostbolt
+	[16798]  = "CC",				-- Enchanting Lullaby
+	[12542]  = "CC",				-- Fear
+	[12734]  = "CC",				-- Ground Smash
+	[17293]  = "CC",				-- Burning Winds
+	[4962]   = "Root",				-- Encasing Webs
+	[13322]  = "Snare",				-- Frostbolt
+	[15089]  = "Snare",				-- Frost Shock
+	[12557]  = "Snare",				-- Cone of Cold
+	[16869]  = "CC",				-- Ice Tomb
+	[17244]  = "CC",				-- Possess
+	[18327]  = "Silence",			-- Silence
+	[17307]  = "CC",				-- Knockout
+	[15970]  = "CC",				-- Sleep
+	[3589]   = "Silence",			-- Deafening Screech
+	[54791]  = "Snare",				-- Frostbolt
+	[66290]  = "CC",				-- Sleep
+	[82107]  = "CC",				-- Deep Freeze
+	-- -- Dire Maul
+	[17145]  = "Snare",				-- Blast Wave
+	[21060]  = "CC",				-- Blind
+	[22651]  = "CC",				-- Sacrifice
+	[22419]  = "Disarm",			-- Riptide
+	[22691]  = "Disarm",			-- Disarm
+	[22833]  = "CC",				-- Booze Spit (chance to hit reduced by 75%)
+	[22856]  = "CC",				-- Ice Lock
+	[16727]  = "CC",				-- War Stomp
+	[22884]  = "CC",				-- Psychic Scream
+	[22911]  = "CC",				-- Charge
+	--[22735]  = "ImmuneSpell",		-- Spirit of Runn Tum (not immune, 50% chance reflect spells)
+	[22994]  = "Root",				-- Entangle
+	[22924]  = "Root",				-- Grasping Vines
+	[22914]  = "Snare",				-- Concussive Shot
+	[22915]  = "CC",				-- Improved Concussive Shot
+	[22919]  = "Snare",				-- Mind Flay
+	[22909]  = "Snare",				-- Eye of Immol'thar
+	[28858]  = "Root",				-- Entangling Roots
+	[22415]  = "Root",				-- Entangling Roots
+	[22744]  = "Root",				-- Chains of Ice
+	[12611]  = "Snare",				-- Cone of Cold
+	[16838]  = "Silence",			-- Banshee Shriek
+	[22519]  = "CC",				-- Ice Nova
+	[57825]  = "Snare",				-- Frostbolt
+	-- -- Scholomance
+	[5708]   = "CC",				-- Swoop
+	[18144]  = "CC",				-- Swoop
+	[23919]  = "CC",				-- Swoop
+	[18103]  = "CC",				-- Backhand
+	[24619]  = "Silence",			-- Soul Tap
+	[8140]   = "Other",				-- Befuddlement
+	[8611]   = "Immune",			-- Phase Shift
+	[17651]  = "Immune",			-- Image Projection
+	[27565]  = "CC",				-- Banish
+	[18099]  = "Snare",				-- Chill Nova
+	[16350]  = "CC",				-- Freeze
+	[17165]  = "Snare",				-- Mind Flay
+	[22643]  = "Snare",				-- Frostbolt Volley
+	[18101]  = "Snare",				-- Chilled (Frost Armor)
 }
 
 if debug then
@@ -1587,14 +2504,16 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 6.0, -- This is the settings version, not necessarily the same as the LoseControl version
+	version = 6.1, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
 	noBlizzardCooldownCount = true,
 	noLossOfControlCooldown = false,
-	disablePartyInBG = false,
+	disablePartyInBG = true,
 	disableArenaInBG = true,
 	disablePartyInRaid = true,
 	disablePlayerInterrupts = true,
+	showNPCInterruptsTarget = true,
+	showNPCInterruptsFocus = true,
 	priority = {		-- higher numbers have more priority; 0 = disabled
 		PvE = 90,
 		Immune = 80,
@@ -1706,9 +2625,6 @@ function LoseControl:RegisterUnitEvents(enabled)
 	if debug then print("RegisterUnitEvents", unitId, enabled) end
 	if enabled then
 		self:RegisterUnitEvent("UNIT_AURA", unitId)
-		if (LoseControlDB.priority.Interrupt > 0) then
-			self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		end
 		if unitId == "target" then
 			self:RegisterEvent("PLAYER_TARGET_CHANGED")
 		elseif unitId == "focus" then
@@ -1718,7 +2634,6 @@ function LoseControl:RegisterUnitEvents(enabled)
 		end
 	else
 		self:UnregisterEvent("UNIT_AURA")
-		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		if unitId == "target" then
 			self:UnregisterEvent("PLAYER_TARGET_CHANGED")
 		elseif unitId == "focus" then
@@ -1726,6 +2641,58 @@ function LoseControl:RegisterUnitEvents(enabled)
 		elseif unitId == "pet" then
 			self:UnregisterEvent("UNIT_PET")
 		end
+		if not self.unlockMode then
+			self:Hide()
+		end
+	end
+	if (LoseControlDB.priority.Interrupt > 0) then
+		local someFrameEnabled = false
+		for _, v in pairs(LCframes) do
+			if v.frame and v.frame.enabled then
+				someFrameEnabled = true
+				break
+			end
+		end
+		if someFrameEnabled then
+			LCframes["target"]:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		else
+			LCframes["target"]:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		end
+	else
+		LCframes["target"]:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	end
+end
+
+local function SetInterruptIconsSize(iconFrame, iconSize)
+	local interruptIconSize = (iconSize * 0.88) / 3
+	local interruptIconOffset = (iconSize * 0.06)
+	if iconFrame.frame.anchor == "Blizzard" then
+		iconFrame.interruptIconOrderPos = {
+			[1] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
+			[2] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
+			[3] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
+			[4] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
+			[5] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2},
+			[6] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize*2},
+			[7] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize*2}
+		}
+	else
+		iconFrame.interruptIconOrderPos = {
+			[1] = {-interruptIconOffset, interruptIconOffset},
+			[2] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
+			[3] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset},
+			[4] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
+			[5] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
+			[6] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
+			[7] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2}
+		}
+	end
+	iconFrame.iconInterruptBackground:SetWidth(iconSize)
+	iconFrame.iconInterruptBackground:SetHeight(iconSize)
+	for _, v in pairs(iconFrame.iconInterruptList) do
+		v:SetWidth(interruptIconSize)
+		v:SetHeight(interruptIconSize)
+		v:SetPoint("BOTTOMRIGHT", iconFrame.interruptIconOrderPos[v.interruptIconOrder or 1][1], iconFrame.interruptIconOrderPos[v.interruptIconOrder or 1][2])
 	end
 end
 
@@ -1778,32 +2745,20 @@ end
 -- Handle default settings
 function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == addonName then
-		if _G.LoseControlDB and _G.LoseControlDB.version then
-			if _G.LoseControlDB.version < DBdefaults.version then
-				if _G.LoseControlDB.version == 5.1 then -- upgrade gracefully
-					_G.LoseControlDB.disableArenaInBG = DBdefaults.disableArenaInBG
-					_G.LoseControlDB.noBlizzardCooldownCount = DBdefaults.noBlizzardCooldownCount
-					_G.LoseControlDB.noLossOfControlCooldown = DBdefaults.noLossOfControlCooldown
-					_G.LoseControlDB.disablePartyInRaid = DBdefaults.disablePartyInRaid
-					_G.LoseControlDB.disablePlayerInterrupts = DBdefaults.disablePlayerInterrupts
-					_G.LoseControlDB.priority.Interrupt = DBdefaults.priority.Interrupt
-					_G.LoseControlDB.priority.ImmunePhysical = DBdefaults.priority.ImmunePhysical
-					_G.LoseControlDB.version = DBdefaults.version
-				elseif _G.LoseControlDB.version == 5.2 then -- upgrade gracefully
-					_G.LoseControlDB.disablePlayerInterrupts = DBdefaults.disablePlayerInterrupts
-					_G.LoseControlDB.priority.Interrupt = DBdefaults.priority.Interrupt
-					_G.LoseControlDB.priority.ImmunePhysical = DBdefaults.priority.ImmunePhysical
-					_G.LoseControlDB.version = DBdefaults.version
-				else
-					_G.LoseControlDB = CopyTable(DBdefaults)
-					print(L["LoseControl reset."])
-				end
-			end
-		else -- never installed before
+		if (_G.LoseControlDB == nil) or (_G.LoseControlDB.version == nil) then -- never installed before
 			_G.LoseControlDB = CopyTable(DBdefaults)
 			print(L["LoseControl reset."])
 		end
+		if _G.LoseControlDB.version < DBdefaults.version then
+			for k, v in pairs(DBdefaults) do
+				if (_G.LoseControlDB[k] == nil) then
+					_G.LoseControlDB[k] = v
+				end
+			end
+			_G.LoseControlDB.version = DBdefaults.version
+		end
 		LoseControlDB = _G.LoseControlDB
+		self.VERSION = "6.10"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
@@ -1832,15 +2787,13 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	self.frame = LoseControlDB.frames[unitId] -- store a local reference to the frame's settings
 	local frame = self.frame
 	local inInstance, instanceType = IsInInstance()
-	self:RegisterUnitEvents(
-		frame.enabled and not (
-			inInstance and instanceType == "pvp" and (
-				( LoseControlDB.disablePartyInBG and string.find(unitId, "party") ) or
-				( LoseControlDB.disableArenaInBG and string.find(unitId, "arena") )
-			)
-		) and not (
-			IsInRaid() and instanceType~="arena" and LoseControlDB.disablePartyInRaid and string.find(unitId, "party")
+	local enabled = frame.enabled and not (
+		inInstance and instanceType == "pvp" and (
+			( LoseControlDB.disablePartyInBG and strfind(unitId, "party") ) or
+			( LoseControlDB.disableArenaInBG and strfind(unitId, "arena") )
 		)
+	) and not (
+		IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
 	)
 	self.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
 	self.unitGUID = UnitGUID(self.unitId)
@@ -1849,6 +2802,8 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:SetWidth(frame.size)
 	self:SetHeight(frame.size)
+	self:RegisterUnitEvents(enabled)
+	
 	self:SetPoint(
 		frame.point or "CENTER",
 		self.anchor,
@@ -1856,25 +2811,34 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		frame.x or 0,
 		frame.y or 0
 	)
+	
+	SetInterruptIconsSize(self, frame.size)
+	
 	--self:SetAlpha(frame.alpha) -- doesn't seem to work; must manually set alpha after the cooldown is displayed, otherwise it doesn't apply.
 	self:Hide()
+	
+	if enabled and not self.unlockMode then
+		self:UNIT_AURA(self.unitId)
+	end
 end
 
 function LoseControl:GROUP_ROSTER_UPDATE()
 	local unitId = self.unitId
 	local frame = self.frame
-	if (frame == nil) or (unitId == nil) or not(string.find(unitId, "party")) then
+	if (frame == nil) or (unitId == nil) or not(strfind(unitId, "party")) then
 		return
 	end
 	local inInstance, instanceType = IsInInstance()
-	self:RegisterUnitEvents(
-		frame.enabled and not (
-			inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
-		) and not (
-			IsInRaid() and instanceType~="arena" and LoseControlDB.disablePartyInRaid
-		)
+	local enabled = frame.enabled and not (
+		inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
+	) and not (
+		IsInRaid() and LoseControlDB.disablePartyInRaid and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
 	)
-	self.unitGUID = UnitGUID(self.unitId)
+	self:RegisterUnitEvents(enabled)
+	self.unitGUID = UnitGUID(unitId)
+	if enabled and not self.unlockMode then
+		self:UNIT_AURA(unitId)
+	end
 end
 
 function LoseControl:GROUP_JOINED()
@@ -1885,10 +2849,29 @@ function LoseControl:GROUP_LEFT()
 	self:GROUP_ROSTER_UPDATE()
 end
 
+local function UpdateUnitAuraByUnitGUID(unitGUID)
+	local inInstance, instanceType = IsInInstance()
+	for k, v in pairs(LCframes) do
+		local enabled = v.frame.enabled and not (
+			inInstance and instanceType == "pvp" and (
+				( LoseControlDB.disablePartyInBG and strfind(v.unitId, "party") ) or
+				( LoseControlDB.disableArenaInBG and strfind(v.unitId, "arena") )
+			)
+		) and not (
+			IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(v.unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
+		)
+		if enabled and not v.unlockMode then
+			if v.unitGUID == unitGUID then
+				v:UNIT_AURA(k)
+			end
+		end
+	end
+end
+
 function LoseControl:ARENA_OPPONENT_UPDATE()
 	local unitId = self.unitId
 	local frame = self.frame
-	if (frame == nil) or (unitId == nil) or not(string.find(unitId, "arena")) then
+	if (frame == nil) or (unitId == nil) or not(strfind(unitId, "arena")) then
 		return
 	end
 	local inInstance, instanceType = IsInInstance()
@@ -1898,6 +2881,9 @@ function LoseControl:ARENA_OPPONENT_UPDATE()
 		)
 	)
 	self.unitGUID = UnitGUID(self.unitId)
+	if enabled and not self.unlockMode then
+		self:UNIT_AURA(unitId)
+	end
 end
 
 function LoseControl:ARENA_PREP_OPPONENT_SPECIALIZATIONS()
@@ -1906,36 +2892,65 @@ end
 
 -- This event check pvp interrupts
 function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
-	if (UnitIsPlayer(self.unitId)) then
-		local _, event, _, _, _, _, _, destGUID, _, _, _, spellId, _, _, _, _, spellSchool = CombatLogGetCurrentEventInfo()
-		if (destGUID == self.unitGUID) then
-			if (event == "SPELL_INTERRUPT") then
-				local duration = interruptsIds[spellId]
-				if (duration ~= nil) then
-					local _, class = UnitClass(self.unitId)
-					if ((class == "PRIEST") or (class == "SHAMAN")) then
+	local _, event, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId, _, _, _, _, spellSchool = CombatLogGetCurrentEventInfo()
+	if (destGUID ~= nil) then
+		if (event == "SPELL_INTERRUPT") then
+			local duration = interruptsIds[spellId]
+			if (duration ~= nil) then
+				local _, destClass = GetPlayerInfoByGUID(destGUID)
+				if (destClass == "DRUID") then
+					local unitIdFromGUID
+					for _, v in pairs(LCframes) do
+						if (UnitGUID(v.unitId) == destGUID) then
+							unitIdFromGUID = v.unitId
+							break
+						end
+					end
+					if (unitIdFromGUID ~= nil) then
 						for i = 1, 40 do
-							local _, _, _, _, _, _, _, _, _, auxSpellId = UnitBuff(self.unitId, i)
+							local _, _, _, _, _, _, _, _, _, auxSpellId = UnitBuff(unitIdFromGUID, i)
 							if not auxSpellId then break end
-							if auxSpellId == 221660 then		-- Holy Concentration (Priest)
+							if auxSpellId == 234084 then		-- Moon and Stars (Druid)
 								duration = duration * 0.3
-								break
-							elseif auxSpellId == 221677 then	-- Calming Waters (Shaman)
-								duration = duration * 0.5
 								break
 							end
 						end	
 					end
-					local expirationTime = GetTime() + duration
-					local priority = LoseControlDB.priority.Interrupt
-					local _, _, icon = GetSpellInfo(spellId)
-					if (InterruptAuras[self.unitGUID] == nil) then
-						InterruptAuras[self.unitGUID] = {}
+				end
+				local expirationTime = GetTime() + duration
+				if debug then print("interrupt", ")", destGUID, "|", GetSpellInfo(spellId), "|", duration, "|", expirationTime, "|", spellId) end
+				local priority = LoseControlDB.priority.Interrupt
+				local _, _, icon = GetSpellInfo(spellId)
+				if (InterruptAuras[destGUID] == nil) then
+					InterruptAuras[destGUID] = {}
+				end
+				tblinsert(InterruptAuras[destGUID], { ["spellId"] = spellId, ["duration"] = duration, ["expirationTime"] = expirationTime, ["priority"] = priority, ["icon"] = icon, ["spellSchool"] = spellSchool })
+				UpdateUnitAuraByUnitGUID(destGUID)
+			end
+		elseif (((event == "UNIT_DIED") or (event == "UNIT_DESTROYED") or (event == "UNIT_DISSIPATES")) and (select(2, GetPlayerInfoByGUID(destGUID)) ~= "HUNTER")) then
+			InterruptAuras[destGUID] = nil
+			UpdateUnitAuraByUnitGUID(destGUID)
+		end
+	end
+	if ((sourceGUID ~= nil) and (event == "SPELL_CAST_SUCCESS") and (spellId == 235219)) then
+		local needUpdateUnitAura = false
+		if (InterruptAuras[sourceGUID] ~= nil) then
+			for k, v in pairs(InterruptAuras[sourceGUID]) do
+				if (bit_band(v.spellSchool, 16) > 0) then
+					needUpdateUnitAura = true
+					if (v.spellSchool > 16) then
+						InterruptAuras[sourceGUID][k].spellSchool = InterruptAuras[sourceGUID][k].spellSchool - 16
+					else
+						InterruptAuras[sourceGUID][k] = nil
 					end
-					table.insert(InterruptAuras[self.unitGUID], { ["spellId"] = spellId, ["duration"] = duration, ["expirationTime"] = expirationTime, ["priority"] = priority, ["icon"] = icon, ["spellSchool"] = spellSchool })
-					self:UNIT_AURA(self.unitId)
 				end
 			end
+			if (next(InterruptAuras[sourceGUID]) == nil) then
+				InterruptAuras[sourceGUID] = nil
+			end
+		end
+		if needUpdateUnitAura then
+			UpdateUnitAuraByUnitGUID(sourceGUID)
 		end
 	end
 end
@@ -1986,46 +3001,48 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 		end
 
 		local Priority = priority[spellIds[spellId]]
-		if Priority then
-			if Priority == maxPriority and expirationTime > maxExpirationTime then
-				maxExpirationTime = expirationTime
-				Duration = duration
-				Icon = icon
-			elseif Priority > maxPriority then
-				maxPriority = Priority
-				maxExpirationTime = expirationTime
-				Duration = duration
-				Icon = icon
+		if unitId ~= "player" or (spellIds[spellId] ~= "Immune" and spellIds[spellId] ~= "ImmuneSpell" and spellIds[spellId] ~= "ImmunePhysical" and spellIds[spellId] ~= "Other") then
+			if Priority then
+				if Priority == maxPriority and expirationTime > maxExpirationTime then
+					maxExpirationTime = expirationTime
+					Duration = duration
+					Icon = icon
+				elseif Priority > maxPriority then
+					maxPriority = Priority
+					maxExpirationTime = expirationTime
+					Duration = duration
+					Icon = icon
+				end
 			end
 		end
 	end
 
 	-- Check buffs
-	if unitId ~= "player" and (priority.Immune > 0 or priority.ImmuneSpell > 0 or priority.ImmunePhysical > 0 or priority.Other > 0) then
-		for i = 1, 40 do
-			local name, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
-			if not spellId then break end
-			if debug then print(unitId, "buff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
-			
-			if expirationTime == 0 then
-				expirationTime = GetTime() + 1 -- normal expirationTime = 0
-			end
-			
-			-- exceptions
-			-- exception for The Breast Within
-			if (spellId == 19574) then
-				spellId = 212704
-				for j = 1, 40 do
-					local _, _, _, _, _, _, _, _, _, auxSpellId = UnitBuff(unitId, j)
-					if not auxSpellId then break end
-					if auxSpellId == 212704 then
-						spellId = 19574
-						break
-					end
+	for i = 1, 40 do
+		local name, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
+		if not spellId then break end
+		if debug then print(unitId, "buff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
+		
+		if expirationTime == 0 then
+			expirationTime = GetTime() + 1 -- normal expirationTime = 0
+		end
+		
+		-- exceptions
+		-- exception for The Breast Within
+		if (spellId == 19574) then
+			spellId = 212704
+			for j = 1, 40 do
+				local _, _, _, _, _, _, _, _, _, auxSpellId = UnitBuff(unitId, j)
+				if not auxSpellId then break end
+				if auxSpellId == 212704 then
+					spellId = 19574
+					break
 				end
 			end
-			
-			local Priority = priority[spellIds[spellId]]
+		end
+		
+		local Priority = priority[spellIds[spellId]]
+		if unitId ~= "player" or (spellIds[spellId] ~= "Immune" and spellIds[spellId] ~= "ImmuneSpell" and spellIds[spellId] ~= "ImmunePhysical" and spellIds[spellId] ~= "Other") then
 			if Priority then
 				if Priority == maxPriority and expirationTime > maxExpirationTime then
 					maxExpirationTime = expirationTime
@@ -2042,10 +3059,19 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	end
 	
 	-- Check interrupts
-	if ((self.unitGUID ~= nil) and (priority.Interrupt > 0) and ((unitId ~= "player") or (not LoseControlDB.disablePlayerInterrupts))) then
+	local maxPriorityIsInterrupt = false
+	if ((self.unitGUID ~= nil) and (priority.Interrupt > 0) and ((unitId ~= "player") or (not LoseControlDB.disablePlayerInterrupts)) and ((unitId ~= "target") or (LoseControlDB.showNPCInterruptsTarget) or UnitIsPlayer(unitId)) and ((unitId ~= "focus") or (LoseControlDB.showNPCInterruptsFocus) or UnitIsPlayer(unitId))) then 
+		local spellSchoolInteruptsTable = {
+			[1] = {false, 0},
+			[2] = {false, 0},
+			[4] = {false, 0},
+			[8] = {false, 0},
+			[16] = {false, 0},
+			[32] = {false, 0},
+			[64] = {false, 0}
+		}
 		if (InterruptAuras[self.unitGUID] ~= nil) then
-			for k, v in ipairs(InterruptAuras[self.unitGUID]) do
-				local spellId = v.spellId
+			for k, v in pairs(InterruptAuras[self.unitGUID]) do
 				local Priority = v.priority
 				local expirationTime = v.expirationTime
 				local duration = v.duration
@@ -2053,19 +3079,38 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 				local spellSchool = v.spellSchool
 				if (expirationTime < GetTime()) then
 					InterruptAuras[self.unitGUID][k] = nil
+					if (next(InterruptAuras[self.unitGUID]) == nil) then
+						InterruptAuras[self.unitGUID] = nil
+					end
 				else
 					if Priority then
+						for schoolIntId, _ in pairs(spellSchoolInteruptsTable) do
+							if (bit_band(spellSchool, schoolIntId) > 0) then
+								spellSchoolInteruptsTable[schoolIntId][1] = true
+								if expirationTime > spellSchoolInteruptsTable[schoolIntId][2] then
+									spellSchoolInteruptsTable[schoolIntId][2] = expirationTime
+								end
+							end
+						end
 						if Priority == maxPriority and expirationTime > maxExpirationTime then
 							maxExpirationTime = expirationTime
 							Duration = duration
 							Icon = icon
-							C_Timer.After(expirationTime - GetTime() + 0.05, function()
+							maxPriorityIsInterrupt = true
+							local nextTimerUpdate = expirationTime - GetTime() + 0.05
+							if nextTimerUpdate < 0.05 then
+								nextTimerUpdate = 0.05
+							end
+							C_Timer.After(nextTimerUpdate, function()
 								self:UNIT_AURA(unitId)
 								for e, f in pairs(InterruptAuras) do
-									for g, h in ipairs(f) do
+									for g, h in pairs(f) do
 										if (h.expirationTime < GetTime()) then
 											InterruptAuras[e][g] = nil
 										end
+									end
+									if (next(InterruptAuras[e]) == nil) then
+										InterruptAuras[e] = nil
 									end
 								end
 							end)
@@ -2074,13 +3119,21 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 							maxExpirationTime = expirationTime
 							Duration = duration
 							Icon = icon
-							C_Timer.After(expirationTime - GetTime() + 0.05, function()
+							maxPriorityIsInterrupt = true
+							local nextTimerUpdate = expirationTime - GetTime() + 0.05
+							if nextTimerUpdate < 0.05 then
+								nextTimerUpdate = 0.05
+							end
+							C_Timer.After(nextTimerUpdate, function()
 								self:UNIT_AURA(unitId)
 								for e, f in pairs(InterruptAuras) do
-									for g, h in ipairs(f) do
+									for g, h in pairs(f) do
 										if (h.expirationTime < GetTime()) then
 											InterruptAuras[e][g] = nil
 										end
+									end
+									if (next(InterruptAuras[e]) == nil) then
+										InterruptAuras[e] = nil
 									end
 								end
 							end)
@@ -2089,12 +3142,33 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 				end
 			end
 		end
+		for schoolIntId, schoolIntFrame in pairs(self.iconInterruptList) do
+			if spellSchoolInteruptsTable[schoolIntId][1] then
+				if (not schoolIntFrame:IsShown()) then
+					schoolIntFrame:Show()
+				end
+				local orderInt = 1
+				for schoolInt2Id, schoolInt2Info in pairs(spellSchoolInteruptsTable) do
+					if ((schoolInt2Info[1]) and ((spellSchoolInteruptsTable[schoolIntId][2] < schoolInt2Info[2]) or ((spellSchoolInteruptsTable[schoolIntId][2] == schoolInt2Info[2]) and (schoolIntId > schoolInt2Id)))) then
+						orderInt = orderInt + 1
+					end
+				end
+				schoolIntFrame:SetPoint("BOTTOMRIGHT", self.interruptIconOrderPos[orderInt][1], self.interruptIconOrderPos[orderInt][2])
+				schoolIntFrame.interruptIconOrder = orderInt
+			elseif schoolIntFrame:IsShown() then
+				schoolIntFrame.interruptIconOrder = nil
+				schoolIntFrame:Hide()
+			end
+		end
 	end
 	
 	if maxExpirationTime == 0 then -- no (de)buffs found
 		self.maxExpirationTime = 0
 		if self.anchor ~= UIParent and self.drawlayer then
 			self.anchor:SetDrawLayer(self.drawlayer) -- restore the original draw layer
+		end
+		if self.iconInterruptBackground:IsShown() then
+			self.iconInterruptBackground:Hide()
 		end
 		self:Hide()
 	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
@@ -2108,10 +3182,27 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 				self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
 			end
 		end
+		if maxPriorityIsInterrupt then
+			if self.frame.anchor == "Blizzard" then
+				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait")
+			else
+				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background")
+			end
+			if (not self.iconInterruptBackground:IsShown()) then
+				self.iconInterruptBackground:Show()
+			end
+		else
+			if self.iconInterruptBackground:IsShown() then
+				self.iconInterruptBackground:Hide()
+			end
+		end
 		if self.frame.anchor == "Blizzard" then
-			SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits. TO DO: mask the cooldown frame somehow so the corners don't stick out of the portrait frame. Maybe apply a circular alpha mask in the OVERLAY draw layer.
+			SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
+			self:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
+			self:SetSwipeColor(0, 0, 0, 0.6)	-- Adjust the alpha of this mask to similar levels of the normal swipe cooldown texture
 		else
 			self.texture:SetTexture(Icon)
+			self:SetSwipeColor(0, 0, 0, 0.8)	-- This is the default alpha of the normal swipe cooldown texture
 		end
 		self:Show()
 		if Duration > 0 then
@@ -2136,7 +3227,9 @@ function LoseControl:PLAYER_FOCUS_CHANGED()
 	if (self.unitId == "focus") then
 		self.unitGUID = UnitGUID("focus")
 	end
-	self:UNIT_AURA("focus")
+	if not self.unlockMode then
+		self:UNIT_AURA("focus")
+	end
 end
 
 function LoseControl:PLAYER_TARGET_CHANGED()
@@ -2144,7 +3237,9 @@ function LoseControl:PLAYER_TARGET_CHANGED()
 	if (self.unitId == "target") then
 		self.unitGUID = UnitGUID("target")
 	end
-	self:UNIT_AURA("target")
+	if not self.unlockMode then
+		self:UNIT_AURA("target")
+	end
 end
 
 function LoseControl:UNIT_PET(unitId)
@@ -2152,7 +3247,9 @@ function LoseControl:UNIT_PET(unitId)
 	if (self.unitId == "pet") then
 		self.unitGUID = UnitGUID("pet")
 	end
-	self:UNIT_AURA("pet")
+	if not self.unlockMode then
+		self:UNIT_AURA("pet")
+	end
 end
 
 -- Handle mouse dragging
@@ -2201,6 +3298,42 @@ function LoseControl:new(unitId)
 	--o.overlay:SetVertexColor(0.25, 0.25, 0.25)
 	o:Hide()
 
+	-- Create and initialize Interrupt Mini Icons
+	o.iconInterruptBackground = o:CreateTexture(addonName .. unitId .. "InterruptIconBackground", "ARTWORK", nil, -2)
+	o.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background")
+	o.iconInterruptBackground:SetAlpha(0.7)
+	o.iconInterruptBackground:SetPoint("TOPLEFT", 0, 0)
+	o.iconInterruptBackground:Hide()
+	o.iconInterruptPhysical = o:CreateTexture(addonName .. unitId .. "InterruptIconPhysical", "ARTWORK", nil, -1)
+	o.iconInterruptPhysical:SetTexture("Interface\\Icons\\Ability_meleedamage")
+	o.iconInterruptHoly = o:CreateTexture(addonName .. unitId .. "InterruptIconHoly", "ARTWORK", nil, -1)
+	o.iconInterruptHoly:SetTexture("Interface\\Icons\\Spell_holy_holybolt")
+	o.iconInterruptFire = o:CreateTexture(addonName .. unitId .. "InterruptIconFire", "ARTWORK", nil, -1)
+	o.iconInterruptFire:SetTexture("Interface\\Icons\\Spell_fire_selfdestruct")
+	o.iconInterruptNature = o:CreateTexture(addonName .. unitId .. "InterruptIconNature", "ARTWORK", nil, -1)
+	o.iconInterruptNature:SetTexture("Interface\\Icons\\Spell_nature_protectionformnature")
+	o.iconInterruptFrost = o:CreateTexture(addonName .. unitId .. "InterruptIconFrost", "ARTWORK", nil, -1)
+	o.iconInterruptFrost:SetTexture("Interface\\Icons\\Spell_frost_icestorm")
+	o.iconInterruptShadow = o:CreateTexture(addonName .. unitId .. "InterruptIconShadow", "ARTWORK", nil, -1)
+	o.iconInterruptShadow:SetTexture("Interface\\Icons\\Spell_shadow_antishadow")
+	o.iconInterruptArcane = o:CreateTexture(addonName .. unitId .. "InterruptIconArcane", "ARTWORK", nil, -1)
+	o.iconInterruptArcane:SetTexture("Interface\\Icons\\Spell_nature_wispsplode")
+	o.iconInterruptList = {
+		[1] = o.iconInterruptPhysical,
+		[2] = o.iconInterruptHoly,
+		[4] = o.iconInterruptFire,
+		[8] = o.iconInterruptNature,
+		[16] = o.iconInterruptFrost,
+		[32] = o.iconInterruptShadow,
+		[64] = o.iconInterruptArcane
+	}
+	for _, v in pairs(o.iconInterruptList) do
+		v:SetAlpha(0.8)
+		v:Hide()
+		SetPortraitToTexture(v, v:GetTexture())
+		v:SetTexCoord(0.08,0.92,0.08,0.92)
+	end
+	
 	-- Handle events
 	o:SetScript("OnEvent", self.OnEvent)
 	o:SetScript("OnDragStart", self.StartMoving) -- this function is already built into the Frame class
@@ -2249,6 +3382,7 @@ function Unlock:OnClick()
 			tinsert(keys, k)
 		end
 		for k, v in pairs(LCframes) do
+			v.unlockMode = true
 			local frame = LoseControlDB.frames[k]
 			if frame.enabled and (_G[anchors[frame.anchor][k]] or frame.anchor == "None") then -- only unlock frames whose anchor exists
 				v:RegisterUnitEvents(false)
@@ -2261,7 +3395,7 @@ function Unlock:OnClick()
 				v.text:Show()
 				v:Show()
 				v:SetDrawSwipe(true)
-				v:SetCooldown( GetTime(), 30 )
+				v:SetCooldown( GetTime(), 60 )
 				v:SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
 				v:SetMovable(true)
 				v:RegisterForDrag("LeftButton")
@@ -2271,6 +3405,7 @@ function Unlock:OnClick()
 	else
 		_G[O.."UnlockText"]:SetText(L["Unlock"])
 		for _, v in pairs(LCframes) do
+			v.unlockMode = false
 			v:EnableMouse(false)
 			v:RegisterForDrag()
 			v:SetMovable(false)
@@ -2347,8 +3482,8 @@ PriorityDescription:SetText(L["PriorityDescription"])
 
 -------------------------------------------------------------------------------
 -- Slider helper function, thanks to Kollektiv
-local function CreateSlider(text, parent, low, high, step)
-	local name = parent:GetName() .. text
+local function CreateSlider(text, parent, low, high, step, globalName)
+	local name = globalName or (parent:GetName() .. text)
 	local slider = CreateFrame("Slider", name, parent, "OptionsSliderTemplate")
 	slider:SetWidth(160)
 	slider:SetMinMaxValues(low, high)
@@ -2365,6 +3500,10 @@ for k in pairs(DBdefaults.priority) do
 	PrioritySlider[k]:SetScript("OnValueChanged", function(self, value)
 		_G[self:GetName() .. "Text"]:SetText(L[k] .. " (" .. value .. ")")
 		LoseControlDB.priority[k] = value
+		if k == "Interrupt" then
+			local enable = LCframes["target"].frame.enabled
+			LCframes["target"]:RegisterUnitEvents(enable)
+		end
 	end)
 end
 
@@ -2454,20 +3593,27 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 		for _, unitId in ipairs(frames) do
 			local frame = LoseControlDB.frames[unitId]
 			local icon = LCframes[unitId]
-
 			frame.anchor = self.value
-			if AnchorDropDown.value ~= "None" then -- reset the frame position so it centers on the anchor frame
+			if self.value ~= "None" then -- reset the frame position so it centers on the anchor frame
 				frame.point = nil
 				frame.relativePoint = nil
 				frame.x = nil
 				frame.y = nil
+				if self.value == "Blizzard" then
+					local portrSizeValue = 36
+					if (unitId == "player" or unitId == "target" or unitId == "focus") then
+						portrSizeValue = 56
+					elseif (strfind(unitId, "arena")) then
+						portrSizeValue = 28
+					end
+					frame.size = portrSizeValue
+					icon:SetWidth(portrSizeValue)
+					icon:SetHeight(portrSizeValue)
+					_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"]:SetValue(portrSizeValue)
+				end
 			end
-
 			icon.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
-
-			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
-				icon.parent:SetParent(icon.anchor:GetParent())
-			end
+			SetInterruptIconsSize(icon, frame.size)
 
 			icon:ClearAllPoints() -- if we don't do this then the frame won't always move
 			icon:SetPoint(
@@ -2480,7 +3626,7 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 		end
 	end
 
-	local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanelFrame, 16, 512, 4)
+	local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanelFrame, 16, 512, 4, OptionsPanelFrame:GetName() .. "IconSizeSlider")
 	SizeSlider:SetScript("OnValueChanged", function(self, value)
 		_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
 		local frames = { v }
@@ -2493,6 +3639,7 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			LoseControlDB.frames[frame].size = value
 			LCframes[frame]:SetWidth(value)
 			LCframes[frame]:SetHeight(value)
+			SetInterruptIconsSize(LCframes[frame], value)
 		end
 	end)
 
@@ -2561,6 +3708,22 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			end
 		end)
 	end
+	
+	local ShowNPCInterrupts
+	if v == "target" or v == "focus" then
+		ShowNPCInterrupts = CreateFrame("CheckButton", O..v.."ShowNPCInterrupts", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."ShowNPCInterruptsText"]:SetText(L["ShowNPCInterrupts"])
+		ShowNPCInterrupts:SetScript("OnClick", function(self)
+			if v == "target" then
+				LoseControlDB.showNPCInterruptsTarget = self:GetChecked()
+			elseif v == "focus" then
+				LoseControlDB.showNPCInterruptsFocus = self:GetChecked()
+			end
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				LCframes[v]:PLAYER_ENTERING_WORLD()
+			end
+		end)
+	end
 
 	local Enabled = CreateFrame("CheckButton", O..v.."Enabled", OptionsPanelFrame, "OptionsCheckButtonTemplate")
 	_G[O..v.."EnabledText"]:SetText(L["Enabled"])
@@ -2570,12 +3733,14 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Enable(DisableInRaid) end
 			if DisableInterrupts then BlizzardOptionsPanel_CheckButton_Enable(DisableInterrupts) end
+			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Enable(ShowNPCInterrupts) end
 			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
 		else
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Disable(DisableInRaid) end
 			if DisableInterrupts then BlizzardOptionsPanel_CheckButton_Disable(DisableInterrupts) end
+			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Disable(ShowNPCInterrupts) end
 			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
 		end
@@ -2587,7 +3752,19 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].enabled = enabled
-			LCframes[frame]:RegisterUnitEvents(enabled)
+			local inInstance, instanceType = IsInInstance()
+			local enable = enabled and not (
+				inInstance and instanceType == "pvp" and (
+					( LoseControlDB.disablePartyInBG and strfind(unitId, "party") ) or
+					( LoseControlDB.disableArenaInBG and strfind(unitId, "arena") )
+				)
+			) and not (
+				IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
+			)
+			LCframes[frame]:RegisterUnitEvents(enable)
+			if enable and not LCframes[frame].unlockMode then
+				LCframes[frame]:UNIT_AURA(frame)
+			end
 		end
 	end)
 
@@ -2595,6 +3772,7 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 	if DisableInBG then DisableInBG:SetPoint("TOPLEFT", Enabled, 200, 0) end
 	if DisableInRaid then DisableInRaid:SetPoint("TOPLEFT", Enabled, 200, -25) end
 	if DisableInterrupts then DisableInterrupts:SetPoint("TOPLEFT", Enabled, 200, 0) end
+	if ShowNPCInterrupts then ShowNPCInterrupts:SetPoint("TOPLEFT", Enabled, 200, 0) end
 	SizeSlider:SetPoint("TOPLEFT", Enabled, "BOTTOMLEFT", 0, -32)
 	AlphaSlider:SetPoint("TOPLEFT", SizeSlider, "BOTTOMLEFT", 0, -32)
 	AnchorDropDownLabel:SetPoint("TOPLEFT", AlphaSlider, "BOTTOMLEFT", 0, -12)
@@ -2612,6 +3790,10 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			unitId = "arena1"
 		elseif unitId == "player" then
 			DisableInterrupts:SetChecked(LoseControlDB.disablePlayerInterrupts)
+		elseif unitId == "target" then
+			ShowNPCInterrupts:SetChecked(LoseControlDB.showNPCInterruptsTarget)
+		elseif unitId == "focus" then
+			ShowNPCInterrupts:SetChecked(LoseControlDB.showNPCInterruptsFocus)
 		end
 		local frame = LoseControlDB.frames[unitId]
 		Enabled:SetChecked(frame.enabled)
@@ -2619,12 +3801,14 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Enable(DisableInRaid) end
 			if DisableInterrupts then BlizzardOptionsPanel_CheckButton_Enable(DisableInterrupts) end
+			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Enable(ShowNPCInterrupts) end
 			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
 		else
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Disable(DisableInRaid) end
 			if DisableInterrupts then BlizzardOptionsPanel_CheckButton_Disable(DisableInterrupts) end
+			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Disable(ShowNPCInterrupts) end
 			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
 		end
@@ -2690,7 +3874,19 @@ end
 function SlashCmd:enable(unitId)
 	if LCframes[unitId] then
 		LoseControlDB.frames[unitId].enabled = true
-		LCframes[unitId]:RegisterUnitEvents(true)
+		local inInstance, instanceType = IsInInstance()
+		local enabled = not (
+			inInstance and instanceType == "pvp" and (
+				( LoseControlDB.disablePartyInBG and strfind(unitId, "party") ) or
+				( LoseControlDB.disableArenaInBG and strfind(unitId, "arena") )
+			)
+		) and not (
+			IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
+		)
+		LCframes[unitId]:RegisterUnitEvents(enabled)
+		if enabled and not LCframes[unitId].unlockMode then
+			LCframes[unitId]:UNIT_AURA(unitId)
+		end
 		print(addonName, unitId, "frame enabled.")
 	end
 end
