@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.02
+-- Version: 1.03
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -543,6 +543,7 @@ local spellIds = {
 	[23275]  = "CC",				-- Dreadful Fright
 	[24919]  = "CC",				-- Nauseous
 	[29484]  = "CC",				-- Web Spray
+	[21167]  = "CC",				-- Snowball
 	[9612]   = "CC",				-- Ink Spray (Chance to hit reduced by 50%)
 	[3589]   = "Silence",			-- Deafening Screech
 	[4320]   = "Silence",			-- Trelane's Freezing Touch
@@ -1119,7 +1120,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 	if (LoseControlDB.priority.Interrupt > 0) then
 		local someFrameEnabled = false
 		for _, v in pairs(LCframes) do
-			if v.frame.enabled then
+			if v.frame and v.frame.enabled then
 				someFrameEnabled = true
 				break
 			end
@@ -1261,7 +1262,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.02"
+		self.VERSION = "1.03"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
@@ -1302,7 +1303,6 @@ function LoseControl:PLAYER_ENTERING_WORLD()
 	) and not (
 		IsInRaid() and LoseControlDB.disablePartyInRaid and not (inInstance and instanceType == "pvp")
 	)))
-	self:RegisterUnitEvents(enabled)
 	self.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
 	self.unitGUID = UnitGUID(self.unitId)
 	self.parent:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
@@ -1310,6 +1310,7 @@ function LoseControl:PLAYER_ENTERING_WORLD()
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:SetWidth(frame.size)
 	self:SetHeight(frame.size)
+	self:RegisterUnitEvents(enabled)
 	
 	self:SetPoint(
 		frame.point or "CENTER",
