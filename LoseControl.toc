@@ -1,4 +1,12 @@
 ## Interface: 30000
 ## Title: LoseControl
-## Notes: Shows the duration of CC effects on your character.
+## Notes: LoseControl makes it easy to see the duration of crowd control spells on your character by displaying them in a separate cooldown icon onscreen.
+## SavedVariables: LoseControlDB
+## Version: 1.12
+## Author: Kouri
+## X-eMail: kouri@kouri.org
+## X-Website: http://wow.curse.com/downloads/wow-addons/details/losecontrol.aspx
+## X-Website2: http://www.wowinterface.com/downloads/info11642-LoseControl.html
+## X-Category: Buffs
+
 LoseControl.lua
