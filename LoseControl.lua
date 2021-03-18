@@ -19,35 +19,35 @@ local spellIds = {
 	-- Death Knight
 	[47481] = "CC",		-- Gnaw (Ghoul)
 	[51209] = "CC",		-- Hungering Cold
+	[91797] = "CC",		-- Monstrous Blow (Super ghoul)
 	[47476] = "Silence",	-- Strangulate
 	[45524] = "Snare",	-- Chains of Ice
-	[55666] = "Snare",	-- Desecration (no duration, lasts as long as you stand in it)
-	[58617] = "Snare",	-- Glyph of Heart Strike
-	[50436] = "Snare",	-- Icy Clutch (Chilblains)
+	[55666] = "Snare",	-- Desecration
+	[50040] = "Snare",	-- Chilblains
 	-- Druid
 	[5211]  = "CC",		-- Bash (also Shaman Spirit Wolf ability)
 	[33786] = "CC",		-- Cyclone
-	[2637]  = "CC",		-- Hibernate (works against Druids in most forms and Shamans using Ghost Wolf)
+	[2637]  = "CC",		-- Hibernate
 	[22570] = "CC",		-- Maim
 	[9005]  = "CC",		-- Pounce
+	[80964] = "Silence",	-- Skull Bash (spell lockout, not silence)
+	[81261] = "Silence",	-- Solar Beam
 	[339]   = "Root",	-- Entangling Roots
-	[19675] = "Root",	-- Feral Charge Effect (immobilize with interrupt [spell lockout, not silence])
+	[45334] = "Root",	-- Feral Charge Effect
 	[58179] = "Snare",	-- Infected Wounds
 	[61391] = "Snare",	-- Typhoon
 	-- Hunter
-	[60210] = "CC",		-- Freezing Arrow Effect
 	[3355]  = "CC",		-- Freezing Trap Effect
 	[24394] = "CC",		-- Intimidation
-	[1513]  = "CC",		-- Scare Beast (works against Druids in most forms and Shamans using Ghost Wolf)
+	[1513]  = "CC",		-- Scare Beast
 	[19503] = "CC",		-- Scatter Shot
 	[19386] = "CC",		-- Wyvern Sting
 	[34490] = "Silence",	-- Silencing Shot
-	[53359] = "Disarm",	-- Chimera Shot - Scorpid
 	[19306] = "Root",	-- Counterattack
 	[19185] = "Root",	-- Entrapment
 	[35101] = "Snare",	-- Concussive Barrage
 	[5116]  = "Snare",	-- Concussive Shot
-	[13810] = "Snare",	-- Frost Trap Aura (no duration, lasts as long as you stand in it)
+	[13810] = "Snare",	-- Frost Trap Aura
 	[61394] = "Snare",	-- Glyph of Freezing Trap
 	[2974]  = "Snare",	-- Wing Clip
 	-- Hunter Pets
@@ -63,34 +63,37 @@ local spellIds = {
 	[44572] = "CC",		-- Deep Freeze
 	[31661] = "CC",		-- Dragon's Breath
 	[12355] = "CC",		-- Impact
+	[83047] = "CC",		-- Improved Polymorph
 	[118]   = "CC",		-- Polymorph
 	[18469] = "Silence",	-- Silenced - Improved Counterspell
 	[64346] = "Disarm",	-- Fiery Payback
 	[33395] = "Root",	-- Freeze (Water Elemental)
 	[122]   = "Root",	-- Frost Nova
-	[11071] = "Root",	-- Frostbite
+	[83302] = "Root",	-- Improved Cone of Cold
 	[55080] = "Root",	-- Shattered Barrier
 	[11113] = "Snare",	-- Blast Wave
 	[6136]  = "Snare",	-- Chilled (generic effect, used by lots of spells [looks weird on Improved Blizzard, might want to comment out])
 	[120]   = "Snare",	-- Cone of Cold
 	[116]   = "Snare",	-- Frostbolt
-	[47610] = "Snare",	-- Frostfire Bolt
+	[44614] = "Snare",	-- Frostfire Bolt
 	[31589] = "Snare",	-- Slow
 	-- Paladin
 	[853]   = "CC",		-- Hammer of Justice
-	[2812]  = "CC",		-- Holy Wrath (works against Warlocks using Metamorphasis and Death Knights using Lichborne)
+	[2812]  = "CC",		-- Holy Wrath
 	[20066] = "CC",		-- Repentance
 	[20170] = "CC",		-- Stun (Seal of Justice proc)
-	[10326] = "CC",		-- Turn Evil (works against Warlocks using Metamorphasis and Death Knights using Lichborne)
+	[10326] = "CC",		-- Turn Evil
 	[63529] = "Silence",	-- Shield of the Templar
-	[20184] = "Snare",	-- Judgement of Justice (100% movement snare; druids and shamans might want this though)
+	--[20170] = "Snare",	-- Seal of Justice (100% movement snare; druids and shamans might want this though)
 	-- Priest
 	[605]   = "CC",		-- Mind Control
 	[64044] = "CC",		-- Psychic Horror
 	[8122]  = "CC",		-- Psychic Scream
-	[9484]  = "CC",		-- Shackle Undead (works against Death Knights using Lichborne)
+	[9484]  = "CC",		-- Shackle Undead
+	[87204] = "CC",		-- Sin and Punishment
 	[15487] = "Silence",	-- Silence
 	--[64058] = "Disarm",	-- Psychic Horror (duplicate debuff names not allowed atm, need to figure out how to support this later)
+	[87194] = "Root",	-- Paralysis
 	[15407] = "Snare",	-- Mind Flay
 	-- Rogue
 	[2094]  = "CC",		-- Blind
@@ -105,33 +108,38 @@ local spellIds = {
 	[3409]  = "Snare",	-- Crippling Poison
 	[26679] = "Snare",	-- Deadly Throw
 	-- Shaman
+	[76780] = "CC",		-- Bind Elemental
+	[61882] = "CC",		-- Earthquake
+	[51514] = "CC",		-- Hex
 	[39796] = "CC",		-- Stoneclaw Stun
-	[51514] = "CC",		-- Hex (although effectively a silence+disarm effect, it is conventionally thought of as a "CC", plus you can trinket out of it)
-	[64695] = "Root",	-- Earthgrab (Storm, Earth and Fire)
+	[64695] = "Root",	-- Earthgrab (Earth's Grasp)
 	[63685] = "Root",	-- Freeze (Frozen Power)
 	[3600]  = "Snare",	-- Earthbind (5 second duration per pulse, but will keep re-applying the debuff as long as you stand within the pulse radius)
 	[8056]  = "Snare",	-- Frost Shock
 	[8034]  = "Snare",	-- Frostbrand Attack
 	-- Warlock
-	[710]   = "CC",		-- Banish (works against Warlocks using Metamorphasis and Druids using Tree Form)
+	[93986] = "CC",		-- Aura of Foreboding
+	[710]   = "CC",		-- Banish
 	[6789]  = "CC",		-- Death Coil
+	[54786] = "CC",		-- Demon Leap
 	[5782]  = "CC",		-- Fear
 	[5484]  = "CC",		-- Howl of Terror
 	[6358]  = "CC",		-- Seduction (Succubus)
 	[30283] = "CC",		-- Shadowfury
 	[24259] = "Silence",	-- Spell Lock (Felhunter)
+	--[93974] = "Root",	-- Aura of Foreboding (duplicate debuff names not allowed atm, need to figure out how to support this later)
 	[18118] = "Snare",	-- Aftermath
 	[18223] = "Snare",	-- Curse of Exhaustion
 	-- Warrior
 	[7922]  = "CC",		-- Charge Stun
 	[12809] = "CC",		-- Concussion Blow
+	[6544]  = "CC",		-- Heroic Leap
 	[20253] = "CC",		-- Intercept (also Warlock Felguard ability)
 	[5246]  = "CC",		-- Intimidating Shout
-	[12798] = "CC",		-- Revenge Stun
 	[46968] = "CC",		-- Shockwave
+	[85388] = "CC",		-- Throwdown
 	[18498] = "Silence",	-- Silenced - Gag Order
 	[676]   = "Disarm",	-- Disarm
-	[58373] = "Root",	-- Glyph of Hamstring
 	[23694] = "Root",	-- Improved Hamstring
 	[1715]  = "Snare",	-- Hamstring
 	[12323] = "Snare",	-- Piercing Howl
@@ -139,17 +147,33 @@ local spellIds = {
 	[30217] = "CC",		-- Adamantite Grenade
 	[67769] = "CC",		-- Cobalt Frag Bomb
 	[30216] = "CC",		-- Fel Iron Bomb
+	[13327] = "CC",		-- Reckless Charge
 	[20549] = "CC",		-- War Stomp
 	[25046] = "Silence",	-- Arcane Torrent
 	[39965] = "Root",	-- Frost Grenade
 	[55536] = "Root",	-- Frostweave Net
 	[13099] = "Root",	-- Net-o-Matic
 	[29703] = "Snare",	-- Dazed
-	-- Immunities
+	-- CC Immunities
+	[19574] = "Immune",	-- Bestial Wrath (Hunter pet)
 	[46924] = "Immune",	-- Bladestorm (Warrior)
+	[19263] = "Immune",	-- Deterrence [except aoe?] (Hunter)
 	[642]   = "Immune",	-- Divine Shield (Paladin)
 	[45438] = "Immune",	-- Ice Block (Mage)
 	[34692] = "Immune",	-- The Beast Within (Hunter)
+	-- Spell Immunities
+	[48707] = "ImmuneSpell",	-- Anti-magic Shell (Death Knight)
+	[31224] = "ImmuneSpell",	-- Cloak of Shadows (Rogue)
+	[8178]  = "ImmuneSpell",	-- Grounding Totem Effect [exept aoe] (Shaman)
+	[23920] = "ImmuneSpell",	-- Spell Reflection [except aoe] (Warrior)
+	-- Other Immunities - optional, not sure how to handle these; many have durations that are quite long
+	--[50334] = "ImmuneFear",		-- Berserk (Druid)
+	--[18499] = "ImmuneFearIncapacitate",	-- Berserker Rage (Warrior)
+	--[45182] = "ImmuneDamage",	-- Cheating Death [only 90% immune] (Rogue)
+	--[5277]  = "ImmuneMelee",	-- Evasion [only +50% immune to melee, +25% to ranged] (Rogue)
+	--[48792] = "ImmuneStun",	-- Icebound Fortitude [stuns] (Death Knight)
+	--[49039] = "ImmuneFearPoly",	-- Lichborne [charm, fear, sleep, hex, polymorph] (Death Knight)
+	--[51271] = "ImmuneMove",	-- Pillar of Frost (Death Knight)
 	-- PvE
 	[28169] = "PvE",	-- Mutating Injection (Grobbulus)
 	[28059] = "PvE",	-- Positive Charge (Thaddius)
@@ -213,16 +237,17 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 3.32, -- This is the settings version, not necessarily the same as the LoseControl version
+	version = 4.01, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
 	tracking = { -- To Do: Priority
-		Immune  = false, --100
-		CC      = true,  -- 90
-		PvE     = true,  -- 80
-		Silence = true,  -- 70
-		Disarm  = true,  -- 60
-		Root    = false, -- 50
-		Snare   = false, -- 40
+		Immune		= false, --100
+		ImmuneSpell	= false, -- 90
+		CC		= true,  -- 80
+		PvE		= true,  -- 70
+		Silence		= true,  -- 60
+		Disarm		= true,  -- 50
+		Root		= false, -- 40
+		Snare		= false, -- 30
 	},
 	frames = {
 		player = {
@@ -239,7 +264,7 @@ local DBdefaults = {
 		},
 		focus = {
 			enabled = true,
-			size = 44,
+			size = 56,
 			alpha = 1,
 			anchor = "Blizzard",
 		},
@@ -317,13 +342,14 @@ function LoseControl:ADDON_LOADED(arg1)
 			if _G.LoseControlDB.version < DBdefaults.version then
 				if _G.LoseControlDB.version >= 3.22 then -- minor changes, so try to update without losing settings
 					_G.LoseControlDB.tracking = {
-						Immune  = false, --100
-						CC      = true,  -- 90
-						PvE     = true,  -- 80
-						Silence = true,  -- 70
-						Disarm  = true,  -- 60
-						Root    = false, -- 50
-						Snare   = false, -- 40
+						Immune		= false, --100
+						ImmuneSpell	= false, -- 90
+						CC		= true,  -- 80
+						PvE		= true,  -- 70
+						Silence		= true,  -- 60
+						Disarm		= true,  -- 50
+						Root		= false, -- 40
+						Snare		= false, -- 30
 					}
 					_G.LoseControlDB.version = 3.32
 				else -- major changes, must reset settings
@@ -364,6 +390,7 @@ end
 
 local WYVERN_STING = GetSpellInfo(19386)
 local PSYCHIC_HORROR = GetSpellInfo(64058)
+local BERSERK = GetSpellInfo(50334)
 local UnitDebuff = UnitDebuff
 local UnitBuff = UnitBuff
 -- This is the main event
@@ -376,10 +403,7 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	for i = 1, 40 do
 		name, _, icon, _, _, duration, expirationTime = UnitDebuff(unitId, i)
 
-		if not name then
-			--log("UnitDebuff " .. unitId .. " " .. i)
-			break
-		end -- no more debuffs, terminate the loop
+		if not name then break end -- no more debuffs, terminate the loop
 		--log(i .. ") " .. name .. " | " .. rank .. " | " .. icon .. " | " .. count .. " | " .. debuffType .. " | " .. duration .. " | " .. expirationTime )
 
 		-- exceptions
@@ -411,13 +435,18 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	end
 
 	-- Track Immunities
-	if LoseControlDB.tracking.Immune and not Icon and unitId ~= "player" then -- only bother checking for immunities if there were no debuffs found
+	local Immune = LoseControlDB.tracking.Immune
+	local ImmuneSpell = LoseControlDB.tracking.ImmuneSpell
+	if (Immune or ImmuneSpell) and not Icon and unitId ~= "player" then -- only bother checking for immunities if there were no debuffs found
 		for i = 1, 40 do
 			name, _, icon, _, _, duration, expirationTime = UnitBuff(unitId, i)
-			if not name then
-				--log("UnitBuff " .. unitId .. " " .. i)
-				break
-			elseif abilities[name] == "Immune" and expirationTime > maxExpirationTime then
+			if not name then break
+			elseif name == BERSERK and icon ~= "Interface\\Icons\\ability_druid_berserk" then
+				-- do nothing
+			elseif (
+				(abilities[name] == "Immune" and Immune) or
+				(abilities[name] == "ImmuneSpell" and ImmuneSpell)
+			) and expirationTime > maxExpirationTime then
 				maxExpirationTime = expirationTime
 				Duration = duration
 				Icon = icon
@@ -630,6 +659,12 @@ TrackImmune:SetScript("OnClick", function(self)
 	LoseControlDB.tracking.Immune = self:GetChecked()
 end)
 
+local TrackImmuneSpell = CreateFrame("CheckButton", O.."TrackImmuneSpell", OptionsPanel, "OptionsCheckButtonTemplate")
+_G[O.."TrackImmuneSpellText"]:SetText(LOSECONTROL["Immune to Spells"])
+TrackImmuneSpell:SetScript("OnClick", function(self)
+	LoseControlDB.tracking.ImmuneSpell = self:GetChecked()
+end)
+
 local TrackPvE = CreateFrame("CheckButton", O.."TrackPvE", OptionsPanel, "OptionsCheckButtonTemplate")
 _G[O.."TrackPvEText"]:SetText(LOSECONTROL["PvE"])
 TrackPvE:SetScript("OnClick", function(self)
@@ -784,6 +819,7 @@ TrackDisarms:SetPoint("TOPLEFT", TrackSilences, "TOPRIGHT", 100, 0)
 TrackRoots:SetPoint("TOPLEFT", TrackCCs, "BOTTOMLEFT", 0, -2)
 TrackSnares:SetPoint("TOPLEFT", TrackSilences, "BOTTOMLEFT", 0, -2)
 TrackImmune:SetPoint("TOPLEFT", TrackDisarms, "BOTTOMLEFT", 0, -2)
+TrackImmuneSpell:SetPoint("TOPLEFT", TrackImmune, "BOTTOMLEFT", 0, -2)
 TrackPvE:SetPoint("TOPLEFT", TrackRoots, "BOTTOMLEFT", 0, -2)
 
 UnitDropDownLabel:SetPoint("TOPLEFT", TrackPvE, "BOTTOMLEFT", 0, -12)
@@ -814,6 +850,7 @@ OptionsPanel.refresh = function() -- This method will run when the Interface Opt
 	TrackRoots:SetChecked(tracking.Root)
 	TrackSnares:SetChecked(tracking.Snare)
 	TrackImmune:SetChecked(tracking.Immune)
+	TrackImmuneSpell:SetChecked(tracking.ImmuneSpell)
 	TrackPvE:SetChecked(tracking.PvE)
 	Enabled:SetChecked(frame.enabled)
 	Enabled:OnClick()
