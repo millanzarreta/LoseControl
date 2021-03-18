@@ -1,0 +1,13 @@
+tag v3.22
+89e9240e32666554c533e0c9423d6190c1814a59
+Cameron Kenneth Knight <ckknight@gmail.com>
+2009-10-03 23:03:38 +0000
+
+Tagging as v3.22
+
+
+--------------------
+
+Kouri Rosenberg:
+	- Tagging as 3.22
+	- Initial commit.
