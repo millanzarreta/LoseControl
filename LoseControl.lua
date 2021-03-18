@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.06
+-- Version: 1.07
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -587,7 +587,7 @@ local spellIds = {
 	[5990]   = "Other",				-- Nimble Reflexes
 	[6615]   = "Other",				-- Free Action Potion
 	[11359]  = "Other",				-- Restorative Potion
-	[24364]  = "Other",				-- Living Free Action
+	[24364]  = "Other",				-- Living Free Action Potion
 	[23505]  = "Other",				-- Berserking
 	[24378]  = "Other",				-- Berserking
 	[19135]  = "Other",				-- Avatar
@@ -807,6 +807,7 @@ local spellIds = {
 	[29849]  = "Root",				-- Frost Nova
 	[30094]  = "Root",				-- Frost Nova
 	[28350]  = "Other",				-- Veil of Darkness (immune to direct healing)
+	[28440]  = "Other",				-- Veil of Shadow
 	[18328]  = "Snare",				-- Incapacitating Shout
 	[28310]  = "Snare",				-- Mind Flay
 	[30092]  = "Snare",				-- Blast Wave
@@ -817,6 +818,7 @@ local spellIds = {
 	[28991]  = "Root",				-- Web
 	-- -- Grand Widow Faerlina
 	[30225]  = "Silence",			-- Silence
+	[28732]  = "Other",				-- Widow's Embrace (prevents enraged and silenced nature spells)
 	-- -- Maexxna
 	[28622]  = "CC",				-- Web Wrap
 	[29484]  = "CC",				-- Web Spray
@@ -892,7 +894,6 @@ local spellIds = {
 	[7621]   = "CC",				-- Arugal's Curse
 	[7068]   = "Other",				-- Veil of Shadow
 	[23224]  = "Other",				-- Veil of Shadow
-	[28440]  = "Other",				-- Veil of Shadow
 	[7803]   = "CC",				-- Thundershock
 	[7074]   = "Silence",			-- Screams of the Past
 	-- -- Blackfathom Deeps
@@ -1391,7 +1392,7 @@ local DBdefaults = {
 			}
 		},
 		raid1 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1402,7 +1403,7 @@ local DBdefaults = {
 			}
 		},
 		raid2 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1413,7 +1414,7 @@ local DBdefaults = {
 			}
 		},
 		raid3 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1424,7 +1425,7 @@ local DBdefaults = {
 			}
 		},
 		raid4 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1435,7 +1436,7 @@ local DBdefaults = {
 			}
 		},
 		raid5 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1446,7 +1447,7 @@ local DBdefaults = {
 			}
 		},
 		raid6 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1457,7 +1458,7 @@ local DBdefaults = {
 			}
 		},
 		raid7 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1468,7 +1469,7 @@ local DBdefaults = {
 			}
 		},
 		raid8 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1479,7 +1480,7 @@ local DBdefaults = {
 			}
 		},
 		raid9 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1490,7 +1491,7 @@ local DBdefaults = {
 			}
 		},
 		raid10 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1501,7 +1502,7 @@ local DBdefaults = {
 			}
 		},
 		raid11 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1512,7 +1513,7 @@ local DBdefaults = {
 			}
 		},
 		raid12 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1523,7 +1524,7 @@ local DBdefaults = {
 			}
 		},
 		raid13 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1534,7 +1535,7 @@ local DBdefaults = {
 			}
 		},
 		raid14 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1545,7 +1546,7 @@ local DBdefaults = {
 			}
 		},
 		raid15 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1556,7 +1557,7 @@ local DBdefaults = {
 			}
 		},
 		raid16 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1567,7 +1568,7 @@ local DBdefaults = {
 			}
 		},
 		raid17 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1578,7 +1579,7 @@ local DBdefaults = {
 			}
 		},
 		raid18 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1589,7 +1590,7 @@ local DBdefaults = {
 			}
 		},
 		raid19 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1600,7 +1601,7 @@ local DBdefaults = {
 			}
 		},
 		raid20 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1611,7 +1612,7 @@ local DBdefaults = {
 			}
 		},
 		raid21 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1622,7 +1623,7 @@ local DBdefaults = {
 			}
 		},
 		raid22 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1633,7 +1634,7 @@ local DBdefaults = {
 			}
 		},
 		raid23 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1644,7 +1645,7 @@ local DBdefaults = {
 			}
 		},
 		raid24 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1655,7 +1656,7 @@ local DBdefaults = {
 			}
 		},
 		raid25 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1666,7 +1667,7 @@ local DBdefaults = {
 			}
 		},
 		raid26 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1677,7 +1678,7 @@ local DBdefaults = {
 			}
 		},
 		raid27 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1688,7 +1689,7 @@ local DBdefaults = {
 			}
 		},
 		raid28 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1699,7 +1700,7 @@ local DBdefaults = {
 			}
 		},
 		raid29 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1710,7 +1711,7 @@ local DBdefaults = {
 			}
 		},
 		raid30 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1721,7 +1722,7 @@ local DBdefaults = {
 			}
 		},
 		raid31 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1732,7 +1733,7 @@ local DBdefaults = {
 			}
 		},
 		raid32 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1743,7 +1744,7 @@ local DBdefaults = {
 			}
 		},
 		raid33 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1754,7 +1755,7 @@ local DBdefaults = {
 			}
 		},
 		raid34 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1765,7 +1766,7 @@ local DBdefaults = {
 			}
 		},
 		raid35 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1776,7 +1777,7 @@ local DBdefaults = {
 			}
 		},
 		raid36 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1787,7 +1788,7 @@ local DBdefaults = {
 			}
 		},
 		raid37 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1798,7 +1799,7 @@ local DBdefaults = {
 			}
 		},
 		raid38 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1809,7 +1810,7 @@ local DBdefaults = {
 			}
 		},
 		raid39 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -1820,7 +1821,7 @@ local DBdefaults = {
 			}
 		},
 		raid40 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -2205,23 +2206,35 @@ end
 
 -- Function to hook the raid frames and anchors the LoseControl raid frames to their corresponding blizzard raid frame
 function LoseControl:MainHookCompactRaidFrames()
-	for i = 1, 40 do
-		local compactRaidFrame = _G["CompactRaidFrame"..i]
-		if (compactRaidFrame ~= nil) then
-			HookCompactRaidFrame(compactRaidFrame)
-		end
-	end
-	for i = 1, 8 do
-		for j = 1, 5 do
-			local compactRaidFrame = _G["CompactRaidGroup"..i.."Member"..j]
-			if (compactRaidFrame ~= nil) then
-				HookCompactRaidFrame(compactRaidFrame)
+	if not LoseControl.CompactRaidFramesHooked then
+		local someRaidEnabledAndBlizzAnchored = false
+		for i = 1, 40 do
+			if LoseControlDB.frames["raid"..i].enabled and LoseControlDB.frames["raid"..i].anchor == "BlizzardRaidFrames" then
+				someRaidEnabledAndBlizzAnchored = true
+				break
 			end
 		end
+		if someRaidEnabledAndBlizzAnchored then
+			for i = 1, 40 do
+				local compactRaidFrame = _G["CompactRaidFrame"..i]
+				if (compactRaidFrame ~= nil) then
+					HookCompactRaidFrame(compactRaidFrame)
+				end
+			end
+			for i = 1, 8 do
+				for j = 1, 5 do
+					local compactRaidFrame = _G["CompactRaidGroup"..i.."Member"..j]
+					if (compactRaidFrame ~= nil) then
+						HookCompactRaidFrame(compactRaidFrame)
+					end
+				end
+			end
+			hooksecurefunc("CompactUnitFrame_OnLoad", function(self)
+				HookCompactRaidFrame(self)
+			end)
+			LoseControl.CompactRaidFramesHooked = true
+		end
 	end
-	hooksecurefunc("CompactUnitFrame_OnLoad", function(self)
-		HookCompactRaidFrame(self)
-	end)
 end
 
 -- Handle default settings
@@ -2270,7 +2283,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.06"
+		self.VERSION = "1.07"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
@@ -3648,6 +3661,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				icon.MasqueGroup:ReSkin()
 			end
 		end
+		if v == "raid" then
+			LoseControl:MainHookCompactRaidFrames()
+		end
 	end
 
 	local AnchorDropDown2
@@ -4339,6 +4355,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 					PositionYEditBox:Disable()
 				end
 			end
+			if (v == "raid") then
+				LoseControl:MainHookCompactRaidFrames()
+			end
 		else
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Disable(DisableInRaid) end
@@ -4746,6 +4765,9 @@ function SlashCmd:enable(unitId)
 		LoseControlDB.frames[unitId].enabled = true
 		local enabled = LCframes[unitId]:GetEnabled()
 		LCframes[unitId]:RegisterUnitEvents(enabled)
+		if strfind(unitId, "raid") then
+			LoseControl:MainHookCompactRaidFrames()
+		end
 		if enabled and not LCframes[unitId].unlockMode then
 			LCframes[unitId]:UNIT_AURA(unitId, 0)
 		end
