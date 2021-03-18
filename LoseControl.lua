@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.05
+-- Version: 6.06
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -265,6 +265,7 @@ local spellIds = {
 	[161355] = "CC",				-- Polymorph: Penguin
 	[277787] = "CC",				-- Polymorph: Direhorn
 	[277792] = "CC",				-- Polymorph: Bumblebee
+	[161372] = "CC",				-- Polymorph: Peacock
 	[82691]  = "CC",				-- Ring of Frost
 	[140376] = "CC",				-- Ring of Frost
 	[122]    = "Root",				-- Frost Nova
@@ -446,7 +447,6 @@ local spellIds = {
 		-- Shaman Pets
 		----------------
 		[118345] = "CC",				-- Pulverize (Shaman Primal Earth Elemental)
-		[157375] = "CC",				-- Gale Force (Primal Storm Elemental)
 
 	----------------
 	-- Warlock
@@ -542,6 +542,7 @@ local spellIds = {
 	[55536]  = "Root",				-- Frostweave Net
 	[13099]  = "Root",				-- Net-o-Matic (trinket)
 	[16566]  = "Root",				-- Net-o-Matic (trinket)
+	[148526] = "Root",				-- Sticky Silk
 	[15752]  = "Disarm",			-- Linken's Boomerang (trinket)
 	[15753]  = "CC",				-- Linken's Boomerang (trinket)
 	[1604]   = "Snare",				-- Dazed
@@ -566,7 +567,7 @@ local spellIds = {
 	[260149] = "CC",				-- Quillbomb
 	[258236] = "CC",				-- Sleeping Quill Dart
 	[269186] = "CC",				-- Holographic Horror Projector
-	[255228] = "CC",				-- Polymorphed (Organic Discombobulation Grenade)
+	[255228] = "CC",				-- Polymorphed (Organic Discombobulation Grenade and some NPCs)
 	[272188] = "CC",				-- Hammer Smash (quest)
 	[264860] = "CC",				-- Binding Talisman
 	[268966] = "Root",				-- Hooked Deep Sea Net
@@ -602,7 +603,6 @@ local spellIds = {
 	[285998] = "CC",				-- Ferocious Roar
 	-- -- Jadefire Masters
 	-- -- Opulence
-	[278193] = "CC",				-- Crush
 	[283609] = "CC",				-- Crush
 	[283610] = "CC",				-- Crush
 	-- -- Conclave of the Chosen
@@ -612,6 +612,7 @@ local spellIds = {
 	[285879] = "CC",				-- Mind Wipe
 	[265495] = "CC",				-- Static Orb
 	[286838] = "CC",				-- Static Orb
+	[282447] = "CC",				-- Kimbul's Wrath
 	-- -- King Rastakhan
 	[284995] = "CC",				-- Zombie Dust
 	[284377] = "Immune",			-- Unliving
@@ -633,7 +634,6 @@ local spellIds = {
 	[287490] = "CC",				-- Frozen Solid
 	[289963] = "CC",				-- Frozen Solid
 	[285704] = "CC",				-- Frozen Solid
-	[285708] = "CC",				-- Frozen Solid
 	[287199] = "Root",				-- Ring of Ice
 	[287626] = "Root",				-- Grasp of Frost
 	[288412] = "Root",				-- Hand of Frost
@@ -705,17 +705,30 @@ local spellIds = {
 	[282615] = "Immune",			-- Petrify
 	------------------------
 	-- Battle for Darkshore
+	[7964]   = "CC",				-- Smoke Bomb
+	[31274]  = "CC",				-- Knockdown
 	[283921] = "CC",				-- Lancer's Charge
+	[285708] = "CC",				-- Frozen Solid
 	[288344] = "CC",				-- Massive Stomp
 	[288339] = "CC",				-- Massive Stomp
 	[286397] = "CC",				-- Massive Stomp
 	[282676] = "CC",				-- Massive Stomp
+	[212566] = "CC",				-- Terrifying Screech
 	[283880] = "CC",				-- DRILL KILL
 	[284949] = "CC",				-- Warden's Prison
+	[22127]  = "Root",				-- Entangling Roots
+	[31290]  = "Root",				-- Net
+	[286404] = "Root",				-- Grasping Bramble
+	[290013] = "Root",				-- Volatile Bulb
+	[22356]  = "Snare",				-- Slow
 	[284221] = "Snare",				-- Crippling Gash
+	[194584] = "Snare",				-- Crippling Slash
 	[284737] = "Snare",				-- Toxic Strike
+	[289073] = "Snare",				-- Terrifying Screech
+	[286510] = "Snare",				-- Nature's Force
 	------------------------
 	-- Battle for Stromgarde
+	[6524]   = "CC",				-- Ground Tremor
 	[97933]  = "CC",				-- Intimidating Shout
 	[273867] = "CC",				-- Intimidating Shout
 	[262007] = "CC",				-- Polymorph
@@ -727,16 +740,28 @@ local spellIds = {
 	[259867] = "CC",				-- Storm Bolt
 	[272856] = "CC",				-- Hex Bomb
 	[266918] = "CC",				-- Fear
+	[262362] = "CC",				-- Hex
+	[253731] = "CC",				-- Massive Stomp
+	[269674] = "CC",				-- Shattering Stomp
+	[263665] = "CC",				-- Conflagration
+	[210131] = "CC",				-- Trampling Charge
+	[745]    = "Root",				-- Web
+	[4962]   = "Root",				-- Encasing Webs
+	[269680] = "Root",				-- Entanglement
 	[262610] = "Root",				-- Weighted Net
+	[20822]  = "Snare",				-- Frostbolt
+	[141619] = "Snare",				-- Frostbolt
+	[183081] = "Snare",				-- Frostbolt
+	[266985] = "Snare",				-- Oil Slick
+	[271001] = "Snare",				-- Poisoned Axe
 	[273665] = "Snare",				-- Seismic Disturbance
+	[278190] = "Snare",				-- Debilitating Infection
+	[270089] = "Snare",				-- Frostbolt Volley
 	[262538] = "Snare",				-- Thunder Clap
 	[259850] = "Snare",				-- Reverberating Clap
-	[20822]  = "Snare",				-- Frostbolt
 	------------------------
 	-- BfA Island Expeditions
-	[8377] = "Root",				-- Earthgrab
-	[280061] = "CC",				-- Brainsmasher Brew
-	[280062] = "CC",				-- Unluckydo
+	[8377]   = "Root",				-- Earthgrab
 	[270399] = "Root",				-- Unleashed Roots
 	[270196] = "Root",				-- Chains of Light
 	[267024] = "Root",				-- Stranglevines
@@ -744,6 +769,12 @@ local spellIds = {
 	[267025] = "Root",				-- Animal Trap
 	[276807] = "Root",				-- Crude Net
 	[276806] = "Root",				-- Stoutthistle
+	[255311] = "Root",				-- Hurl Spear
+	[8208]   = "CC",				-- Backhand
+	[12461]  = "CC",				-- Backhand
+	[276991] = "CC",				-- Backhand
+	[280061] = "CC",				-- Brainsmasher Brew
+	[280062] = "CC",				-- Unluckydo
 	[267029] = "CC",				-- Glowing Seed
 	[276808] = "CC",				-- Heavy Boulder
 	[267028] = "CC",				-- Bright Lantern
@@ -781,6 +812,8 @@ local spellIds = {
 	[290624] = "CC",				-- Necrotic Paralysis
 	[290623] = "CC",				-- Stone Prison
 	[274794] = "CC",				-- Hex
+	[278808] = "CC",				-- Hex
+	[278809] = "CC",				-- Hex
 	[275651] = "CC",				-- Charge
 	[262470] = "CC",				-- Blast-O-Matic Frag Bomb
 	[262906] = "CC",				-- Arcane Charge
@@ -806,16 +839,48 @@ local spellIds = {
 	[277375] = "CC",				-- Sucker Punch
 	[278193] = "CC",				-- Crush
 	[275671] = "CC",				-- Tremendous Roar
+	[270459] = "CC",				-- Earth Blast
+	[270461] = "CC",				-- Seismic Force
+	[270463] = "CC",				-- Jagged Slash
+	[275192] = "CC",				-- Blinding Sand
+	[286907] = "CC",				-- Volatile Eruption
+	[244988] = "CC",				-- Throw Boulder
+	[250505] = "CC",				-- Hysteria
+	[285266] = "CC",				-- Asphyxiate
+	[285270] = "CC",				-- Leg Sweep
+	[275748] = "CC",				-- Paralyzing Fang
+	[275997] = "CC",				-- Twilight Nova
+	[270264] = "CC",				-- Meteor
+	[277161] = "CC",				-- Shockwave
+	[290764] = "CC",				-- Dragon Roar
+	[286780] = "CC",				-- Terrifying Woof
+	[276992] = "CC",				-- Big Foot Kick
+	[277111] = "CC",				-- Serum of Torment
+	[270248] = "CC",				-- Conflagrate
+	[265615] = "CC",				-- Icy Charge
+	[274758] = "CC",				-- Shrink (damage done reduced by 50%)
+	[277118] = "CC",				-- Curse of Impotence (damage done reduced by 75%)
 	--[262197] = "Immune",			-- Tenacity of the Pack (unkillable but not immune to damage)
 	[264115] = "Immune",			-- Divine Shield
+	[277040] = "Immune",			-- Soul of Mist (damage taken reduced 90%)
+	[265445] = "Immune",			-- Shell Shield (damage taken reduced 75%)
 	[267487] = "ImmunePhysical",	-- Icy Reflection
 	[275154] = "Silence",			-- Silencing Calm
 	[265723] = "Root",				-- Web
 	[274801] = "Root",				-- Net
+	[277115] = "Root",				-- Hooked Net
+	[270613] = "Root",				-- Frost Nova
 	[265584] = "Root",				-- Frost Nova
+	[270705] = "Root",				-- Frozen Wave
 	[265583] = "Root",				-- Grasping Claw
 	[278176] = "Root",				-- Entangling Roots
+	[278181] = "Root",				-- Wrapping Vines
 	[275821] = "Root",				-- Earthen Hold
+	[197720] = "Root",				-- Elder Charge
+	[288473] = "Root",				-- Enslave
+	[85691]  = "Snare",				-- Piercing Howl
+	[270285] = "Snare",				-- Blast Wave
+	[277870] = "Snare",				-- Icy Venom
 	[277109] = "Snare",				-- Sticky Stomp
 	[266974] = "Snare",				-- Frostbolt
 	[261962] = "Snare",				-- Brutal Whirlwind
@@ -827,7 +892,11 @@ local spellIds = {
 	[267195] = "Snare",				-- Slow
 	[275038] = "Snare",				-- Icy Claw
 	[274968] = "Snare",				-- Howl
+	[273650] = "Snare",				-- Thorn Spray
 	[256661] = "Snare",				-- Staggering Roar
+	[256851] = "Snare",				-- Vile Spew
+	[179021] = "Snare",				-- Slime
+	[273124] = "Snare",				-- Lethargic Poison
 	------------------------
 	-- BfA Mythics
 	-- -- Atal'Dazar
@@ -1624,8 +1693,7 @@ end
 function LoseControl:GROUP_ROSTER_UPDATE()
 	local unitId = self.unitId
 	local frame = self.frame
-	local unitGUID = self.unitGUID
-	if (frame == nil) or (unitId == nil) or (unitGUID == nil) or not(string.find(unitId, "party")) then
+	if (frame == nil) or (unitId == nil) or not(string.find(unitId, "party")) then
 		return
 	end
 	local inInstance, instanceType = IsInInstance()
@@ -1636,7 +1704,7 @@ function LoseControl:GROUP_ROSTER_UPDATE()
 			IsInRaid() and instanceType~="arena" and LoseControlDB.disablePartyInRaid
 		)
 	)
-	self.unitGUID = unitGUID
+	self.unitGUID = UnitGUID(self.unitId)
 end
 
 function LoseControl:GROUP_JOINED()
@@ -1650,8 +1718,7 @@ end
 function LoseControl:ARENA_OPPONENT_UPDATE()
 	local unitId = self.unitId
 	local frame = self.frame
-	local unitGUID = self.unitGUID
-	if (frame == nil) or (unitId == nil) or (unitGUID == nil) or not(string.find(unitId, "arena")) then
+	if (frame == nil) or (unitId == nil) or not(string.find(unitId, "arena")) then
 		return
 	end
 	local inInstance, instanceType = IsInInstance()
@@ -1660,7 +1727,7 @@ function LoseControl:ARENA_OPPONENT_UPDATE()
 			inInstance and instanceType == "pvp" and LoseControlDB.disableArenaInBG
 		)
 	)
-	self.unitGUID = unitGUID
+	self.unitGUID = UnitGUID(self.unitId)
 end
 
 function LoseControl:ARENA_PREP_OPPONENT_SPECIALIZATIONS()
