@@ -41,7 +41,7 @@ local spellIds = {
 	[58179] = Snare,	-- Infected Wounds
 	[61391] = Snare,	-- Typhoon
 	-- Hunter
-	[1499]  = CC,		-- Freezing Trap
+	[3355]  = CC,		-- Freezing Trap Effect
 	[24394] = CC,		-- Intimidation
 	[1513]  = CC,		-- Scare Beast (works against Druids in most forms and Shamans using Ghost Wolf)
 	[19503] = CC,		-- Scatter Shot
@@ -157,6 +157,8 @@ local spellIds = {
 	[27819] = PvE,		-- Detonate Mana (Kel'Thuzad)
 	[63024] = PvE,		-- Gravity Bomb (XT-002 Deconstructor)
 	[63018] = PvE,		-- Light Bomb (XT-002 Deconstructor)
+	[62589] = PvE,		-- Nature's Fury (Freya, via Ancient Conservator)
+	[63276] = PvE,		-- Mark of the Faceless (General Vezax)
 }
 local abilities = {} -- localized names are saved here
 for k, v in pairs(spellIds) do
@@ -340,7 +342,7 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	if unitId ~= self.unitId or not frame.enabled then return end
 
 	local maxExpirationTime = 0
-	local Duration, Icon
+	local Duration, Icon, wyvernsting
 
 	for i = 1, 40 do
 		local name, _, icon, _, debuffType, duration, expirationTime = UnitDebuff(unitId, i)
@@ -348,17 +350,35 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 		if not name then break end -- no more debuffs, terminate the loop
 		--log(i .. ") " .. name .. " | " .. rank .. " | " .. icon .. " | " .. count .. " | " .. debuffType .. " | " .. duration .. " | " .. expirationTime )
 
+		-- hack for Wyvern Sting
+		if name == GetSpellInfo(19386) then
+			wyvernsting = 1
+			if not self.wyvernsting then
+				self.wyvernsting = 1 -- this is the first time the debuff has been applied
+			elseif expirationTime > self.wyvernsting_expirationTime then
+				self.wyvernsting = 2 -- this is the second time the debuff has been applied
+			end
+			self.wyvernsting_expirationTime = expirationTime
+			if self.wyvernsting == 2 then
+				name = nil -- hack to skip the next if condition since LUA doesn't have a "continue" statement
+			end
+		end
+
 		if LoseControlDB.tracking[abilities[name]]
 			and expirationTime > maxExpirationTime
 			--and duration >= LoseControlDB.minDuration
 			--and duration <= LoseControlDB.maxDuration
-			--and not (debuffType == "Poison" and duration == 6) -- hack for Wyvern Sting -- broken in 3.1 because duration was changed to 6 secs down from 10
 			and not (name == GetSpellInfo(64058) and icon == "Interface\\Icons\\Ability_Warrior_Disarm") -- hack to remove Psychic Horror disarm effect.
 		then
 			maxExpirationTime = expirationTime
 			Duration = duration
 			Icon = icon
 		end
+	end
+
+	-- continue hack for Wyvern Sting
+	if self.wyvernsting == 2 and not wyvernsting then -- dot either removed or expired
+		self.wyvernsting = nil
 	end
 
 	if maxExpirationTime == 0 then -- no debuffs found
