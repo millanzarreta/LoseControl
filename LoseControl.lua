@@ -1,7 +1,13 @@
 --[[
+Updated for 7.1.0 by millanzarreta
+- Added most spells to spell ID list and corrected others (a lot of work, really...)
+- Fixed the problem with spells that were not showing correctly (spells without duration, such as Solar Beam, Grounding Totem, Smoke Bomb, ...)
+- Added new option to allows manage the blizzard cooldown countdown
+- Added new option to allows remove the cooldown on bars for CC effects (tested for default Bars and Bartender4 Bars)
+- Fixed a bug: now type /lc opens directly the LoseControl panel instead of Interface panel
+
 Updated for 7.0.3 (Legion) by Hid@Emeriss
 - Added a large amount of spells, hopefully I didn't miss anything (important)
-
 
 Updated by Wardz
 Changes:
@@ -9,8 +15,6 @@ Changes:
 - Added Ice Nova (mage) and Rake (druid) to spell ID list
 - Fixed cooldown spiral
 ]]
-
-local noBlizzCooldownCount = true -- set to false to enable blizzard omnicc
 
 --[[ Code Credits - to the people whose code I borrowed and learned from:
 Wowwiki
@@ -37,58 +41,91 @@ local SetCooldown = SetCooldown
 local SetAlpha, SetPoint = SetAlpha, SetPoint
 local print = print
 local debug = false -- type "/lc debug on" if you want to see UnitAura info logged to the console
+local disableLossOfControlUIHooked = false
+local LCframes = {}
 
 -------------------------------------------------------------------------------
 -- Thanks to all the people on the Curse.com and WoWInterface forums who help keep this list up to date :)
 local spellIds = {
-    ----------------
-    -- Demonhunter
-    ----------------
-    [179057] = "CC",            -- Chaos Nova
-    [205630] = "CC",            -- Illidan's Grasp
-    [202138] = "Snare",         -- Sigil of Chains
-    [207684] = "CC",            -- Sigil of Misery
-    [202137] = "Silence",       -- Sigil of Silence
-    [211881] = "CC",            -- Fel Eruption
---    [183752] = "Interrupt",              -- Consume Magic
+	----------------
+	-- Demonhunter
+	----------------
+	[179057] = "CC",					-- Chaos Nova
+	[205630] = "CC",					-- Illidan's Grasp
+	[208618] = "CC",					-- Illidan's Grasp (throw stun)
+	[217832] = "CC",					-- Imprison
+	[221527] = "CC",					-- Imprison (pvp talent)
+	[204843] = "Snare",				-- Sigil of Chains
+	[207685] = "CC",					-- Sigil of Misery
+	[204490] = "Silence",			-- Sigil of Silence
+	[211881] = "CC",					-- Fel Eruption
+	[200166] = "CC",					-- Metamorfosis stun
+	[196555] = "Immune",			-- Netherwalk
+	[213491] = "CC",					-- Demonic Trample Stun
+	[206649] = "Silence",			-- Eye of Leotheras (no silence, 4% dmg and duration reset for spell casted)
+	[232538] = "Snare",				-- Rain of Chaos
+	[213405] = "Snare",				-- Master of the Glaive
+	[210003] = "Snare",				-- Razor Spikes
+	[198813] = "Snare",				-- Vengeful Retreat
+	
 
 	----------------
 	-- Death Knight
 	----------------
-	[108194] = "CC",			-- Asphyxiate
-	[115001] = "CC",			-- Remorseless Winter
-	[47476]  = "Silence",		-- Strangulate
-	[96294]  = "Root",			-- Chains of Ice (Chilblains)
-	[45524]  = "Snare",			-- Chains of Ice
-	[50435]  = "Snare",			-- Chilblains
-	[115000] = "Snare",			-- Remorseless Winter
-	[115018] = "Immune",		-- Desecrated Ground
+	[108194] = "CC",					-- Asphyxiate
+	[221562] = "CC",					-- Asphyxiate
+	[47476]  = "Silence",			-- Strangulate
+	[96294]  = "Root",				-- Chains of Ice (Chilblains)
+	[45524]  = "Snare",				-- Chains of Ice
+	[115018] = "Other",				-- Desecrated Ground (Immune to CC)
+	[207319] = "Immune",			-- Corpse Shield (not immune, 90% damage redirected to pet)
 	[48707]  = "ImmuneSpell",	-- Anti-Magic Shell
-	[48792]  = "Other",			-- Icebound Fortitude
-	[49039]  = "Other",			-- Lichborne
-
-    -- Legion
-    [107079] = "Snare",         -- Chill Streak
-    [207167] = "CC",            -- Blinding Sleet
-	
+	[48792]  = "Other",				-- Icebound Fortitude
+	[49039]  = "Other",				-- Lichborne
+	[51271]  = "Other",				-- Pillar of Frost
+	[207167] = "CC",					-- Blinding Sleet
+	[207165] = "CC",					-- Abomination's Might
+	[207171] = "CC",					-- Winter is Coming
+	[210141] = "CC",					-- Zombie Explosion (Reanimation PvP Talent)
+	[206961] = "CC",					-- Tremble Before Me
+	[233395] = "Root",				-- Frozen Center (pvp talent)
+	[204085] = "Root",				-- Deathchill (pvp talent)
+	[206930] = "Snare",				-- Heart Strike
+	[228645] = "Snare",				-- Heart Strike
+	[211831] = "Snare",				-- Abomination's Might (slow)
+	[200646] = "Snare",				-- Unholy Mutation
+	[143375] = "Snare",				-- Tightening Grasp
+	[211793] = "Snare",				-- Remorseless Winter
+	[208278] = "Snare",				-- Debilitating Infestation
+	[212764] = "Snare",				-- White Walker
+	[190780] = "Snare",				-- Frost Breath (Sindragosa's Fury) (artifact trait)
+	[191719] = "Snare",				-- Gravitational Pull (artifact trait)
+	[204206] = "Snare",				-- Chill Streak (pvp honor talent)
+    
 		----------------
 		-- Death Knight Ghoul
 		----------------
-
+		[212332] = "CC",			-- Smash
+		[212336] = "CC",			-- Smash
+		[212337] = "CC",			-- Powerful Smash
+		[47481]  = "CC",			-- Gnaw
 		[91800]  = "CC",			-- Gnaw
 		[91797]  = "CC",			-- Monstrous Blow (Dark Transformation)
-		[91807]  = "Root",			-- Shambling Rush (Dark Transformation)
+		[91807]  = "Root",		-- Shambling Rush (Dark Transformation)
+		[212540] = "Root",		-- Flesh Hook (Abomination)
 	
 	----------------
 	-- Druid
 	----------------
-
-	[33786]  = "CC",			-- Cyclone
-	[99]     = "CC",			-- Incapacitating Roar
-	[163505] = "CC",       	 	-- Rake
-	[22570]  = "CC",			-- Maim
-	[5211]   = "CC",			-- Mighty Bash
-	[114238] = "Silence",		-- Fae Silence (Glyph of Fae Silence)
+	[33786]  = "CC",				-- Cyclone
+	[209753] = "CC",				-- Cyclone
+	[99]     = "CC",				-- Incapacitating Roar
+	[163505] = "CC",				-- Rake
+	[22570]  = "CC",				-- Maim
+	[203123] = "CC",				-- Maim
+	[203126] = "CC",				-- Maim (pvp honor talent)
+	[236025] = "CC",				-- Enraged Maim (pvp honor talent)
+	[5211]   = "CC",				-- Mighty Bash
 	[81261]  = "Silence",		-- Solar Beam
 	[339]    = "Root",			-- Entangling Roots
 	[113770] = "Root",			-- Entangling Roots (Force of Nature - Balance Treants)
@@ -98,261 +135,352 @@ local spellIds = {
 	[58180]  = "Snare",			-- Infected Wounds
 	[61391]  = "Snare",			-- Typhoon
 	[127797] = "Snare",			-- Ursol's Vortex
-
+	[50259]  = "Snare",			-- Wild Charge (Dazed)
+	[102543] = "Other",			-- Incarnation: King of the Jungle
+	[106951] = "Other",			-- Berserk
+	[102558] = "Other",			-- Incarnation: Guardian of Ursoc
+	[102560] = "Other",			-- Incarnation: Chosen of Elune
+	[202244] = "CC",				-- Overrun (pvp honor talent)
+	[209749] = "Disarm",		-- Faerie Swarm (pvp honor talent)
+	
 	----------------
 	-- Hunter
 	----------------
-
-	[117526] = "CC",			-- Binding Shot
-	[3355]   = "CC",			-- Freezing Trap
-	[13809] = "Snare",			-- Ice Trap 1
-	[19386]  = "CC",			-- Wyvern Sting
-	[128405] = "Root",			-- Narrow Escape
-	[5116]   = "Snare",			-- Concussive Shot
-	[61394]  = "Snare",			-- Frozen Wake (Glyph of Freezing Trap)
-	[13810]  = "Snare",			-- Ice Trap 2
-	[19263]  = "Immune",		-- Deterrence
-
-    -- Legion
-    [209789] = "CC",              -- Freezing Arrow
-    [202914] = "Silence",         -- Spider Sting
-    [213691] = "CC",              -- Scatter Shot
-    [186265] = "Immune",          -- Deterrence (aspect of the turtle)
-
-	----------------
-	-- Hunter Pets
-	----------------
-		[24394]  = "CC",		-- Intimidation
-		[50433]  = "Snare",		-- Ankle Crack (Crocolisk)
-		[54644]  = "Snare",		-- Frost Breath (Chimaera)
-		[54216]  = "Other",		-- Master's Call (root and snare immune only)
-		[137798] = "Other",		-- Reflective Armor Plating
+	[117526] = "CC",					-- Binding Shot
+	[3355]   = "CC",					-- Freezing Trap
+	[13809]  = "CC",					-- Ice Trap 1
+	[195645] = "Snare",				-- Wing Clip
+	[19386]  = "CC",					-- Wyvern Sting
+	[128405] = "Root",				-- Narrow Escape
+	[201158] = "Root",				-- Super Sticky Tar
+	[111735] = "Snare",				-- Tar
+	[135299] = "Snare",				-- Tar Trap
+	[5116]   = "Snare",				-- Concussive Shot
+	[194279] = "Snare",				-- Caltrops
+	[206755] = "Snare",				-- Ranger's Net (snare)
+	[213691] = "CC",					-- Scatter Shot (pvp honor talent)
+	[186265] = "Immune",			-- Deterrence (aspect of the turtle)
+	[19574]  = "ImmuneSpell",	-- Bestial Wrath (only if The Beast Within (212704) it's active) (immune to some CC's)
+	[190927] = "Root",				-- Harpoon
+	[212331] = "Root",				-- Harpoon
+	[212353] = "Root",				-- Harpoon
+	[162480] = "Root",				-- Steel Trap
+	[200108] = "Root",				-- Ranger's Net
+	[212638] = "Root",				-- Tracker's Net (pvp honor talent) -- Also -80% hit chance
+	[224729] = "CC",					-- Bursting Shot
+	[203337] = "CC",					-- Freezing Trap (Diamond Ice - pvp honor talent)
+	[209790] = "CC",					-- Freezing Arrow (pvp honor talent)
+	[202748] = "Immune",			-- Survival Tactics (pvp honor talent) (not immune, 99% damage reduction)
+	--[202914] = "Silence",			-- Spider Sting (pvp honor talent) --no silence, this its the previous effect
+	[202933] = "Silence",			-- Spider Sting	(pvp honor talent) --this its the silence effect
+	[5384]   = "Other",				-- Feign Death
+  
+		----------------
+		-- Hunter Pets
+		----------------
+		[24394]  = "CC",					-- Intimidation
+		[50433]  = "Snare",				-- Ankle Crack (Crocolisk)
+		[54644]  = "Snare",				-- Frost Breath (Chimaera)
+		[35346]  = "Snare",				-- Warp Time (Warp Stalker)
+		[160067] = "Snare",				-- Web Spray (Spider)
+		[160065] = "Snare",				-- Tendon Rip (Silithid)
+		[54216]  = "Other",				-- Master's Call (root and snare immune only)
+		[53148]  = "Root",				-- Charge (tenacity ability)
+		[137798] = "ImmuneSpell",	-- Reflective Armor Plating (Direhorn)
 
 	----------------
 	-- Mage
 	----------------
-
-	[44572]  = "CC",			-- Deep Freeze
-	[31661]  = "CC",			-- Dragon's Breath
-	[118]    = "CC",			-- Polymorph
-	[61305]  = "CC",			-- Polymorph: Black Cat
-	[28272]  = "CC",			-- Polymorph: Pig
-	[61721]  = "CC",			-- Polymorph: Rabbit
-	[61780]  = "CC",			-- Polymorph: Turkey
-	[28271]  = "CC",			-- Polymorph: Turtle
-	[82691]  = "CC",			-- Ring of Frost
-	[140376] = "CC",			-- Ring of Frost
-	[102051] = "Silence",		-- Frostjaw (also a root)
-	[122]    = "Root",			-- Frost Nova
-	[111340] = "Root",			-- Ice Ward
-	[120]    = "Snare",			-- Cone of Cold
-	[116]    = "Snare",			-- Frostbolt
-	[44614]  = "Snare",			-- Frostfire Bolt
-	[31589]  = "Snare",			-- Slow
-	[10]	 = "Snare",			-- Blizzard
-	[45438]  = "Immune",		-- Ice Block
-	[115760] = "ImmuneSpell",	-- Glyph of Ice Block
-	[157997] = "CC",			-- Ice Nova
-	[66309]  = "CC",			-- Ice Nova
-	[110959] = "Other",			-- Greater Invisibility
-
-    -- Legion
-    [198144] = "Other",         -- Ice form (stun/knockback immune)
-    [198111] = "Other",         -- Temporal Shield (heals all damage taken after 4 sec)
+	[44572]  = "CC",					-- Deep Freeze
+	[31661]  = "CC",					-- Dragon's Breath
+	[118]    = "CC",					-- Polymorph
+	[61305]  = "CC",					-- Polymorph: Black Cat
+	[28272]  = "CC",					-- Polymorph: Pig
+	[61721]  = "CC",					-- Polymorph: Rabbit
+	[61780]  = "CC",					-- Polymorph: Turkey
+	[28271]  = "CC",					-- Polymorph: Turtle
+	[161353] = "CC",					-- Polymorph: Polar bear cub
+	[126819] = "CC",					-- Polymorph: Porcupine
+	[161354] = "CC",					-- Polymorph: Monkey
+	[61025]  = "CC",					-- Polymorph: Serpent
+	[161355] = "CC",					-- Polymorph: Penguin
+	[82691]  = "CC",					-- Ring of Frost
+	[140376] = "CC",					-- Ring of Frost
+	[122]    = "Root",				-- Frost Nova
+	[111340] = "Root",				-- Ice Ward
+	[120]    = "Snare",				-- Cone of Cold
+	[116]    = "Snare",				-- Frostbolt
+	[44614]  = "Snare",				-- Frostfire Bolt
+	[31589]  = "Snare",				-- Slow
+	[10]	   = "Snare",				-- Blizzard
+	[205708] = "Snare",				-- Chilled
+	[212792] = "Snare",				-- Cone of Cold
+	[205021] = "Snare",				-- Ray of Frost
+	[135029] = "Snare",				-- Water Jet
+	[59638]  = "Snare",				-- Frostbolt (Mirror Images)
+	[228354] = "Snare",				-- Flurry
+	[157981] = "Snare",				-- Blast Wave
+	[2120]   = "Snare",				-- Flamestrike
+	[45438]  = "Immune",			-- Ice Block
+	[198065] = "ImmuneSpell",	-- Prismatic Cloak (pvp talent)
+	[198121] = "Root",				-- Frostbite (pvp talent)
+	[220107] = "Root",				-- Frostbite
+	[157997] = "Root",				-- Ice Nova
+	[228600] = "Root",				-- Glacial Spike
+	[110959] = "Other",				-- Greater Invisibility
+	[198144] = "Other",				-- Ice form (stun/knockback immune)
+	[12042]  = "Other",				-- Arcane Power
+	[198111] = "Immune",			-- Temporal Shield (heals all damage taken after 4 sec)
 
 		----------------
 		-- Mage Water Elemental
 		----------------
-		[33395]  = "Root",		-- Freeze
-
+		[33395]  = "Root",			-- Freeze
 
 	----------------
 	-- Monk
 	----------------
-
-	[123393] = "CC",			-- Breath of Fire (Glyph of Breath of Fire)
-	[119392] = "CC",			-- Charging Ox Wave
-	[120086] = "CC",			-- Fists of Fury
-	[119381] = "CC",			-- Leg Sweep
-	[115078] = "CC",			-- Paralysis
-	[140023] = "Disarm",		-- Ring of Peace
-	[137460] = "Silence",		-- Silenced (Ring of Peace)
+	[123393] = "CC",				-- Breath of Fire (Glyph of Breath of Fire)
+	[119392] = "CC",				-- Charging Ox Wave
+	[119381] = "CC",				-- Leg Sweep
+	[115078] = "CC",				-- Paralysis
+	[232055] = "CC",				-- Fist of Fury (honor talent stun)
+	[120086] = "CC",				-- Fist of Fury (unknow)
 	[116706] = "Root",			-- Disable
 	[116095] = "Snare",			-- Disable
 	[118585] = "Snare",			-- Leer of the Ox
 	[123586] = "Snare",			-- Flying Serpent Kick
-
-    -- Legion
-    [107079] = "CC",            -- Quaking palm
-    [198898] = "CC",            -- Song of Chi-Ji
-
+	[121253] = "Snare",			-- Keg Smash
+	[196733] = "Snare",			-- Special Delivery
+	[196723] = "Snare",			-- Dizzying Kicks
+	[205320] = "Snare",			-- Strike of the Windlord (artifact trait)
+	[125174] = "Immune",		-- Touch of Karma
+	[198909] = "CC",				-- Song of Chi-Ji
+	[233759] = "Disarm",		-- Grapple Weapon
+	[202274] = "CC",				-- Incendiary Brew (honor talent)
+	[202346] = "CC",				-- Double Barrel (honor talent)
+	[123407] = "Root",			-- Spinning Fire Blossom (honor talent)
+	[214326] = "Other",			-- Exploding Keg (artifact trait - blind)
+	[199387] = "Snare",			-- Spirit Tether (artifact trait)
 
 	----------------
 	-- Paladin
 	----------------
-
-	[105421] = "CC",			-- Blinding Light
-	[105593] = "CC",			-- Fist of Justice
-	[853]    = "CC",			-- Hammer of Justice
-	[20066]  = "CC",			-- Repentance
-	[31935]  = "Silence",		-- Avenger's Shield
-	[110300] = "Snare",			-- Burden of Guilt
-	[63529]  = "Snare",			-- Dazed - Avenger's Shield
-	[20170]  = "Snare",			-- Seal of Justice
-	[642]    = "Immune",		-- Divine Shield
-	[31821]  = "Other",			-- Aura Mastery
-	[1022]   = "Other",			-- Hand of Protection
+	[105421] = "CC",					-- Blinding Light
+	[105593] = "CC",					-- Fist of Justice
+	[853]    = "CC",					-- Hammer of Justice
+	[20066]  = "CC",					-- Repentance
+	[31935]  = "Silence",			-- Avenger's Shield
+	[187219] = "Silence",			-- Avenger's Shield (pvp talent)
+	[199512] = "Silence",			-- Avenger's Shield (unknow use)
+	[217824] = "Silence",			-- Shield of Virtue (pvp honor talent)
+	[204242] = "Snare",				-- Consecration (talent Consecrated Ground)
+	[183218] = "Snare",				-- Hand of Hindrance
+	[642]    = "Immune",			-- Divine Shield
+	[184662] = "Other",				-- Shield of Vengeance
+	[31821]  = "Other",				-- Aura Mastery
+	[1022]   = "Other",				-- Hand of Protection (only immune to physical damage)
+	[204018] = "ImmuneSpell",	-- Blessing of Spellwarding
+	[228050] = "Immune",			-- Divine Shield (Guardian of the Forgotten Queen)
+	[205273] = "Snare",				-- Wake of Ashes (artifact trait) (snare)
+	[205290] = "CC",					-- Wake of Ashes (artifact trait) (stun)
 
 	----------------
 	-- Priest
 	----------------
-
-	[605]    = "CC",			-- Dominate Mind
-	[88625]  = "CC",			-- Holy Word: Chastise
-	[64044]  = "CC",			-- Psychic Horror
-	[8122]   = "CC",			-- Psychic Scream
-	[9484]   = "CC",			-- Shackle Undead
-	[87204]  = "CC",			-- Sin and Punishment
+	[605]    = "CC",				-- Dominate Mind
+	[64044]  = "CC",				-- Psychic Horror
+	[8122]   = "CC",				-- Psychic Scream
+	[9484]   = "CC",				-- Shackle Undead
+	[87204]  = "CC",				-- Sin and Punishment
 	[15487]  = "Silence",		-- Silence
 	[64058]  = "Disarm",		-- Psychic Horror
 	[87194]  = "Root",			-- Glyph of Mind Blast
 	[114404] = "Root",			-- Void Tendril's Grasp
 	[15407]  = "Snare",			-- Mind Flay
 	[47585]  = "Immune",		-- Dispersion
-	[114239] = "ImmuneSpell",	-- Phantasm
-	[586] 	 = "Other",			-- Fade (Aura mastery when glyphed, dunno which id is right)
-	[159628] = "Other",			-- Fade
-
-    -- Legion
-    [205369] = "CC",            -- Mind Bomb
-    [88625]  = "CC",            -- Holy Word: Chastise
-    [204263] = "Snare",         -- Shining Force
-
-
+	[47788]  = "Other",			-- Guardian Spirit (prevent the target from dying)
+	[213602] = "Other",			-- Greater Fade (pvp honor talent - protects 3 melee attacks + 50% speed)
+	[213610] = "Other",			-- Holy Ward (pvp honor talent - wards against the next loss of control effect)
+	[196762] = "Other",			-- Inner Focus (pvp honor talent - immunity to silence and interrupt effects)
+	[226943] = "CC",				-- Mind Bomb
+	[200196] = "CC",				-- Holy Word: Chastise
+	[200200] = "CC",				-- Holy Word: Chastise (talent)
+	[204263] = "Snare",			-- Shining Force
+	[199845] = "Snare",			-- Psyflay (pvp honor talent - Psyfiend)
+	[199683] = "Silence",		-- Last Word (pvp honor talent)
+	[210979] = "Snare",			-- Focus in the Light (artifact trait)
 
 	----------------
 	-- Rogue
 	----------------
-
-	[2094]   = "CC",			-- Blind
-	[1833]   = "CC",			-- Cheap Shot
-	[1776]   = "CC",			-- Gouge
-	[408]    = "CC",			-- Kidney Shot
-	[6770]   = "CC",			-- Sap
-	[1330]   = "Silence",		-- Garrote - Silence
-	[3409]   = "Snare",			-- Crippling Poison
-	[26679]  = "Snare",			-- Deadly Throw
-	[119696] = "Snare",			-- Debilitation
-	[31224]  = "ImmuneSpell",	-- Cloak of Shadows
-	[45182]  = "Other",			-- Cheating Death
-	[5277]   = "Other",			-- Evasion
-	[76577]  = "Other",			-- Smoke Bomb
-	[88611]  = "Other",			-- Smoke Bomb
-
-    -- Legion rogue
-    [199804] = "CC",            -- Between the eyes
-    [207777] = "Disarm",        -- Dismantle
-    [185767] = "Snare",         -- Cannonball Barrage
-    [207736] = "Other",         -- Shadowy Duel (smoke bomb effect)
+	[2094]   = "CC",						-- Blind
+	[1833]   = "CC",						-- Cheap Shot
+	[1776]   = "CC",						-- Gouge
+	[408]    = "CC",						-- Kidney Shot
+	[6770]   = "CC",						-- Sap
+	[196958] = "CC",						-- Strike from the Shadows (stun effect)
+	[1330]   = "Silence",				-- Garrote - Silence
+	[3409]   = "Snare",					-- Crippling Poison
+	[26679]  = "Snare",					-- Deadly Throw
+	[185763] = "Snare",					-- Pistol Shot
+	[185778] = "Snare",					-- Shellshocked
+	[206760] = "Snare",					-- Night Terrors
+	[222775] = "Snare",					-- Strike from the Shadows (daze effect)
+	[152150] = "Immune",				-- Death from Above (in the air you are immune to CC)
+	[31224]  = "ImmuneSpell",		-- Cloak of Shadows
+	[51690]  = "Other",					-- Killing Spree
+	[13750]  = "Other",					-- Adrenaline Rush
+	[199754] = "Other",					-- Riposte
+	[1966]   = "Other",					-- Feint
+	[45182]  = "Other",					-- Cheating Death
+	[5277]   = "Other",					-- Evasion
+	[76577]  = "Other",					-- Smoke Bomb
+	[88611]  = "Other",					-- Smoke Bomb
+	[212182] = "Other",					-- Smoke Bomb
+	[212183] = "Other",					-- Smoke Bomb --I think this is the real debuff for legion
+	[199804] = "CC",						-- Between the eyes
+	[199740] = "CC",						-- Bribe
+	[207777] = "Disarm",				-- Dismantle
+	[185767] = "Snare",					-- Cannonball Barrage
+	[207736] = "Other",					-- Shadowy Duel
+	[212150] = "Other",					-- Cheap Tricks (pvp honor talent) (-75% hit chance)
+	[199743] = "CC",						-- Parley
+	[198653] = "CC",						-- Filthy Tricks (pvp honor talent)
+	[198222] = "Snare",					-- System Shock (pvp honor talent)
+	[226364] = "Other",					-- Evasion (Shadow Swiftness, artifact trait)
+	[209786] = "Snare",					-- Goremaw's Bite (artifact trait)
+	
 
 	----------------
 	-- Shaman
 	----------------
-
-	[77505]  = "CC",			-- Earthquake
-	[51514]  = "CC",			-- Hex
-	[118905] = "CC",			-- Static Charge (Capacitor Totem)
-	[64695]  = "Root",			-- Earthgrab (Earthgrab Totem)
-	[63685]  = "Root",			-- Freeze (Frozen Power)
-	[3600]   = "Snare",			-- Earthbind (Earthbind Totem)
-	[116947] = "Snare",			-- Earthbind (Earthgrab Totem)
-	[77478]  = "Snare",			-- Earthquake (Glyph of Unstable Earth)
-	[8056]   = "Snare",			-- Frost Shock
-	[51490]  = "Snare",			-- Thunderstorm
-	[8178]   = "ImmuneSpell",	-- Grounding Totem Effect (Grounding Totem)
+	[77505]  = "CC",						-- Earthquake
+	[51514]  = "CC",						-- Hex
+	[210873] = "CC",						-- Hex (compy)
+	[211010] = "CC",						-- Hex (snake)
+	[211015] = "CC",						-- Hex (cockroach)
+	[211004] = "CC",						-- Hex (spider)
+	[196942] = "CC",						-- Hex (Voodoo Totem)
+	[118905] = "CC",						-- Static Charge (Capacitor Totem)
+	[64695]  = "Root",					-- Earthgrab (Earthgrab Totem)
+	[3600]   = "Snare",					-- Earthbind (Earthbind Totem)
+	[116947] = "Snare",					-- Earthbind (Earthgrab Totem)
+	[77478]  = "Snare",					-- Earthquake (Glyph of Unstable Earth)
+	[8056]   = "Snare",					-- Frost Shock
+	[196840] = "Snare",					-- Frost Shock
+	[51490]  = "Snare",					-- Thunderstorm
+	[147732] = "Snare",					-- Frostbrand Attack
+	[197385] = "Snare",					-- Fury of Air
+	[207498] = "Other",					-- Ancestral Protection (prevent the target from dying)
+	[8178]   = "ImmuneSpell",		-- Grounding Totem Effect (Grounding Totem)
+	[204399] = "CC",						-- Earthfury (PvP Talent)
+	[192058] = "CC",						-- Lightning Surge totem (capacitor totem)
+	[210918] = "Other",					-- Ethereal Form (only immune to physical damage)
+	[204437] = "CC",						-- Lightning Lasso
+	[197214] = "Root",					-- Sundering
+	[224126] = "Snare",					-- Frozen Bite (Doom Wolves, artifact trait)
+	[207654] = "Immune",				-- Servant of the Queen (not immune, 80% damage reduction - artifact trait)
 	
-    -- Legion
-	[204336] = "ImmuneSpell",	-- Grounding Totem Effect (Grounding Totem)
-    [192058] = "CC",            -- Lightning Surge totem (capacitor totem)
-
 		----------------
-		-- Shaman Primal Earth Elemental
+		-- Shaman Pets
 		----------------
-		[118345] = "CC",		-- Pulverize
+		[118345] = "CC",			-- Pulverize (Shaman Primal Earth Elemental)
+		[157375] = "CC",			-- Gale Force (Primal Storm Elemental)
 
 	----------------
 	-- Warlock
 	----------------
-
-	[710]    = "CC",			-- Banish
-	[137143] = "CC",			-- Blood Horror
-	[5782]   = "CC",			-- Fear
-	[118699] = "CC",			-- Fear
-	[130616] = "CC",			-- Fear (Glyph of Fear)
-	[5484]   = "CC",			-- Howl of Terror
-	[22703]  = "CC",			-- Infernal Awakening
-	[6789]   = "CC",			-- Mortal Coil
-	[30283]  = "CC",			-- Shadowfury
-	[31117]  = "Silence",		-- Unstable Affliction
-	[110913] = "Other",			-- Dark Bargain
-	[104773] = "Other",			-- Unending Resolve
-
-    -- Legion
-	[212295] = "ImmuneSpell",	-- Netherward (reflects spells)
+	[710]    = "CC",						-- Banish
+	[5782]   = "CC",						-- Fear
+	[118699] = "CC",						-- Fear
+	[130616] = "CC",						-- Fear (Glyph of Fear)
+	[5484]   = "CC",						-- Howl of Terror
+	[22703]  = "CC",						-- Infernal Awakening
+	[6789]   = "CC",						-- Mortal Coil
+	[30283]  = "CC",						-- Shadowfury
+	[31117]  = "Silence",				-- Unstable Affliction
+	[196364] = "Silence",				-- Unstable Affliction
+	[110913] = "Other",					-- Dark Bargain
+	[104773] = "Other",					-- Unending Resolve
+	[212295] = "ImmuneSpell",		-- Netherward (reflects spells)
+	[233582] = "Root",					-- Entrenched in Flame (pvp honor talent)
 
 		----------------
 		-- Warlock Pets
 		----------------
-		[89766]  = "CC",		-- Axe Toss (Felguard/Wrathguard)
-		[115268] = "CC",		-- Mesmerize (Shivarra)
-		[6358]   = "CC",		-- Seduction (Succubus)
-
+		[32752]  = "CC",			-- Summoning Disorientation
+		[89766]  = "CC",			-- Axe Toss (Felguard/Wrathguard)
+		[115268] = "CC",			-- Mesmerize (Shivarra)
+		[6358]   = "CC",			-- Seduction (Succubus)
+		[171017] = "CC",			-- Meteor Strike (infernal)
+		[171018] = "CC",			-- Meteor Strike (abisal)
+		[213688] = "CC",			-- Fel Cleave (Fel Lord - PvP Talent)
+		[170996] = "Snare",		-- Debilitate (Terrorguard)
+		[170995] = "Snare",		-- Cripple (Doomguard)
 
 	----------------
 	-- Warrior
 	----------------
-	[118895] = "CC",			-- Dragon Roar
-	[5246]   = "CC",			-- Intimidating Shout (aoe)
-	[132168] = "CC",			-- Shockwave
-	[107570] = "CC",			-- Storm Bolt
-	[132169] = "CC",			-- Storm Bolt
-	[18498]  = "Silence",		-- Silenced - Gag Order (PvE only)
-	[107566] = "Root",			-- Staggering Shout
-	[105771] = "Root",			-- Warbringer
-	[147531] = "Snare",			-- Bloodbath
-	[1715]   = "Snare",			-- Hamstring
-	[12323]  = "Snare",			-- Piercing Howl
-	[129923] = "Snare",			-- Sluggish (Glyph of Hindering Strikes)
-	[46924]  = "Immune",		-- Bladestorm
-	[23920]  = "ImmuneSpell",	-- Spell Reflection
-	[114028] = "ImmuneSpell",	-- Mass Spell Reflection
-	[18499]  = "Other",			-- Berserker Rage
-
-    -- Legion
-    [198817] = "Other",         -- Sharpen Blade (70% heal reduction)
-
+	[118895] = "CC",						-- Dragon Roar
+	[5246]   = "CC",						-- Intimidating Shout (aoe)
+	[132168] = "CC",						-- Shockwave
+	[107570] = "CC",						-- Storm Bolt
+	[132169] = "CC",						-- Storm Bolt
+	[46968]  = "CC",						-- Shockwave
+	[213427] = "CC",						-- Charge Stun Talent (Warbringer)
+	[7922]   = "CC",						-- Charge Stun Talent (Warbringer)
+	[107566] = "Root",					-- Staggering Shout
+	[105771] = "Root",					-- Charge
+	[147531] = "Snare",					-- Bloodbath
+	[1715]   = "Snare",					-- Hamstring
+	[12323]  = "Snare",					-- Piercing Howl
+	[6343]   = "Snare",					-- Thunder Clap
+	[46924]  = "Immune",				-- Bladestorm (not immune to dmg, only to LoC)
+	[227847] = "Immune",				-- Bladestorm (not immune to dmg, only to LoC)
+	[199038] = "Immune",				-- Leave No Man Behind (not immune, 90% damage reduction)
+	[23920]  = "ImmuneSpell",		-- Spell Reflection
+	[216890] = "ImmuneSpell",		-- Spell Reflection
+	[213915] = "ImmuneSpell",		-- Mass Spell Reflection
+	[114028] = "ImmuneSpell",		-- Mass Spell Reflection
+	[18499]  = "Other",					-- Berserker Rage
+	[118038] = "Other",					-- Die by the Sword
+	[198819] = "Other",					-- Sharpen Blade (70% heal reduction)
+	[198760] = "Other",					-- Intercept (pvp honor talent) (intercept the next ranged or melee hit)
+	[198760] = "Other",					-- Intercept (pvp honor talent) (intercept the next ranged or melee hit)
+	[176289] = "CC",						-- Siegebreaker
+	[199085] = "CC",						-- Warpath
+	[199042] = "Root",					-- Thunderstruck
+	[236236] = "Disarm",				-- Disarm (pvp honor talent - protection)
+	[236077] = "Disarm",				-- Disarm (pvp honor talent)
+	
 	----------------
 	-- Other
 	----------------
-
-	[30217]  = "CC",		-- Adamantite Grenade
-	[67769]  = "CC",		-- Cobalt Frag Bomb
-	[30216]  = "CC",		-- Fel Iron Bomb
-	[107079] = "CC",		-- Quaking Palm
-	[13327]  = "CC",		-- Reckless Charge
-	[20549]  = "CC",		-- War Stomp
-	[25046]  = "Silence",		-- Arcane Torrent (Energy)
-	[28730]  = "Silence",		-- Arcane Torrent (Mana)
-	[50613]  = "Silence",		-- Arcane Torrent (Runic Power)
-	[69179]  = "Silence",		-- Arcane Torrent (Rage)
-	[80483]  = "Silence",		-- Arcane Torrent (Focus)
-	[129597] = "Silence",		-- Arcane Torrent (Chi)
-	[39965]  = "Root",		-- Frost Grenade
-	[55536]  = "Root",		-- Frostweave Net
-	[13099]  = "Root",		-- Net-o-Matic
-	[1604]   = "Snare",		-- Dazed
+	[30217]  = "CC",					-- Adamantite Grenade
+	[67769]  = "CC",					-- Cobalt Frag Bomb
+	[67890]  = "CC",					-- Cobalt Frag Bomb (belt)
+	[30216]  = "CC",					-- Fel Iron Bomb
+	[107079] = "CC",					-- Quaking Palm
+	[13327]  = "CC",					-- Reckless Charge
+	[20549]  = "CC",					-- War Stomp
+	[25046]  = "Silence",			-- Arcane Torrent (Energy)
+	[28730]  = "Silence",			-- Arcane Torrent (Mana)
+	[50613]  = "Silence",			-- Arcane Torrent (Runic Power)
+	[69179]  = "Silence",			-- Arcane Torrent (Rage)
+	[80483]  = "Silence",			-- Arcane Torrent (Focus)
+	[129597] = "Silence",			-- Arcane Torrent (Chi)
+	[202719] = "Silence",			-- Arcane Torrent (fury)
+	[232633] = "Silence",			-- Arcane Torrent (mana/insanity priest)
+	[155145] = "Silence",			-- Arcane Torrent (mana/holypower paladin)
+	[214459] = "Silence",			-- Choking Flames (trinket)
+	[39965]  = "Root",				-- Frost Grenade
+	[55536]  = "Root",				-- Frostweave Net
+	[13099]  = "Root",				-- Net-o-Matic
+	[1604]   = "Snare",				-- Dazed
+	[221792] = "CC",					-- Kidney Shot (Vanessa VanCleef (Rogue Bodyguard))
 	-- PvE
-	--[123456] = "PvE",		-- This is just an example, not a real spell
+	--[123456] = "PvE",				-- This is just an example, not a real spell
 }
 
 if debug then
@@ -441,6 +569,8 @@ local anchors = {
 local DBdefaults = {
 	version = 5.2, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
+	noBlizzardCooldownCount = true,
+	noLossOfControlCooldown = false,
 	disablePartyInBG = false,
 	disableArenaInBG = true,
 	priority = {		-- higher numbers have more priority; 0 = disabled
@@ -571,6 +701,23 @@ function LoseControl:RegisterUnitEvents(enabled)
 	end
 end
 
+-- Function to disable Cooldown on player bars for CC effects
+function LoseControl:DisableLossOfControlUI()
+	if not disableLossOfControlUIHooked then
+		hooksecurefunc('CooldownFrame_Set', function(self)
+			if self.currentCooldownType == COOLDOWN_TYPE_LOSS_OF_CONTROL then
+				self:SetDrawBling(false)
+				self:SetCooldown(0, 0)
+			else
+				if not self:GetDrawBling() then
+					self:SetDrawBling(true)
+				end
+			end
+		end)
+		disableLossOfControlUIHooked = true
+	end
+end
+
 -- Handle default settings
 function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == addonName then
@@ -589,11 +736,25 @@ function LoseControl:ADDON_LOADED(arg1)
 		end
 		LoseControlDB = _G.LoseControlDB
 		self.noCooldownCount = LoseControlDB.noCooldownCount
-		--if LoseControlDB.noCooldownCount then
-			self:SetHideCountdownNumbers(noBlizzCooldownCount)
-		--end
+		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
+		self.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
+		if LoseControlDB.noLossOfControlCooldown then
+			LoseControl:DisableLossOfControlUI()
+		end
+		if LoseControlDB.noCooldownCount then
+			self:SetHideCountdownNumbers(LoseControlDB.noBlizzardCooldownCount)
+			for _, v in pairs(LCframes) do
+				v:SetHideCountdownNumbers(LoseControlDB.noBlizzardCooldownCount)
+			end
+		else
+			self:SetHideCountdownNumbers(true)
+			for _, v in pairs(LCframes) do
+				v:SetHideCountdownNumbers(true)
+			end
+		end
 	end
 end
+
 LoseControl:RegisterEvent("ADDON_LOADED")
 
 -- Initialize a frame's position and register for events
@@ -630,23 +791,24 @@ end
 -- This is the main event. Check for (de)buffs and update the frame icon and cooldown.
 function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	if not self.anchor:IsVisible() then return end
-
 	local priority = LoseControlDB.priority
 	local maxPriority = 1
 	local maxExpirationTime = 0
 	local Icon, Duration
 
 	-- Check debuffs
-	for i = 1, 40 do
+	for i = 1, 80 do
 		local name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i, "HARMFUL")
 		if not spellId then break end -- no more debuffs, terminate the loop
 		if debug then print(unitId, "debuff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
-
 		-- exceptions
-		if spellId == 88611 and unitId ~= "player" then -- Smoke Bomb
+		if spellId == 212183 and unitId ~= "player" then -- Smoke Bomb
 			expirationTime = GetTime() + 1 -- normal expirationTime = 0
 		elseif spellId == 81261  -- Solar Beam
-		    or spellId == 127797 -- Ursol's Vortex
+				or spellId == 127797 -- Ursol's Vortex
+				or spellId == 115018 -- Desecrated Ground
+				or spellId == 143375 -- Tightening Grasp
+				or spellId == 135299 -- Tar Trap
 		then
 			expirationTime = GetTime() + 1 -- normal expirationTime = 0
 		end
@@ -668,14 +830,16 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 
 	-- Check buffs
 	if unitId ~= "player" and (priority.Immune > 0 or priority.ImmuneSpell > 0 or priority.Other > 0) then
-		for i = 1, 40 do
+		for i = 1, 80 do
 			local name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
 			if not spellId then break end
 			if debug then print(unitId, "buff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
 
 			-- exceptions
 			if spellId == 8178 then -- Grounding Totem Effect
-				expirationTime = GetTime() + 15 -- hack, normal expirationTime = 0
+				expirationTime = GetTime() + 1 -- hack, normal expirationTime = 0
+			elseif spellId == 19574 and (not UnitBuff(unitId,GetSpellInfo(212704))) then --exception for The Breast Within
+				spellId = 212704
 			end
 
 			local Priority = priority[spellIds[spellId]]
@@ -693,7 +857,7 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			end
 		end
 	end
-
+	
 	if maxExpirationTime == 0 then -- no (de)buffs found
 		self.maxExpirationTime = 0
 		if self.anchor ~= UIParent and self.drawlayer then
@@ -718,7 +882,15 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 		end
 		self:Show()
 		if Duration > 0 then
+			if not self:GetDrawSwipe() then
+				self:SetDrawSwipe(true)
+			end
 			self:SetCooldown( maxExpirationTime - Duration, Duration )
+		else
+			if self:GetDrawSwipe() then
+				self:SetDrawSwipe(false)
+			end
+			self:SetCooldown(GetTime(), 0)
 		end
 		--UIFrameFadeOut(self, Duration, self.frame.alpha, 0)
 		self:SetAlpha(self.frame.alpha) -- hack to apply transparency to the cooldown timer
@@ -792,7 +964,6 @@ function LoseControl:new(unitId)
 end
 
 -- Create new object instance for each frame
-local LCframes = {}
 for k in pairs(DBdefaults.frames) do
 	LCframes[k] = LoseControl:new(k)
 end
@@ -836,6 +1007,7 @@ function Unlock:OnClick()
 				end
 				v.text:Show()
 				v:Show()
+				v:SetDrawSwipe(true)
 				v:SetCooldown( GetTime(), 30 )
 				v:SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
 				v:SetMovable(true)
@@ -856,11 +1028,62 @@ function Unlock:OnClick()
 end
 Unlock:SetScript("OnClick", Unlock.OnClick)
 
+local DisableBlizzardCooldownCount = CreateFrame("CheckButton", O.."DisableBlizzardCooldownCount", OptionsPanel, "OptionsCheckButtonTemplate")
+_G[O.."DisableBlizzardCooldownCountText"]:SetText(L["Disable Blizzard Countdown"])
+function DisableBlizzardCooldownCount:Check(value)
+  LoseControlDB.noBlizzardCooldownCount = value
+	LoseControl.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
+	LoseControl:SetHideCountdownNumbers(LoseControlDB.noBlizzardCooldownCount)
+	for _, v in pairs(LCframes) do
+		v:SetHideCountdownNumbers(LoseControlDB.noBlizzardCooldownCount)
+	end
+end
+DisableBlizzardCooldownCount:SetScript("OnClick", function(self)
+	DisableBlizzardCooldownCount:Check(self:GetChecked())
+end)
+
 local DisableCooldownCount = CreateFrame("CheckButton", O.."DisableCooldownCount", OptionsPanel, "OptionsCheckButtonTemplate")
 _G[O.."DisableCooldownCountText"]:SetText(L["Disable OmniCC Support"])
 DisableCooldownCount:SetScript("OnClick", function(self)
 	LoseControlDB.noCooldownCount = self:GetChecked()
 	LoseControl.noCooldownCount = LoseControlDB.noCooldownCount
+	if self:GetChecked() then
+		DisableBlizzardCooldownCount:Enable()
+		_G[O.."DisableBlizzardCooldownCountText"]:SetTextColor(_G[O.."DisableCooldownCountText"]:GetTextColor())
+	else
+		DisableBlizzardCooldownCount:Disable()
+		_G[O.."DisableBlizzardCooldownCountText"]:SetTextColor(0.5,0.5,0.5)
+		DisableBlizzardCooldownCount:SetChecked(true)
+		DisableBlizzardCooldownCount:Check(true)
+	end
+end)
+
+local DisableLossOfControlCooldownAuxText = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+DisableLossOfControlCooldownAuxText:SetText(L["NeedsReload"])
+DisableLossOfControlCooldownAuxText:SetTextColor(1,0,0)
+DisableLossOfControlCooldownAuxText:Hide()
+
+local DisableLossOfControlCooldownAuxButton = CreateFrame("Button", O.."DisableLossOfControlCooldownAuxButton", OptionsPanel, "OptionsButtonTemplate")
+_G[O.."DisableLossOfControlCooldownAuxButtonText"]:SetText(L["ReloadUI"])
+DisableLossOfControlCooldownAuxButton:SetHeight(12)
+DisableLossOfControlCooldownAuxButton:Hide()
+DisableLossOfControlCooldownAuxButton:SetScript("OnClick", function(self)
+	ReloadUI()
+end)
+
+local DisableLossOfControlCooldown = CreateFrame("CheckButton", O.."DisableLossOfControlCooldown", OptionsPanel, "OptionsCheckButtonTemplate")
+_G[O.."DisableLossOfControlCooldownText"]:SetText(L["DisableLossOfControlCooldownText"])
+DisableLossOfControlCooldown:SetScript("OnClick", function(self)
+	LoseControlDB.noLossOfControlCooldown = self:GetChecked()
+	LoseControl.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
+	if (self:GetChecked()) then
+		LoseControl:DisableLossOfControlUI()
+		DisableLossOfControlCooldownAuxText:Hide()
+		DisableLossOfControlCooldownAuxButton:Hide()
+	else
+		DisableLossOfControlCooldownAuxText:Show()
+		DisableLossOfControlCooldownAuxButton:Show()
+	end
 end)
 
 local Priority = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
@@ -899,8 +1122,12 @@ subText:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
 
 Unlock:SetPoint("TOPLEFT", subText, "BOTTOMLEFT", 0, -16)
 DisableCooldownCount:SetPoint("TOPLEFT", Unlock, "BOTTOMLEFT", 0, -2)
+DisableBlizzardCooldownCount:SetPoint("TOPLEFT", DisableCooldownCount, "BOTTOMLEFT", 0, -2)
+DisableLossOfControlCooldown:SetPoint("TOPLEFT", DisableBlizzardCooldownCount, "BOTTOMLEFT", 0, -2)
+DisableLossOfControlCooldownAuxButton:SetPoint("TOPLEFT", DisableLossOfControlCooldown, "BOTTOMLEFT", 30, 4)
+DisableLossOfControlCooldownAuxText:SetPoint("TOPLEFT", DisableLossOfControlCooldownAuxButton, "TOPRIGHT", 4, 0)
 
-Priority:SetPoint("TOPLEFT", DisableCooldownCount, "BOTTOMLEFT", 0, -12)
+Priority:SetPoint("TOPLEFT", DisableLossOfControlCooldownAuxButton, "BOTTOMLEFT", -30, -8)
 PriorityDescription:SetPoint("TOPLEFT", Priority, "BOTTOMLEFT", 0, -8)
 PrioritySlider.PvE:SetPoint("TOPLEFT", PriorityDescription, "BOTTOMLEFT", 0, -24)
 PrioritySlider.Immune:SetPoint("TOPLEFT", PrioritySlider.PvE, "BOTTOMLEFT", 0, -24)
@@ -910,7 +1137,7 @@ PrioritySlider.Silence:SetPoint("TOPLEFT", PrioritySlider.CC, "BOTTOMLEFT", 0, -
 PrioritySlider.Disarm:SetPoint("TOPLEFT", PrioritySlider.Silence, "BOTTOMLEFT", 0, -24)
 PrioritySlider.Root:SetPoint("TOPLEFT", PrioritySlider.Disarm, "BOTTOMLEFT", 0, -24)
 PrioritySlider.Snare:SetPoint("TOPLEFT", PrioritySlider.Root, "BOTTOMLEFT", 0, -24)
-PrioritySlider.Other:SetPoint("TOPLEFT", PrioritySlider.Snare, "BOTTOMLEFT", 0, -24)
+PrioritySlider.Other:SetPoint("TOPLEFT", PrioritySlider.PvE, "TOPRIGHT", 40, 0)
 
 -------------------------------------------------------------------------------
 OptionsPanel.default = function() -- This method will run when the player clicks "defaults".
@@ -923,6 +1150,14 @@ end
 
 OptionsPanel.refresh = function() -- This method will run when the Interface Options frame calls its OnShow function and after defaults have been applied via the panel.default method described above.
 	DisableCooldownCount:SetChecked(LoseControlDB.noCooldownCount)
+	DisableBlizzardCooldownCount:SetChecked(LoseControlDB.noBlizzardCooldownCount)
+	DisableLossOfControlCooldown:SetChecked(LoseControlDB.noLossOfControlCooldown)
+	if not LoseControlDB.noCooldownCount then
+		DisableBlizzardCooldownCount:Disable()
+		_G[O.."DisableBlizzardCooldownCountText"]:SetTextColor(0.5,0.5,0.5)
+		DisableBlizzardCooldownCount:SetChecked(true)
+		DisableBlizzardCooldownCount:Check(true)
+	end
 	local priority = LoseControlDB.priority
 	for k in pairs(priority) do
 		PrioritySlider[k]:SetValue(priority[k])
@@ -1182,6 +1417,7 @@ SlashCmdList[addonName] = function(cmd)
 		SlashCmd[args[1]](unpack(args))
 	else
 		print(addonName, ": Type \"/lc help\" for more options.")
+		InterfaceOptionsFrame_OpenToCategory(OptionsPanel)
 		InterfaceOptionsFrame_OpenToCategory(OptionsPanel)
 	end
 end

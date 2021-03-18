@@ -1,6 +1,6 @@
-## Interface: 60000
+## Interface: 70100
 ## Title: LoseControl
-## Author: Kouri
+## Author: Kouri, modified by millanzarreta, Hid@Emeriss and Wardz
 ## Version: 5.41
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter an
