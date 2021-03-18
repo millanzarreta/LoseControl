@@ -2,7 +2,7 @@
 ## Title: LoseControl
 ## Notes: LoseControl makes it easy to see the duration of crowd control spells on your character by displaying them in a separate cooldown icon onscreen.
 ## SavedVariables: LoseControlDB
-## Version: 1.21
+## Version: 1.22
 ## Author: Kouri
 ## X-eMail: kouri@kouri.org
 ## X-Website: http://wow.curse.com/downloads/wow-addons/details/losecontrol.aspx
@@ -16,4 +16,5 @@ localization.fr.lua
 localization.ru.lua
 localization.cn.lua
 localization.tw.lua
+localization.ko.lua
 LoseControl.lua
