@@ -218,7 +218,7 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 3.30,
+	version = 3.31,
 	noCooldownCount = false,
 	tracking = {
 		CC      = true,
@@ -226,7 +226,7 @@ local DBdefaults = {
 		Disarm  = true,
 		Root    = false,
 		Snare   = false,
-		Immune  = true,
+		Immune  = false,
 		PvE     = true,
 	},
 	frames = {
@@ -318,14 +318,19 @@ LoseControl:SetScript("OnEvent", LoseControl.OnEvent)
 -- Handle default settings
 function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == L then
-		if not _G.LoseControlDB or not _G.LoseControlDB.version or _G.LoseControlDB.version < DBdefaults.version then
-			if _G.LoseControlDB.version == 3.22 then -- minor changes, so try to update without losing settings
-				_G.LoseControlDB.tracking[Immune] = true
-				_G.LoseControlDB.version = 3.30
-			else
-				_G.LoseControlDB = CopyTable(DBdefaults)
-				log(LOSECONTROL["LoseControl reset."])
+		if _G.LoseControlDB then
+			if _G.LoseControlDB.version < DBdefaults.version then
+				if _G.LoseControlDB.version >= 3.22 then -- minor changes, so try to update without losing settings
+					_G.LoseControlDB.tracking[Immune] = false
+					_G.LoseControlDB.version = 3.31
+				else -- major changes, must reset settings
+					_G.LoseControlDB = CopyTable(DBdefaults)
+					log(LOSECONTROL["LoseControl reset."])
+				end
 			end
+		else -- never installed before
+			_G.LoseControlDB = CopyTable(DBdefaults)
+			log(LOSECONTROL["LoseControl reset."])
 		end
 		LoseControlDB = _G.LoseControlDB
 		LoseControl.noCooldownCount = LoseControlDB.noCooldownCount
@@ -355,16 +360,18 @@ end
 
 local WYVERN_STING = GetSpellInfo(19386)
 local PSYCHIC_HORROR = GetSpellInfo(64058)
+local UnitDebuff = UnitDebuff
+local UnitBuff = UnitBuff
 -- This is the main event
 function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	local frame = LoseControlDB.frames[unitId]
-	if unitId ~= self.unitId or not frame.enabled or not self.anchor:IsVisible() then return end
+	if not (unitId == self.unitId and frame.enabled and self.anchor:IsVisible()) then return end
 
 	local maxExpirationTime = 0
-	local Duration, Icon, wyvernsting
+	local _, name, icon, Icon, duration, Duration, expirationTime, wyvernsting
 
 	for i = 1, 40 do
-		local name, _, icon, _, _, duration, expirationTime = UnitDebuff(unitId, i)
+		name, _, icon, _, _, duration, expirationTime = UnitDebuff(unitId, i)
 
 		if not name then break end -- no more debuffs, terminate the loop
 		--log(i .. ") " .. name .. " | " .. rank .. " | " .. icon .. " | " .. count .. " | " .. debuffType .. " | " .. duration .. " | " .. expirationTime )
@@ -398,11 +405,11 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	end
 
 	-- Track Immunities
-	if maxExpirationTime == 0 and LoseControlDB.tracking[Immune] then -- only bother checking for immunities if there were no debuffs found
+	if not Icon and LoseControlDB.tracking[Immune] then -- only bother checking for immunities if there were no debuffs found
 		for i = 1, 40 do
-			local name, _, icon, _, _, duration, expirationTime = UnitBuff(unitId, i)
+			name, _, icon, _, _, duration, expirationTime = UnitBuff(unitId, i)
 			if not name then break
-			elseif abilities[name] and expirationTime > maxExpirationTime then
+			elseif abilities[name] == Immune and expirationTime > maxExpirationTime then
 				maxExpirationTime = expirationTime
 				Duration = duration
 				Icon = icon
