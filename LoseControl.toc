@@ -1,7 +1,7 @@
-## Interface: 50200
+## Interface: 50300
 ## Title: LoseControl
 ## Author: Kouri
-## Version: 5.2
+## Version: 5.3
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter

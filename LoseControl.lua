@@ -143,8 +143,9 @@ local spellIds = {
 	[119381] = "CC",		-- Leg Sweep
 	[115078] = "CC",		-- Paralysis
 	[117368] = "Disarm",		-- Grapple Weapon
-	--[???] = "Disarm",		-- Ring of Peace
-	--[???] = "Silence",		-- Ring of Peace
+	[140023] = "Disarm",		-- Ring of Peace
+	[137461] = "Disarm",		-- Disarmed (Ring of Peace)
+	[137460] = "Silence",		-- Silenced (Ring of Peace)
 	[116709] = "Silence",		-- Spear Hand Strike
 	[116706] = "Root",		-- Disable
 	[113275] = "Root",		-- Entangling Roots (Symbiosis)
@@ -168,6 +169,7 @@ local spellIds = {
 	[20170]  = "Snare",		-- Seal of Justice
 	[642]    = "Immune",		-- Divine Shield
 	[31821]  = "Other",		-- Aura Mastery
+	[1022]   = "Other",		-- Hand of Protection
 	-- Priest
 	[113506] = "CC",		-- Cyclone (Symbiosis)
 	[605]    = "CC",		-- Dominate Mind
@@ -252,6 +254,7 @@ local spellIds = {
 	[20511]  = "CC",		-- Intimidating Shout (targeted)
 	[132168] = "CC",		-- Shockwave
 	[107570] = "CC",		-- Storm Bolt
+	[132169] = "CC",		-- Storm Bolt
 	[105771] = "CC",		-- Warbringer
 	[18498]  = "Silence",		-- Silenced - Gag Order (PvE only)
 	[676]    = "Disarm",		-- Disarm
@@ -282,7 +285,7 @@ local spellIds = {
 	[13099]  = "Root",		-- Net-o-Matic
 	[1604]   = "Snare",		-- Dazed
 	-- PvE
-	--[123456]  = "PvE",		-- not real, just an example
+	--[123456] = "PvE",		-- This is just an example, not a real spell
 }
 
 if debug then
@@ -346,15 +349,23 @@ local anchors = {
 		party3 = "oUF_LUI_partyUnitButton3",
 		party4 = "oUF_LUI_partyUnitButton4",
 	},
+	SyncFrames = {
+		arena1 = "SyncFrame1Class",
+		arena2 = "SyncFrame2Class",
+		arena3 = "SyncFrame3Class",
+		arena4 = "SyncFrame4Class",
+		arena5 = "SyncFrame5Class",
+	},
 	--SUF = {
 	--	player = SUFUnitplayer.portraitModel.portrait,
 	--	pet    = SUFUnitpet.portraitModel.portrait,
 	--	target = SUFUnittarget.portraitModel.portrait,
 	--	focus  = SUFUnitfocus.portraitModel.portrait,
-		--party1 = SUFUnitparty1.portraitModel.portrait,
-		--party2 = SUFUnitparty2.portraitModel.portrait,
-		--party3 = SUFUnitparty3.portraitModel.portrait,
-		--party4 = SUFUnitparty4.portraitModel.portrait,
+	--	party1 = SUFUnitparty1.portraitModel.portrait,
+	--	party2 = SUFUnitparty2.portraitModel.portrait,
+	--	party3 = SUFUnitparty3.portraitModel.portrait,
+	--	party4 = SUFUnitparty4.portraitModel.portrait,
+	--},
 	-- more to come here?
 }
 
@@ -1025,6 +1036,7 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			if _G[anchors["Perl"][unitId]] then AddItem(AnchorDropDown, "Perl", "Perl") end
 			if _G[anchors["XPerl"][unitId]] then AddItem(AnchorDropDown, "XPerl", "XPerl") end
 			if _G[anchors["LUI"][unitId]] then AddItem(AnchorDropDown, "LUI", "LUI") end
+			if _G[anchors["SyncFrames"][unitId]] then AddItem(AnchorDropDown, "SyncFrames", "SyncFrames") end
 		end)
 		UIDropDownMenu_SetSelectedValue(AnchorDropDown, frame.anchor)
 	end
