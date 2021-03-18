@@ -11,8 +11,10 @@ Thanks! :)
 
 local addonName, L = ...
 local UIParent = UIParent -- it's faster to keep local references to frequently used global vars
+local UnitAura = UnitAura
+local GetTime = GetTime
 local function log(msg) DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for convenience
-local debug = false
+local debug = false -- type "/lc debug on" if you want to see UnitAura info logged to the console
 
 -------------------------------------------------------------------------------
 local spellIds = {
@@ -31,7 +33,6 @@ local spellIds = {
 	[49039]  = "Other",		-- Lichborne
 	--[51271] = "Other",		-- Pillar of Frost
 	-- Death Knight Ghoul
-	--[47481]  = "CC",		-- Gnaw?
 	[91800]  = "CC",		-- Gnaw
 	[91797]  = "CC",		-- Monstrous Blow (Dark Transformation)
 	[91807]  = "Root",		-- Shambling Rush (Dark Transformation)
@@ -43,6 +44,7 @@ local spellIds = {
 	[22570]  = "CC",		-- Maim
 	[5211]   = "CC",		-- Mighty Bash
 	[9005]   = "CC",		-- Pounce
+	[102546] = "CC",		-- Pounce (Incarnation)
 	[114238] = "Silence",		-- Fae Silence (Glyph of Fae Silence)
 	[81261]  = "Silence",		-- Solar Beam
 	[339]    = "Root",		-- Entangling Roots
@@ -87,6 +89,8 @@ local spellIds = {
 	-- Hunter Pets
 	[90337]  = "CC",		-- Bad Manner (Monkey)
 	[24394]  = "CC",		-- Intimidation
+	[126246] = "CC",		-- Lullaby (Crane)
+	[126355] = "CC",		-- Paralyzing Quill (Porcupine)
 	[50519]  = "CC",		-- Sonic Blast (Bat)
 	[56626]  = "CC",		-- Sting (Wasp)
 	[50541]  = "Disarm",		-- Clench (Scorpid)
@@ -97,6 +101,7 @@ local spellIds = {
 	[50433]  = "Snare",		-- Ankle Crack (Crocolisk)
 	[54644]  = "Snare",		-- Frost Breath (Chimaera)
 	[19574]  = "Immune",		-- Bestial Wrath
+	[126423] = "Immune",		-- Petrifying Gaze (Basilisk)
 	[54216]  = "Other",		-- Master's Call (root and snare immune only)
 	-- Mage
 	[118271] = "CC",		-- Combustion Impact
@@ -158,6 +163,7 @@ local spellIds = {
 	-- Priest
 	[113506] = "CC",		-- Cyclone (Symbiosis)
 	[605]    = "CC",		-- Dominate Mind
+	[88625]  = "CC",		-- Holy Word: Chastise
 	[64044]  = "CC",		-- Psychic Horror
 	[8122]   = "CC",		-- Psychic Scream
 	[113792] = "CC",		-- Psychic Terror (Psyfiend)
@@ -180,7 +186,7 @@ local spellIds = {
 	[6770]   = "CC",		-- Sap
 	[1330]   = "Silence",		-- Garrote - Silence
 	[51722]  = "Disarm",		-- Dismantle
-	[115197] = "Root",		-- Partial Paralysis (is this actually used?)
+	[115197] = "Root",		-- Partial Paralysis
 	[3409]   = "Snare",		-- Crippling Poison
 	[26679]  = "Snare",		-- Deadly Throw
 	[119696] = "Snare",		-- Debilitation
@@ -207,9 +213,8 @@ local spellIds = {
 	[118345] = "CC",		-- Pulverize
 	-- Warlock
 	[710]    = "CC",		-- Banish
-	[111397] = "CC",		-- Blood Fear - is this actually used? please test
 	[54786]  = "CC",		-- Demonic Leap (Metamorphosis)
-	--[5782]   = "CC",		-- Fear
+	[5782]   = "CC",		-- Fear
 	[118699] = "CC",		-- Fear
 	[5484]   = "CC",		-- Howl of Terror
 	[6789]   = "CC",		-- Mortal Coil
@@ -218,6 +223,7 @@ local spellIds = {
 	[31117]  = "Silence",		-- Unstable Affliction
 	[18223]  = "Snare",		-- Curse of Exhaustion
 	[47960]  = "Snare",		-- Shadowflame
+	[110913] = "Other",		-- Dark Bargain
 	[104773] = "Other",		-- Unending Resolve
 	-- Warlock Pets
 	[89766]  = "CC",		-- Axe Toss (Felguard/Wrathguard)
@@ -227,13 +233,9 @@ local spellIds = {
 	[118093] = "Disarm",		-- Disarm (Voidwalker/Voidlord)
 	-- Warrior
 	[7922]   = "CC",		-- Charge Stun
-	--[96273]  = "CC",		-- Charge Stun?
 	[118895] = "CC",		-- Dragon Roar
-	[5246]   = "CC",		-- Intimidating Shout (Cowering in fear)
-	[20511]  = "CC",		-- Intimidating Shout (Cowering in fear)
-	--[97933]  = "CC",		-- Intimidating Shout (Cowering in fear) - used?
-	--[97934]  = "CC",		-- Intimidating Shout (Intimidated) - used?
-	--[46968]  = "CC",		-- Shockwave?
+	[5246]   = "CC",		-- Intimidating Shout (aoe)
+	[20511]  = "CC",		-- Intimidating Shout (targeted)
 	[132168] = "CC",		-- Shockwave
 	[105771] = "CC",		-- Warbringer
 	[18498]  = "Silence",		-- Silenced - Gag Order
@@ -252,11 +254,16 @@ local spellIds = {
 	[107079] = "CC",		-- Quaking Palm
 	[13327]  = "CC",		-- Reckless Charge
 	[20549]  = "CC",		-- War Stomp
-	[25046]  = "Silence",		-- Arcane Torrent
+	[25046]  = "Silence",		-- Arcane Torrent (Energy)
+	[28730]  = "Silence",		-- Arcane Torrent (Mana)
+	[50613]  = "Silence",		-- Arcane Torrent (Runic Power)
+	[69179]  = "Silence",		-- Arcane Torrent (Rage)
+	[80483]  = "Silence",		-- Arcane Torrent (Focus)
+	[129597] = "Silence",		-- Arcane Torrent (Chi)
 	[39965]  = "Root",		-- Frost Grenade
 	[55536]  = "Root",		-- Frostweave Net
 	[13099]  = "Root",		-- Net-o-Matic
-	[1604]   = "Snare",		-- Dazed - lots of daze effects. try to find the right one.
+	[1604]   = "Snare",		-- Dazed
 	-- PvE
 	--[123456]  = "PvE",		-- not real, just an example
 }
@@ -477,10 +484,6 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	--self:SetAlpha(frame.alpha) -- doesn't seem to work; must manually set alpha after the cooldown is displayed, otherwise it doesn't apply.
 	self:Hide()
 end
-
-local UnitAura = UnitAura
-local GetTime = GetTime
---local UIFrameFadeOut = UIFrameFadeOut
 
 -- Check for (de)buffs and update the frame icon and cooldown
 function LoseControl:Update()
@@ -939,79 +942,66 @@ end
 -------------------------------------------------------------------------------
 SLASH_LoseControl1 = "/lc"
 SLASH_LoseControl2 = "/losecontrol"
+
+local SlashCmd = {}
+function SlashCmd:help()
+	log(addonName .. " slash commands:")
+	log("    reset [<unit>]")
+	log("    lock")
+	log("    unlock")
+	log("    enable <unit>")
+	log("    disable <unit>")
+	log("<unit> can be: player, pet, target, focus, party1 ... party4, arena1 ... arena5")
+end
+function SlashCmd:debug(value)
+	if value == "on" then
+		debug = true
+		log(addonName .. ": debugging enabled")
+	elseif value == "off" then
+		debug = false
+		log(addonName .. ": debugging disabled")
+	end
+end
+function SlashCmd:reset(unit)
+	if LoseControlDB.frames[unit] then
+		LoseControlDB.frames[unit] = CopyTable(DBdefaults.frames[unit])
+		LCframes[unit]:PLAYER_ENTERING_WORLD()
+	else
+		OptionsPanel.default()
+	end
+	Unlock:OnClick()
+	OptionsPanel.refresh()
+end
+function SlashCmd:lock()
+	Unlock:SetChecked(false)
+	Unlock:OnClick()
+	log(addonName .. " locked.")
+end
+function SlashCmd:unlock()
+	Unlock:SetChecked(true)
+	Unlock:OnClick()
+	log(addonName .. " unlocked.")
+end
+function SlashCmd:enable(unit)
+	if LoseControlDB.frames[unit] then
+		LoseControlDB.frames[unit].enabled = true
+		log(addonName .. ": " .. unit .. " frame enabled.")
+	end
+end
+function SlashCmd:disable(unit)
+	if LoseControlDB.frames[unit] then
+		LoseControlDB.frames[unit].enabled = false
+		log(addonName .. ": " .. unit .. " frame disabled.")
+	end
+end
+
 SlashCmdList[addonName] = function(cmd)
 	local args = {}
 	for word in cmd:lower():gmatch("%S+") do
 		tinsert(args, word)
 	end
-	if args[1] == "debug" and args[2] == "on" then
-		debug = true
-		log(addonName .. ": debugging enabled")
-	elseif args[1] == "debug" and args[2] == "off" then
-		debug = false
-		log(addonName .. ": debugging disabled")
-	elseif args[1] == "reset" then
-		OptionsPanel.default()
-		OptionsPanel.refresh()
-	elseif args[1] == "lock" then
-		Unlock:SetChecked(false)
-		Unlock:OnClick()
-		log(addonName .. " locked.")
-	elseif args[1] == "unlock" then
-		Unlock:SetChecked(true)
-		Unlock:OnClick()
-		log(addonName .. " unlocked.")
-	elseif args[1] == "enable" then
-		local unit = args[2]
-		if LoseControlDB.frames[unit] then
-			LoseControlDB.frames[unit].enabled = true
-			log(addonName .. ": " .. unit .. " frame enabled.")
-		end
-	elseif args[1] == "disable" then
-		local unit = args[2]
-		if LoseControlDB.frames[unit] then
-			LoseControlDB.frames[unit].enabled = false
-			log(addonName .. ": " .. unit .. " frame disabled.")
-		end
---[[	elseif args[1] == "priority" then
-		local priority = LoseControlDB.priority
-		local categories = {
-			cc = "CC",
-			silence = "Silence",
-			disarm = "Disarm",
-			root = "Root",
-			snare = "Snare",
-			immune = "Immune",
-			immunespell = "ImmuneSpell",
-			other = "Other",
-			pve = "PvE",
-		}
-]]--		local category = categories[args[2]] -- translate args[2] back into the proper key
---[[		local value = tonumber(args[3])
-		if priority[category] and value >= 0 and value <= 100 then
-			priority[category] = value
-			log(addonName .. ": " .. category .. " priority set to " .. value)
-		end
-		local sortedpriority = {}
-		for k, v in pairs(priority) do
-			tinsert(sortedpriority, {k, v})
-		end
-		sort(sortedpriority, function(a, b) return a[2] < b[2] end)
-		log(addonName .. " priorities:")
-		for _, v in ipairs(sortedpriority) do
-]]--			log(L[v[1]] .. ": " .. v[2])
---		end
-	elseif args[1] == "help" then
-		log(addonName .. " slash commands:")
-		log("    reset")
-		log("    lock")
-		log("    unlock")
-		log("    enable <unit>")
-		log("    disable <unit>")
-		--log("    priority <category> <value>")
-		log("<unit> can be: player, pet, target, focus, party1 ... party4, arena1 ... arena5")
-		--log("<category> can be: cc, silence, disarm, root, snare, immune, immunespell, other, pve")
-		--log("<value> can be any number between 0 and 100")
+	if SlashCmd[args[1]] then
+		SlashCmd[args[1]](unpack(args))
 	else
 		log(addonName .. ": Type \"/lc help\" for more options.")
 		InterfaceOptionsFrame_OpenToCategory(OptionsPanel)
