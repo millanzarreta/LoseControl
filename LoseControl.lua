@@ -18,7 +18,7 @@ local function log(msg) DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for conv
 local spellIds = {
 	-- Death Knight
 	[47481] = "CC",		-- Gnaw (Ghoul)
-	[51209] = "CC",		-- Hungering Cold
+	[49203] = "CC",		-- Hungering Cold
 	[91797] = "CC",		-- Monstrous Blow (Super ghoul)
 	[47476] = "Silence",	-- Strangulate
 	[45524] = "Snare",	-- Chains of Ice (can also be a root with Chilblains but no way to differentiate?)
