@@ -14,10 +14,11 @@ local UIParent = UIParent -- it's faster to keep local references to frequently 
 local UnitAura = UnitAura
 local GetTime = GetTime
 local SetPortraitToTexture = SetPortraitToTexture
-local function log(msg) DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for convenience
+local print = print
 local debug = false -- type "/lc debug on" if you want to see UnitAura info logged to the console
 
 -------------------------------------------------------------------------------
+-- Thanks to all the people on the Curse.com and WoWInterface forums who help keep this list up to date :)
 local spellIds = {
 	-- Death Knight
 	[108194] = "CC",		-- Asphyxiate
@@ -26,7 +27,7 @@ local spellIds = {
 	[96294]  = "Root",		-- Chains of Ice (Chilblains)
 	[45524]  = "Snare",		-- Chains of Ice
 	[50435]  = "Snare",		-- Chilblains
-	--[43265]  = "Snare",		-- Death and Decay (Glyph of Death and Decay) - no way to distinguish between glyphed spell and normal.
+	--[43265]  = "Snare",		-- Death and Decay (Glyph of Death and Decay) - no way to distinguish between glyphed spell and normal. :(
 	[115000] = "Snare",		-- Remorseless Winter
 	[115018] = "Immune",		-- Desecrated Ground
 	[48707]  = "ImmuneSpell",	-- Anti-Magic Shell
@@ -38,6 +39,7 @@ local spellIds = {
 	[91797]  = "CC",		-- Monstrous Blow (Dark Transformation)
 	[91807]  = "Root",		-- Shambling Rush (Dark Transformation)
 	-- Druid
+	[113801] = "CC",		-- Bash (Force of Nature - Feral Treants)
 	[102795] = "CC",		-- Bear Hug
 	[33786]  = "CC",		-- Cyclone
 	[99]     = "CC",		-- Disorienting Roar
@@ -49,6 +51,7 @@ local spellIds = {
 	[114238] = "Silence",		-- Fae Silence (Glyph of Fae Silence)
 	[81261]  = "Silence",		-- Solar Beam
 	[339]    = "Root",		-- Entangling Roots
+	[113770] = "Root",		-- Entangling Roots (Force of Nature - Balance Treants)
 	[19975]  = "Root",		-- Entangling Roots (Nature's Grasp)
 	[45334]  = "Root",		-- Immobilized (Wild Charge - Bear)
 	[102359] = "Root",		-- Mass Entanglement
@@ -56,7 +59,7 @@ local spellIds = {
 	[58180]  = "Snare",		-- Infected Wounds
 	[61391]  = "Snare",		-- Typhoon
 	[127797] = "Snare",		-- Ursol's Vortex
-	--[dontknow] = "Snare",		-- Wild Mushroom: Detonate
+	--[???] = "Snare",		-- Wild Mushroom: Detonate
 	-- Druid Symbiosis
 	[110698] = "CC",		-- Hammer of Justice (Paladin)
 	[113004] = "CC",		-- Intimidating Roar [Fleeing in fear] (Warrior)
@@ -98,12 +101,12 @@ local spellIds = {
 	[56626]  = "CC",		-- Sting (Wasp)
 	[50541]  = "Disarm",		-- Clench (Scorpid)
 	[91644]  = "Disarm",		-- Snatch (Bird of Prey)
+	[90327]  = "Root",		-- Lock Jaw (Dog)
 	[50245]  = "Root",		-- Pin (Crab)
 	[54706]  = "Root",		-- Venom Web Spray (Silithid)
 	[4167]   = "Root",		-- Web (Spider)
 	[50433]  = "Snare",		-- Ankle Crack (Crocolisk)
 	[54644]  = "Snare",		-- Frost Breath (Chimaera)
-	--[19574]  = "Immune",		-- Bestial Wrath (removed immunity in patch 5.1)
 	[54216]  = "Other",		-- Master's Call (root and snare immune only)
 	-- Mage
 	[118271] = "CC",		-- Combustion Impact
@@ -120,7 +123,7 @@ local spellIds = {
 	[55021]  = "Silence",		-- Silenced - Improved Counterspell
 	[122]    = "Root",		-- Frost Nova
 	[111340] = "Root",		-- Ice Ward
-	[11113]  = "Snare",		-- Blast Wave - gone?
+	--[11113]  = "Snare",		-- Blast Wave - gone?
 	[121288] = "Snare",		-- Chilled (Frost Armor)
 	[120]    = "Snare",		-- Cone of Cold
 	[116]    = "Snare",		-- Frostbolt
@@ -136,9 +139,12 @@ local spellIds = {
 	[126451] = "CC",		-- Clash
 	[122242] = "CC",		-- Clash (not sure which one is right)
 	[119392] = "CC",		-- Charging Ox Wave
+	[117418] = "CC",		-- Fists of Fury
 	[119381] = "CC",		-- Leg Sweep
 	[115078] = "CC",		-- Paralysis
 	[117368] = "Disarm",		-- Grapple Weapon
+	--[???] = "Disarm",		-- Ring of Peace
+	--[???] = "Silence",		-- Ring of Peace
 	[116709] = "Silence",		-- Spear Hand Strike
 	[116706] = "Root",		-- Disable
 	[113275] = "Root",		-- Entangling Roots (Symbiosis)
@@ -215,14 +221,17 @@ local spellIds = {
 	[118345] = "CC",		-- Pulverize
 	-- Warlock
 	[710]    = "CC",		-- Banish
-	[134973] = "CC",		-- Cataclysm
 	[54786]  = "CC",		-- Demonic Leap (Metamorphosis)
 	[5782]   = "CC",		-- Fear
 	[118699] = "CC",		-- Fear
+	[130616] = "CC",		-- Fear (Glyph of Fear)
 	[5484]   = "CC",		-- Howl of Terror
+	[22703]  = "CC",		-- Infernal Awakening
 	[6789]   = "CC",		-- Mortal Coil
+	[132412] = "CC",		-- Seduction (Grimoire of Sacrifice)
 	[30283]  = "CC",		-- Shadowfury
 	[104045] = "CC",		-- Sleep (Metamorphosis)
+	[132409] = "Silence",		-- Spell Lock (Grimoire of Sacrifice)
 	[31117]  = "Silence",		-- Unstable Affliction
 	[18223]  = "Snare",		-- Curse of Exhaustion
 	[47960]  = "Snare",		-- Shadowflame
@@ -232,7 +241,8 @@ local spellIds = {
 	[89766]  = "CC",		-- Axe Toss (Felguard/Wrathguard)
 	[115268] = "CC",		-- Mesmerize (Shivarra)
 	[6358]   = "CC",		-- Seduction (Succubus)
-	[24259]  = "Silence",		-- Spell Lock (Felhunter/Observer)
+	[115782] = "Silence",		-- Optical Blast (Observer)
+	[24259]  = "Silence",		-- Spell Lock (Felhunter)
 	[118093] = "Disarm",		-- Disarm (Voidwalker/Voidlord)
 	-- Warrior
 	[7922]   = "CC",		-- Charge Stun
@@ -240,12 +250,15 @@ local spellIds = {
 	[5246]   = "CC",		-- Intimidating Shout (aoe)
 	[20511]  = "CC",		-- Intimidating Shout (targeted)
 	[132168] = "CC",		-- Shockwave
+	[107570] = "CC",		-- Storm Bolt
 	[105771] = "CC",		-- Warbringer
 	[18498]  = "Silence",		-- Silenced - Gag Order
 	[676]    = "Disarm",		-- Disarm
 	[107566] = "Root",		-- Staggering Shout
 	[1715]   = "Snare",		-- Hamstring
 	[12323]  = "Snare",		-- Piercing Howl
+	[129923] = "Snare",		-- Sluggish (Glyph of Hindering Strikes)
+	[137637] = "Snare",		-- Warbringer
 	[46924]  = "Immune",		-- Bladestorm
 	[23920]  = "ImmuneSpell",	-- Spell Reflection
 	[114028] = "ImmuneSpell",	-- Mass Spell Reflection
@@ -271,14 +284,13 @@ local spellIds = {
 	--[123456]  = "PvE",		-- not real, just an example
 }
 
---[[
-local name, _, icon
-for k in pairs(spellIds) do
-	name, _, icon = GetSpellInfo(k)
-	if not name then log("no name: " .. k) end
-	if not icon then log("no icon: " .. k) end
+if debug then
+	for k in pairs(spellIds) do
+		local name, _, icon = GetSpellInfo(k)
+		if not name then print(addonName, ": No spell name", k) end
+		if not icon then print(addonName, ": No spell icon", k) end
+	end
 end
-]]
 
 -------------------------------------------------------------------------------
 -- Global references for attaching icons to various unit frames
@@ -367,7 +379,7 @@ local DBdefaults = {
 			enabled = true,
 			size = 56,
 			alpha = 1,
-			anchor = "Blizzard",
+			anchor = "None",
 		},
 		pet = {
 			enabled = true,
@@ -457,6 +469,7 @@ LoseControl:SetScript("OnEvent", LoseControl.OnEvent)
 -- Utility function to handle registering for unit events
 function LoseControl:RegisterUnitEvents(enabled)
 	local unitId = self.unitId
+	if debug then print("RegisterUnitEvents", unitId, enabled) end
 	if enabled then
 		self:RegisterUnitEvent("UNIT_AURA", unitId)
 		if unitId == "target" then
@@ -480,11 +493,11 @@ function LoseControl:ADDON_LOADED(arg1)
 		if _G.LoseControlDB and _G.LoseControlDB.version then
 			if _G.LoseControlDB.version < DBdefaults.version then
 				_G.LoseControlDB = CopyTable(DBdefaults)
-				log(L["LoseControl reset."])
+				print(L["LoseControl reset."])
 			end
 		else -- never installed before
 			_G.LoseControlDB = CopyTable(DBdefaults)
-			log(L["LoseControl reset."])
+			print(L["LoseControl reset."])
 		end
 		LoseControlDB = _G.LoseControlDB
 		self.noCooldownCount = LoseControlDB.noCooldownCount
@@ -531,7 +544,7 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	for i = 1, 40 do
 		local name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i, "HARMFUL")
 		if not spellId then break end -- no more debuffs, terminate the loop
-		if debug then log(unitId .. " debuff " .. i .. ") " .. name .. " | " .. expirationTime .. " | " .. spellId) end
+		if debug then print(unitId, "debuff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
 
 		-- exceptions
 		if spellId == 88611 and unitId ~= "player" then -- Smoke Bomb
@@ -562,7 +575,7 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 		for i = 1, 40 do
 			local name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
 			if not spellId then break end
-			if debug then log(unitId .. " buff " .. i .. ") " .. name .. " | " .. expirationTime .. " | " .. spellId) end
+			if debug then print(unitId, "buff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
 
 			-- exceptions
 			if spellId == 8178 then -- Grounding Totem Effect
@@ -650,6 +663,7 @@ function LoseControl:new(unitId)
 	o.text = o:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	o.text:SetText(L[unitId])
 	o.text:SetPoint("BOTTOM", o, "BOTTOM")
+	o.text:Hide()
 
 	-- Rufio's code to make the frame border pretty. Maybe use this somehow to mask cooldown corners in Blizzard frames.
 	--o.overlay = o:CreateTexture(nil, "OVERLAY") -- displays the alpha mask for making rounded corners
@@ -727,15 +741,12 @@ function Unlock:OnClick()
 		end
 	else
 		_G[O.."UnlockText"]:SetText(L["Unlock"])
-		for k, v in pairs(LCframes) do
-			v:Hide()
-			v.text:Hide()
+		for _, v in pairs(LCframes) do
 			v:EnableMouse(false)
 			v:RegisterForDrag()
 			v:SetMovable(false)
-			v:SetParent(v.anchor:GetParent()) -- or UIParent)
-			--v:SetFrameStrata(LoseControlDB.frames[k].strata or "LOW")
-			v:RegisterUnitEvents(true)
+			v.text:Hide()
+			v:PLAYER_ENTERING_WORLD()
 		end
 	end
 end
@@ -816,11 +827,10 @@ end
 
 InterfaceOptions_AddCategory(OptionsPanel)
 
---[[
 -------------------------------------------------------------------------------
 -- DropDownMenu helper function
-local info = UIDropDownMenu_CreateInfo()
 local function AddItem(owner, text, value)
+	local info = UIDropDownMenu_CreateInfo()
 	info.owner = owner
 	info.func = owner.OnClick
 	info.text = text
@@ -829,56 +839,52 @@ local function AddItem(owner, text, value)
 	UIDropDownMenu_AddButton(info)
 end
 
-local AnchorDropDownLabel = OptionsPanel:CreateFontString(O.."AnchorDropDownLabel", "ARTWORK", "GameFontNormal")
-AnchorDropDownLabel:SetText(L["Anchor"])
-AnchorDropDown = CreateFrame("Frame", O.."AnchorDropDown", OptionsPanel, "UIDropDownMenuTemplate")
-function AnchorDropDown:OnClick()
-	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
-	local frame = LoseControlDB.frames[unit]
-	local icon = LCframes[unit]
-
-	UIDropDownMenu_SetSelectedValue(AnchorDropDown, self.value)
-	frame.anchor = self.value
-	if self.value ~= "None" then -- reset the frame position so it centers on the anchor frame
-		frame.point = nil
-		frame.relativePoint = nil
-		frame.x = nil
-		frame.y = nil
-	end
-]]
---	icon.anchor = _G[anchors[frame.anchor][unit]] or UIParent
---[[
-	if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
-		icon:SetParent(icon.anchor:GetParent())
-	end
-
-	icon:ClearAllPoints() -- if we don't do this then the frame won't always move
-	icon:SetPoint(
-		frame.point or "CENTER",
-		icon.anchor,
-		frame.relativePoint or "CENTER",
-		frame.x or 0,
-		frame.y or 0
-	)
-end
-function AnchorDropDown:initialize() -- called from OptionsPanel.refresh() and every time the drop down menu is opened
-	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
-	AddItem(self, L["None"], "None")
-	AddItem(self, "Blizzard", "Blizzard")
-]]
---	if _G[anchors["Perl"][unit]] then AddItem(self, "Perl", "Perl") end
---	if _G[anchors["XPerl"][unit]] then AddItem(self, "XPerl", "XPerl") end
---	if _G[anchors["LUI"][unit]] then AddItem(self, "LUI", "LUI") end
---[[
-end
-]]
-
 -------------------------------------------------------------------------------
 -- Create sub-option frames
 for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 	local OptionsPanelFrame = CreateFrame("Frame", O..v)
 	OptionsPanelFrame.parent = addonName
 	OptionsPanelFrame.name = L[v]
+
+	local AnchorDropDownLabel = OptionsPanelFrame:CreateFontString(O..v.."AnchorDropDownLabel", "ARTWORK", "GameFontNormal")
+	AnchorDropDownLabel:SetText(L["Anchor"])
+	local AnchorDropDown = CreateFrame("Frame", O..v.."AnchorDropDown", OptionsPanelFrame, "UIDropDownMenuTemplate")
+	function AnchorDropDown:OnClick()
+		UIDropDownMenu_SetSelectedValue(AnchorDropDown, self.value)
+		local frames = { v }
+		if v == "party" then
+			frames = { "party1", "party2", "party3", "party4" }
+		elseif v == "arena" then
+			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+		end
+		for _, unitId in ipairs(frames) do
+			local frame = LoseControlDB.frames[unitId]
+			local icon = LCframes[unitId]
+
+			frame.anchor = self.value
+			if AnchorDropDown.value ~= "None" then -- reset the frame position so it centers on the anchor frame
+				frame.point = nil
+				frame.relativePoint = nil
+				frame.x = nil
+				frame.y = nil
+			end
+
+			icon.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
+
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				icon:SetParent(icon.anchor:GetParent())
+			end
+
+			icon:ClearAllPoints() -- if we don't do this then the frame won't always move
+			icon:SetPoint(
+				frame.point or "CENTER",
+				icon.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+		end
+	end
 
 	local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanelFrame, 16, 512, 4)
 	SizeSlider:SetScript("OnValueChanged", function(self, value)
@@ -926,7 +932,7 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 
 	local Enabled = CreateFrame("CheckButton", O..v.."Enabled", OptionsPanelFrame, "OptionsCheckButtonTemplate")
 	_G[O..v.."EnabledText"]:SetText(L["Enabled"])
-	function Enabled:OnClick()
+	Enabled:SetScript("OnClick", function(self)
 		local enabled = self:GetChecked()
 		if enabled then
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
@@ -947,26 +953,25 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			LoseControlDB.frames[frame].enabled = enabled
 			LCframes[frame]:RegisterUnitEvents(enabled)
 		end
-	end
-	Enabled:SetScript("OnClick", Enabled.OnClick)
+	end)
 
 	Enabled:SetPoint("TOPLEFT", 16, -32)
 	if DisableInBG then DisableInBG:SetPoint("TOPLEFT", Enabled, 200, 0) end
 	SizeSlider:SetPoint("TOPLEFT", Enabled, "BOTTOMLEFT", 0, -32)
 	AlphaSlider:SetPoint("TOPLEFT", SizeSlider, "BOTTOMLEFT", 0, -32)
-	--AnchorDropDownLabel:SetPoint("TOPLEFT", UnitDropDown, "BOTTOMLEFT", 0, -12)
-	--AnchorDropDown:SetPoint("TOPLEFT", AnchorDropDownLabel, "BOTTOMLEFT", 0, -8)
+	AnchorDropDownLabel:SetPoint("TOPLEFT", AlphaSlider, "BOTTOMLEFT", 0, -12)
+	AnchorDropDown:SetPoint("TOPLEFT", AnchorDropDownLabel, "BOTTOMLEFT", 0, -8)
 
 	OptionsPanelFrame.default = OptionsPanel.default
 	OptionsPanelFrame.refresh = function()
-		local frame = v
-		if frame == "party" then
+		local unitId = v
+		if unitId == "party" then
 			DisableInBG:SetChecked(LoseControlDB.disablePartyInBG)
-			frame = "party1"
-		elseif frame == "arena" then
-			frame = "arena1"
+			unitId = "party1"
+		elseif unitId == "arena" then
+			unitId = "arena1"
 		end
-		frame = LoseControlDB.frames[frame]
+		local frame = LoseControlDB.frames[unitId]
 		Enabled:SetChecked(frame.enabled)
 		if frame.enabled then
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
@@ -979,6 +984,14 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 		end
 		SizeSlider:SetValue(frame.size)
 		AlphaSlider:SetValue(frame.alpha * 100)
+		UIDropDownMenu_Initialize(AnchorDropDown, function() -- called on refresh and also every time the drop down menu is opened
+			AddItem(AnchorDropDown, L["None"], "None")
+			AddItem(AnchorDropDown, "Blizzard", "Blizzard")
+			if _G[anchors["Perl"][unitId]] then AddItem(AnchorDropDown, "Perl", "Perl") end
+			if _G[anchors["XPerl"][unitId]] then AddItem(AnchorDropDown, "XPerl", "XPerl") end
+			if _G[anchors["LUI"][unitId]] then AddItem(AnchorDropDown, "LUI", "LUI") end
+		end)
+		UIDropDownMenu_SetSelectedValue(AnchorDropDown, frame.anchor)
 	end
 
 	InterfaceOptions_AddCategory(OptionsPanelFrame)
@@ -990,21 +1003,21 @@ SLASH_LoseControl2 = "/losecontrol"
 
 local SlashCmd = {}
 function SlashCmd:help()
-	log(addonName .. " slash commands:")
-	log("    reset [<unit>]")
-	log("    lock")
-	log("    unlock")
-	log("    enable <unit>")
-	log("    disable <unit>")
-	log("<unit> can be: player, pet, target, focus, party1 ... party4, arena1 ... arena5")
+	print(addonName, "slash commands:")
+	print("    reset [<unit>]")
+	print("    lock")
+	print("    unlock")
+	print("    enable <unit>")
+	print("    disable <unit>")
+	print("<unit> can be: player, pet, target, focus, party1 ... party4, arena1 ... arena5")
 end
 function SlashCmd:debug(value)
 	if value == "on" then
 		debug = true
-		log(addonName .. ": debugging enabled")
+		print(addonName, "debugging enabled.")
 	elseif value == "off" then
 		debug = false
-		log(addonName .. ": debugging disabled")
+		print(addonName, "debugging disabled.")
 	end
 end
 function SlashCmd:reset(unitId)
@@ -1020,25 +1033,25 @@ end
 function SlashCmd:lock()
 	Unlock:SetChecked(false)
 	Unlock:OnClick()
-	log(addonName .. " locked.")
+	print(addonName, "locked.")
 end
 function SlashCmd:unlock()
 	Unlock:SetChecked(true)
 	Unlock:OnClick()
-	log(addonName .. " unlocked.")
+	print(addonName, "unlocked.")
 end
 function SlashCmd:enable(unitId)
 	if LCframes[unitId] then
 		LoseControlDB.frames[unitId].enabled = true
 		LCframes[unitId]:RegisterUnitEvents(true)
-		log(addonName .. ": " .. unitId .. " frame enabled.")
+		print(addonName, unitId, "frame enabled.")
 	end
 end
 function SlashCmd:disable(unitId)
 	if LCframes[unitId] then
 		LoseControlDB.frames[unitId].enabled = false
 		LCframes[unitId]:RegisterUnitEvents(false)
-		log(addonName .. ": " .. unitId .. " frame disabled.")
+		print(addonName, unitId, "frame disabled.")
 	end
 end
 
@@ -1050,7 +1063,7 @@ SlashCmdList[addonName] = function(cmd)
 	if SlashCmd[args[1]] then
 		SlashCmd[args[1]](unpack(args))
 	else
-		log(addonName .. ": Type \"/lc help\" for more options.")
+		print(addonName, ": Type \"/lc help\" for more options.")
 		InterfaceOptionsFrame_OpenToCategory(OptionsPanel)
 	end
 end
