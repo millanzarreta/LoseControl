@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.06
+-- Version: 6.07
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -594,6 +594,18 @@ local spellIds = {
 	------------------------
 	-- Battle of Dazar'alor Raid
 	-- -- Trash
+	[289471] = "CC",				-- Terrifying Roar
+	[286740] = "CC",				-- Light's Fury
+	[289645] = "CC",				-- Polymorph
+	[287325] = "CC",				-- Comet Storm
+	[289772] = "CC",				-- Impale
+	[289937] = "CC",				-- Thundering Slam
+	[288842] = "CC",				-- Throw Goods
+	[289419] = "CC",				-- Mass Hex
+	[288815] = "CC",				-- Breath of Fire
+	[287456] = "Root",				-- Frost Nova
+	[289742] = "Immune",			-- Defense Field (damage taken reduced 75%)
+	[287295] = "Snare",				-- Chilled
 	-- -- Champion of the Light
 	[288294] = "Immune",			-- Divine Protection (damage taken reduced 99%)
 	[283651] = "CC",				-- Blinding Faith
@@ -601,7 +613,7 @@ local spellIds = {
 	[289406] = "CC",				-- Bestial Throw
 	[289412] = "CC",				-- Bestial Impact
 	[285998] = "CC",				-- Ferocious Roar
-	-- -- Jadefire Masters
+	[290575] = "CC",				-- Ferocious Roar
 	-- -- Opulence
 	[283609] = "CC",				-- Crush
 	[283610] = "CC",				-- Crush
@@ -615,12 +627,15 @@ local spellIds = {
 	[282447] = "CC",				-- Kimbul's Wrath
 	-- -- King Rastakhan
 	[284995] = "CC",				-- Zombie Dust
+	[284376] = "CC",				-- Death's Presence
 	[284377] = "Immune",			-- Unliving
 	-- -- High Tinker Mekkatorque
 	[287167] = "CC",				-- Discombobulation
 	[284214] = "CC",				-- Trample
 	[289138] = "CC",				-- Trample
 	[289644] = "Immune",			-- Spark Shield (damage taken reduced 99%)
+	[282401] = "Immune",			-- Gnomish Force Shield (damage taken reduced 99%)
+	[289248] = "Immune",			-- P.L.O.T Armor (damage taken reduced 99%)
 	[282408] = "CC",				-- Spark Pulse (stun)
 	[289232] = "CC",				-- Spark Pulse (hit chance reduced 100%)
 	[289226] = "CC",				-- Spark Pulse (pacify)
@@ -997,6 +1012,7 @@ local spellIds = {
 	[257793] = "CC",				-- Smoke Powder
 	[257119] = "CC",				-- Sand Trap
 	[256474] = "CC",				-- Heartstopper Venom
+	[258128] = "CC",				-- Debilitating Shout (damage done reduced by 50%)
 	[258317] = "ImmuneSpell",		-- Riot Shield (-75% spell damage and redirect spells to the caster)
 	[258153] = "Immune",			-- Watery Dome (75% damage redictopm)
 	[265271] = "Snare",				-- Sewer Slime
