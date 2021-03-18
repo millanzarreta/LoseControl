@@ -164,6 +164,7 @@ local spellIds = {
 	[119072] = "CC",		-- Holy Wrath
 	[20066]  = "CC",		-- Repentance
 	[10326]  = "CC",		-- Turn Evil
+	[145067] = "CC",		-- Turn Evil (Evil is a Point of View)
 	[31935]  = "Silence",		-- Avenger's Shield
 	[110300] = "Snare",		-- Burden of Guilt
 	[63529]  = "Snare",		-- Dazed - Avenger's Shield
