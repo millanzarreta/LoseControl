@@ -21,7 +21,7 @@ local spellIds = {
 	[51209] = "CC",		-- Hungering Cold
 	[91797] = "CC",		-- Monstrous Blow (Super ghoul)
 	[47476] = "Silence",	-- Strangulate
-	[45524] = "Snare",	-- Chains of Ice
+	[45524] = "Snare",	-- Chains of Ice (can also be a root with Chilblains but no way to differentiate?)
 	[55666] = "Snare",	-- Desecration
 	[50040] = "Snare",	-- Chilblains
 	-- Druid
@@ -63,6 +63,7 @@ local spellIds = {
 	[12355] = "CC",		-- Impact
 	[83047] = "CC",		-- Improved Polymorph
 	[118]   = "CC",		-- Polymorph
+	[82691] = "CC",		-- Ring of Frost
 	[18469] = "Silence",	-- Silenced - Improved Counterspell
 	[64346] = "Disarm",	-- Fiery Payback
 	[33395] = "Root",	-- Freeze (Water Elemental)
@@ -99,6 +100,7 @@ local spellIds = {
 	[1776]  = "CC",		-- Gouge
 	[408]   = "CC",		-- Kidney Shot
 	[6770]  = "CC",		-- Sap
+	[76577] = "CC",		-- Smoke Bomb
 	[1330]  = "Silence",	-- Garrote - Silence
 	[18425] = "Silence",	-- Silenced - Improved Kick
 	[51722] = "Disarm",	-- Dismantle
@@ -130,6 +132,7 @@ local spellIds = {
 	--[93974] = "Root",	-- Aura of Foreboding (duplicate debuff names not allowed atm, need to figure out how to support this later)
 	[18118] = "Snare",	-- Aftermath
 	[18223] = "Snare",	-- Curse of Exhaustion
+	[63311] = "Snare",	-- Shadowsnare (Glyph of Shadowflame)
 	-- Warrior
 	[7922]  = "CC",		-- Charge Stun
 	[12809] = "CC",		-- Concussion Blow
@@ -159,6 +162,7 @@ local spellIds = {
 	[19574] = "Immune",	-- Bestial Wrath (Hunter pet)
 	[46924] = "Immune",	-- Bladestorm (Warrior)
 	[19263] = "Immune",	-- Deterrence [except aoe?] (Hunter)
+	[47585] = "Immune",	-- Dispersion (Priest)
 	[642]   = "Immune",	-- Divine Shield (Paladin)
 	[45438] = "Immune",	-- Ice Block (Mage)
 	[34692] = "Immune",	-- The Beast Within (Hunter)
@@ -168,7 +172,6 @@ local spellIds = {
 	[8178]  = "ImmuneSpell",	-- Grounding Totem Effect [exept aoe] (Shaman)
 	[23920] = "ImmuneSpell",	-- Spell Reflection [except aoe] (Warrior)
 	-- Other Immunities - optional, not sure how to handle these; many have durations that are quite long
-	--[50334] = "ImmuneFear",		-- Berserk (Druid)
 	--[18499] = "ImmuneFearIncapacitate",	-- Berserker Rage (Warrior)
 	--[45182] = "ImmuneDamage",	-- Cheating Death [only 90% immune] (Rogue)
 	--[5277]  = "ImmuneMelee",	-- Evasion [only +50% immune to melee, +25% to ranged] (Rogue)
@@ -393,8 +396,8 @@ end
 local WYVERN_STING = GetSpellInfo(19386)
 local PSYCHIC_HORROR = GetSpellInfo(64058)
 local UNSTABLE_AFFLICTION = GetSpellInfo(31117)
+local SMOKE_BOMB = GetSpellInfo(76577)
 local SOLAR_BEAM = GetSpellInfo(81261)
-local BERSERK = GetSpellInfo(50334)
 local GROUNDING_TOTEM = GetSpellInfo(8178)
 local UnitDebuff = UnitDebuff
 local UnitBuff = UnitBuff
@@ -426,6 +429,8 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 		elseif (name == PSYCHIC_HORROR and icon ~= "Interface\\Icons\\Spell_Shadow_PsychicHorrors") or -- hack to remove Psychic Horror disarm effect
 			(name == UNSTABLE_AFFLICTION and icon ~= "Interface\\Icons\\Spell_Holy_Silence") then
 			name = nil
+		elseif name == SMOKE_BOMB then
+			expirationTime = GetTime() + 5 -- hack, normal expirationTime = 0
 		elseif name == SOLAR_BEAM then
 			expirationTime = GetTime() + 10 -- hack, normal expirationTime = 0
 		end
@@ -451,9 +456,7 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			if not name then break end
 
 			-- exceptions
-			if name == BERSERK and icon ~= "Interface\\Icons\\Ability_Druid_Berserk" then
-				name = nil
-			elseif name == GROUNDING_TOTEM then
+			if name == GROUNDING_TOTEM then
 				expirationTime = GetTime() + 45 -- hack, normal expirationTime = 0
 			end
 
@@ -488,7 +491,9 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			self.texture:SetTexture(Icon)
 		end
 		self:Show()
-		self:SetCooldown( maxExpirationTime - Duration, Duration )
+		if Duration > 0 then
+			self:SetCooldown( maxExpirationTime - Duration, Duration )
+		end
 		self:SetAlpha(self.frame.alpha) -- hack to apply transparency to the cooldown timer
 	end
 end
