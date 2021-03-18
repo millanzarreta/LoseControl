@@ -393,6 +393,7 @@ local WYVERN_STING = GetSpellInfo(19386)
 local PSYCHIC_HORROR = GetSpellInfo(64058)
 local UNSTABLE_AFFLICTION = GetSpellInfo(31117)
 local BERSERK = GetSpellInfo(50334)
+local GROUNDING_TOTEM = GetSpellInfo(8178)
 local UnitDebuff = UnitDebuff
 local UnitBuff = UnitBuff
 
@@ -405,7 +406,6 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 
 	for i = 1, 40 do
 		name, _, icon, _, _, duration, expirationTime = UnitDebuff(unitId, i)
-
 		if not name then break end -- no more debuffs, terminate the loop
 		--log(i .. ") " .. name .. " | " .. rank .. " | " .. icon .. " | " .. count .. " | " .. debuffType .. " | " .. duration .. " | " .. expirationTime )
 
@@ -441,15 +441,20 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	-- Track Immunities
 	local Immune = LoseControlDB.tracking.Immune
 	local ImmuneSpell = LoseControlDB.tracking.ImmuneSpell
-	if (Immune or ImmuneSpell) and not Icon and unitId ~= "player" then -- only bother checking for immunities if there were no debuffs found
+	if (Immune or ImmuneSpell) and unitId ~= "player" then
 		for i = 1, 40 do
 			name, _, icon, _, _, duration, expirationTime = UnitBuff(unitId, i)
-			if not name then break
-			elseif name == BERSERK and icon ~= "Interface\\Icons\\ability_druid_berserk" then
-				-- do nothing
-			elseif (
-				(abilities[name] == "Immune" and Immune) or
-				(abilities[name] == "ImmuneSpell" and ImmuneSpell)
+			if not name then break end
+
+			-- exceptions
+			if name == BERSERK and icon ~= "Interface\\Icons\\Ability_Druid_Berserk" then
+				name = nil
+			elseif name == GROUNDING_TOTEM then
+				expirationTime = GetTime() + 45 -- hack, normal expirationTime = 0
+			end
+
+			if (	(Immune and abilities[name] == "Immune") or
+				(ImmuneSpell and abilities[name] == "ImmuneSpell")
 			) and expirationTime > maxExpirationTime then
 				maxExpirationTime = expirationTime
 				Duration = duration
