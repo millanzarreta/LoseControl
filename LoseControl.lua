@@ -30,7 +30,6 @@ local spellIds = {
 	[2637]  = "CC",		-- Hibernate
 	[22570] = "CC",		-- Maim
 	[9005]  = "CC",		-- Pounce
-	[80964] = "Silence",	-- Skull Bash (spell lockout, not silence)
 	[81261] = "Silence",	-- Solar Beam
 	[339]   = "Root",	-- Entangling Roots
 	[45334] = "Root",	-- Feral Charge Effect
@@ -83,7 +82,8 @@ local spellIds = {
 	[20066] = "CC",		-- Repentance
 	[20170] = "CC",		-- Stun (Seal of Justice proc)
 	[10326] = "CC",		-- Turn Evil
-	[63529] = "Silence",	-- Shield of the Templar
+	[31935] = "Silence",	-- Avenger's Shield
+	[63529] = "Snare",	-- Dazed - Avenger's Shield
 	--[20170] = "Snare",	-- Seal of Justice (100% movement snare; druids and shamans might want this though)
 	-- Priest
 	[605]   = "CC",		-- Mind Control
@@ -351,7 +351,7 @@ function LoseControl:ADDON_LOADED(arg1)
 						Root		= false, -- 40
 						Snare		= false, -- 30
 					}
-					_G.LoseControlDB.version = 3.32
+					_G.LoseControlDB.version = 4.01
 				else -- major changes, must reset settings
 					_G.LoseControlDB = CopyTable(DBdefaults)
 					log(LOSECONTROL["LoseControl reset."])
