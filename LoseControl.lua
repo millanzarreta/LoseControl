@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.10
+-- Version: 6.11
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -58,13 +58,27 @@ Thanks! :)
 local addonName, L = ...
 local UIParent = UIParent -- it's faster to keep local references to frequently used global vars
 local UnitAura = UnitAura
+local UnitBuff = UnitBuff
+local UnitCanAttack = UnitCanAttack
+local UnitClass = UnitClass
+local UnitExists = UnitExists
+local UnitIsPlayer = UnitIsPlayer
+local UnitIsUnit = UnitIsUnit
+local UnitHealth = UnitHealth
+local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
+local GetPlayerInfoByGUID = GetPlayerInfoByGUID
+local GetSpellInfo = GetSpellInfo
 local GetTime = GetTime
 local SetPortraitToTexture = SetPortraitToTexture
 local ipairs = ipairs
 local pairs = pairs
 local next = next
+local type = type
+local select = select
 local strfind = string.find
 local tblinsert = table.insert
+local mathfloor = math.floor
+local mathabs = math.abs
 local bit_band = bit.band
 local SetScript = SetScript
 local OnEvent = OnEvent
@@ -72,10 +86,14 @@ local CreateFrame = CreateFrame
 local SetTexture = SetTexture
 local SetCooldown = SetCooldown
 local SetAlpha, SetPoint = SetAlpha, SetPoint
+local playerGUID
 local print = print
 local debug = false -- type "/lc debug on" if you want to see UnitAura info logged to the console
 local LCframes = {}
+local LCframeplayer2
 local InterruptAuras = { }
+local origSpellIdsChanged = { }
+local Masque = LibStub("Masque", true)
 
 -------------------------------------------------------------------------------
 -- Thanks to all the people on the Curse.com and WoWInterface forums who help keep this list up to date :)
@@ -120,6 +138,7 @@ local spellIds = {
 	[200166] = "CC",				-- Metamorfosis stun
 	[247121] = "Snare",				-- Metamorfosis snare
 	[196555] = "Immune",			-- Netherwalk
+	[188499] = "ImmunePhysical",	-- Blade Dance (dodge chance increased by 100%)
 	[213491] = "CC",				-- Demonic Trample Stun
 	[206649] = "Silence",			-- Eye of Leotheras (no silence, 4% dmg and duration reset for spell casted)
 	[232538] = "Snare",				-- Rain of Chaos
@@ -127,6 +146,7 @@ local spellIds = {
 	[210003] = "Snare",				-- Razor Spikes
 	[198813] = "Snare",				-- Vengeful Retreat
 	[198589] = "Other",				-- Blur
+	[209426] = "Other",				-- Darkness
 	
 	----------------
 	-- Death Knight
@@ -142,6 +162,10 @@ local spellIds = {
 	[51271]  = "Other",				-- Pillar of Frost
 	[48792]  = "Other",				-- Icebound Fortitude
 	[287081] = "Other",				-- Lichborne
+	[81256]  = "Other",				-- Dancing Rune Weapon
+	[194679] = "Other",				-- Rune Tap
+	[152279] = "Other",				-- Breath of Sindragosa
+	[207289] = "Other",				-- Unholy Frenzy
 	[145629] = "ImmuneSpell",		-- Anti-Magic Zone (not immune, 60% damage reduction)
 	[207167] = "CC",				-- Blinding Sleet
 	[207165] = "CC",				-- Abomination's Might
@@ -201,10 +225,18 @@ local spellIds = {
 	[58180]  = "Snare",				-- Infected Wounds
 	[61391]  = "Snare",				-- Typhoon
 	[127797] = "Snare",				-- Ursol's Vortex
+	[232559] = "Snare",				-- Thorns (pvp honor talent)
+	[61336]  = "Immune",			-- Survival Instincts (not immune, damage taken reduced by 50%)
+	[305497] = "Other",				-- Thorns (pvp honor talent)
 	[102543] = "Other",				-- Incarnation: King of the Jungle
 	[106951] = "Other",				-- Berserk
 	[102558] = "Other",				-- Incarnation: Guardian of Ursoc
 	[102560] = "Other",				-- Incarnation: Chosen of Elune
+	[117679] = "Other",				-- Incarnation: Tree of Life
+	[236696] = "Other",				-- Thorns
+	[29166]  = "Other",				-- Innervate
+	[22812]  = "Other",				-- Barkskin
+	[102342] = "Other",				-- Ironbark
 	[202244] = "CC",				-- Overrun (pvp honor talent)
 	[209749] = "Disarm",			-- Faerie Swarm (pvp honor talent)
 	
@@ -236,6 +268,9 @@ local spellIds = {
 	[186387] = "Snare",				-- Bursting Shot
 	[224729] = "Snare",				-- Bursting Shot
 	[266779] = "Other",				-- Coordinated Assault
+	[193530] = "Other",				-- Aspect of the Wild
+	[186289] = "Other",				-- Aspect of the Eagle
+	[288613] = "Other",				-- Trueshot
 	[203337] = "CC",				-- Freezing Trap (Diamond Ice - pvp honor talent)
 	[202748] = "Immune",			-- Survival Tactics (pvp honor talent) (not immune, 99% damage reduction)
 	[248519] = "ImmuneSpell",		-- Interlope (pvp honor talent)
@@ -315,6 +350,7 @@ local spellIds = {
 	[2120]   = "Snare",				-- Flamestrike
 	[236299] = "Snare",				-- Chrono Shift
 	[45438]  = "Immune",			-- Ice Block
+	[198065] = "ImmuneSpell",		-- Prismatic Cloak (pvp talent) (not immune, 50% magic damage reduction)
 	[198121] = "Root",				-- Frostbite (pvp talent)
 	[220107] = "Root",				-- Frostbite
 	[157997] = "Root",				-- Ice Nova
@@ -323,7 +359,8 @@ local spellIds = {
 	[198144] = "Other",				-- Ice form (stun/knockback immune)
 	[12042]  = "Other",				-- Arcane Power
 	[190319] = "Other",				-- Combustion
-	[198111] = "Immune",			-- Temporal Shield (heals all damage taken after 4 sec)
+	[12472]  = "Other",				-- Icy Veins
+	[198111] = "Immune",			-- Temporal Shield (not immune, heals all damage taken after 4 sec)
 
 		----------------
 		-- Mage Water Elemental
@@ -351,12 +388,21 @@ local spellIds = {
 	[202274] = "CC",				-- Incendiary Brew (honor talent)
 	[202346] = "CC",				-- Double Barrel (honor talent)
 	[123407] = "Root",				-- Spinning Fire Blossom (honor talent)
+	[115176] = "Immune",			-- Zen Meditation (60% damage reduction)
+	[202248] = "ImmuneSpell",		-- Guided Meditation (pvp honor talent) (redirect spells to monk)
+	[201325] = "Other",				-- Zen Moment
+	[122278] = "Other",				-- Dampen Harm
+	[243435] = "Other",				-- Fortifying Brew
+	[120954] = "Other",				-- Fortifying Brew
+	[201318] = "Other",				-- Fortifying Brew (pvp honor talent)
+	[116849] = "Other",				-- Life Cocoon
 	[214326] = "Other",				-- Exploding Keg (artifact trait - blind)
 	[213664] = "Other",				-- Nimble Brew
 	[209584] = "Other",				-- Zen Focus Tea
 	[216113] = "Other",				-- Way of the Crane
 	[137639] = "Other",				-- Storm, Earth, and Fire
 	[152173] = "Other",				-- Serenity
+	[115080] = "Other",				-- Touch of Death
 	[199387] = "Snare",				-- Spirit Tether (artifact trait)
 
 	----------------
@@ -373,14 +419,17 @@ local spellIds = {
 	[204242] = "Snare",				-- Consecration (talent Consecrated Ground)
 	[183218] = "Snare",				-- Hand of Hindrance
 	[642]    = "Immune",			-- Divine Shield
-	[184662] = "Other",				-- Shield of Vengeance
 	[31821]  = "Other",				-- Aura Mastery
 	[210256] = "Other",				-- Blessing of Sanctuary
 	[210294] = "Other",				-- Divine Favor
+	[105809] = "Other",				-- Holy Avenger
+	[1044]   = "Other",				-- Blessing of Freedom
 	[1022]   = "ImmunePhysical",	-- Hand of Protection
 	[204018] = "ImmuneSpell",		-- Blessing of Spellwarding
+	[31850]  = "Other",				-- Ardent Defender
 	[31884]  = "Other",				-- Avenging Wrath
 	[216331] = "Other",				-- Avenging Crusader
+	[86659]  = "Other",				-- Guardian of Ancient Kings
 	[228050] = "Immune",			-- Divine Shield (Guardian of the Forgotten Queen)
 	[205273] = "Snare",				-- Wake of Ashes (artifact trait) (snare)
 	[205290] = "CC",				-- Wake of Ashes (artifact trait) (stun)
@@ -403,6 +452,12 @@ local spellIds = {
 	[15407]  = "Snare",				-- Mind Flay
 	[47585]  = "Immune",			-- Dispersion
 	[47788]  = "Other",				-- Guardian Spirit (prevent the target from dying)
+	[200183] = "Other",				-- Apotheosis
+	[197268] = "Other",				-- Ray of Hope
+	[33206]  = "Other",				-- Pain Suppression
+	[27827]  = "Immune",			-- Spirit of Redemption
+	[290114] = "Immune",			-- Spirit of Redemption	(pvp honor talent)
+	[215769] = "Immune",			-- Spirit of Redemption	(pvp honor talent)
 	[213602] = "Immune",			-- Greater Fade (pvp honor talent - protects vs spells. melee, ranged attacks + 50% speed)
 	[232707] = "Immune",			-- Ray of Hope (pvp honor talent - not immune, only delay damage and heal)
 	[213610] = "Other",				-- Holy Ward (pvp honor talent - wards against the next loss of control effect)
@@ -435,16 +490,17 @@ local spellIds = {
 	[31224]  = "ImmuneSpell",		-- Cloak of Shadows
 	[51690]  = "Other",				-- Killing Spree
 	[13750]  = "Other",				-- Adrenaline Rush
-	[199754] = "Other",				-- Riposte
+	[199754] = "ImmunePhysical",	-- Riposte (parry chance increased by 100%)
 	[1966]   = "Other",				-- Feint
 	[121471] = "Other",				-- Shadow Blades
 	[45182]  = "Immune",			-- Cheating Death (-85% damage taken)
-	[5277]   = "Other",				-- Evasion
+	[5277]   = "ImmunePhysical",	-- Evasion (dodge chance increased by 100%)
 	[212183] = "Other",				-- Smoke Bomb
 	[199804] = "CC",				-- Between the eyes
 	[199740] = "CC",				-- Bribe
 	[207777] = "Disarm",			-- Dismantle
 	[185767] = "Snare",				-- Cannonball Barrage
+	[212283] = "Other",				-- Symbols of Death
 	[207736] = "Other",				-- Shadowy Duel
 	[212150] = "CC",				-- Cheap Tricks (pvp honor talent) (-75%  melee & range physical hit chance)
 	[199743] = "CC",				-- Parley
@@ -482,6 +538,8 @@ local spellIds = {
 	[114050] = "Other",				-- Ascendance (Elemental)
 	[114051] = "Other",				-- Ascendance (Enhancement)
 	[114052] = "Other",				-- Ascendance (Restoration)
+	[204361] = "Other",				-- Bloodlust (Shamanism pvp talent)
+	[204362] = "Other",				-- Heroism (Shamanism pvp talent)
 	[8178]   = "ImmuneSpell",		-- Grounding Totem Effect (Grounding Totem)
 	[204399] = "CC",				-- Earthfury (PvP Talent)
 	[192058] = "CC",				-- Lightning Surge totem (capacitor totem)
@@ -561,15 +619,20 @@ local spellIds = {
 	[216890] = "ImmuneSpell",		-- Spell Reflection
 	[213915] = "ImmuneSpell",		-- Mass Spell Reflection
 	[114028] = "ImmuneSpell",		-- Mass Spell Reflection
+	[871]    = "Other",				-- Shield Wall
+	[12975]  = "Other",				-- Last Stand
 	[18499]  = "Other",				-- Berserker Rage
 	[107574] = "Other",				-- Avatar
 	[262228] = "Other",				-- Deadly Calm
-	[118038] = "Other",				-- Die by the Sword
 	[198819] = "Other",				-- Sharpen Blade (70% heal reduction)
 	[236321] = "Other",				-- War Banner
 	[236438] = "Other",				-- War Banner
 	[236439] = "Other",				-- War Banner
 	[236273] = "Other",				-- Duel
+	[198817] = "Other",				-- Sharpen Blade (pvp honor talent)
+	[198819] = "Other",				-- Mortal Strike (Sharpen Blade pvp honor talent))
+	[184364] = "Other",				-- Enraged Regeneration
+	[118038] = "ImmunePhysical",	-- Die by the Sword (parry chance increased by 100%, damage taken reduced by 30%)
 	[198760] = "ImmunePhysical",	-- Intercept (pvp honor talent) (intercept the next ranged or melee hit)
 	[176289] = "CC",				-- Siegebreaker
 	[199085] = "CC",				-- Warpath
@@ -585,7 +648,6 @@ local spellIds = {
 	[15534]  = "CC",				-- Polymorph (trinket)
 	[15535]  = "CC",				-- Enveloping Winds (Six Demon Bag trinket)
 	[23103]  = "CC",				-- Enveloping Winds (Six Demon Bag trinket)
-	[25189]  = "CC",				-- Enveloping Winds (Six Demon Bag trinket)
 	[30217]  = "CC",				-- Adamantite Grenade
 	[67769]  = "CC",				-- Cobalt Frag Bomb
 	[67890]  = "CC",				-- Cobalt Frag Bomb (belt)
@@ -598,6 +660,8 @@ local spellIds = {
 	[107079] = "CC",				-- Quaking Palm (pandaren racial)
 	[255723] = "CC",				-- Bull Rush (highmountain tauren racial)
 	[287712] = "CC",				-- Haymaker (kul tiran racial)
+	[256948] = "Other",				-- Spatial Rift (void elf racial)
+	[302731] = "Other",				-- Ripple in Space (azerite essence)
 	[214459] = "Silence",			-- Choking Flames (trinket)
 	[19821]  = "Silence",			-- Arcane Bomb
 	[131510] = "Immune",			-- Uncontrolled Banish
@@ -626,6 +690,9 @@ local spellIds = {
 	[30506]  = "CC",				-- Poultryized! (trinket)
 	[46567]  = "CC",				-- Rocket Launch (trinket)
 	[24753]  = "CC",				-- Trick
+	[21847]  = "CC",				-- Snowman
+	[21848]  = "CC",				-- Snowman
+	[21980]  = "CC",				-- Snowman
 	[141928] = "CC",				-- Growing Pains (Whole-Body Shrinka' toy)
 	[285643] = "CC",				-- Battle Screech
 	[245855] = "CC",				-- Belly Smash
@@ -663,6 +730,41 @@ local spellIds = {
 	[310126] = "Immune",			-- Psychic Shell (not immune, 99% damage reduction) (Lingering Psychic Shell trinket)
 	[314585] = "Immune",			-- Psychic Shell (not immune, 50-80% damage reduction) (Lingering Psychic Shell trinket)
 	[313448] = "CC",				-- Realized Truth (Corrupted Ring - Face the Truth ring)
+	[290105] = "CC",				-- Psychic Scream
+	[295953] = "CC",				-- Gnaw
+	[292306] = "CC",				-- Leg Sweep
+	[247587] = "CC",				-- Holy Word: Chastise
+	[291391] = "CC",				-- Sap
+	[292224] = "CC",				-- Chaos Nova
+	[295459] = "CC",				-- Mortal Coil
+	[295240] = "CC",				-- Dragon's Breath
+	[284379] = "CC",				-- Intimidation
+	[290438] = "CC",				-- Hex
+	[283618] = "CC",				-- Hammer of Justice
+	[292055] = "Immune",			-- Spirit of Redemption
+	[290049] = "Immune",			-- Ice Block
+	[283627] = "Immune",			-- Divine Shield
+	[292230] = "ImmunePhysical",	-- Evasion
+	[290494] = "Silence",			-- Avenger's Shield
+	[284879] = "Root",				-- Frost Nova
+	[284844] = "Root",				-- Glacial Spike
+	[299256] = "Other",				-- Blessing of Freedom
+	[292266] = "Other",				-- Avenging Wrath
+	[292222] = "Other",				-- Blur
+	[292152] = "Other",				-- Icebound Fortitude
+	[292158] = "Other",				-- Astral Shift
+	[283433] = "Other",				-- Avatar
+	[292297] = "Snare",				-- Cone of Cold
+	[283649] = "Snare",				-- Crippling Poison
+	[284860] = "Snare",				-- Flurry
+	[284217] = "Snare",				-- Concussive Shot
+	[290292] = "Snare",				-- Vengeful Retreat
+	[292156] = "Snare",				-- Typhoon
+	[295282] = "Snare",				-- Concussive Shot
+	[283558] = "Snare",				-- Chains of Ice
+	[284414] = "Snare",				-- Mind Flay
+	[290441] = "Snare",				-- Frost Shock
+	[295577] = "Snare",				-- Frostbrand
 	[8312]   = "Root",				-- Trap (Hunting Net trinket)
 	[17308]  = "CC",				-- Stun (Hurd Smasher fist weapon)
 	[23454]  = "CC",				-- Stun (The Unstoppable Force weapon)
@@ -716,7 +818,7 @@ local spellIds = {
 	[20669]  = "CC",				-- Sleep
 	[20989]  = "CC",				-- Sleep
 	[24004]  = "CC",				-- Sleep
-	[24664]  = "CC",				-- Sleep
+	[8064]   = "CC",				-- Sleepy
 	[17446]  = "CC",				-- The Black Sleep
 	[29848]  = "CC",				-- Polymorph
 	[29124]  = "CC",				-- Polymorph
@@ -724,9 +826,6 @@ local spellIds = {
 	[27760]  = "CC",				-- Polymorph
 	[28406]  = "CC",				-- Polymorph Backfire
 	[851]    = "CC",				-- Polymorph: Sheep
-	[785]    = "CC",				-- True Fulfillment
-	[17172]  = "CC",				-- Hex
-	[24053]  = "CC",				-- Hex
 	[16707]  = "CC",				-- Hex
 	[16708]  = "CC",				-- Hex
 	[16709]  = "CC",				-- Hex
@@ -734,15 +833,13 @@ local spellIds = {
 	[20683]  = "CC",				-- Highlord's Justice
 	[17286]  = "CC",				-- Crusader's Hammer
 	[17820]  = "Other",				-- Veil of Shadow
-	[24178]  = "CC",				-- Will of Hakkar
 	[12096]  = "CC",				-- Fear
-	[26070]  = "CC",				-- Fear
-	[26580]  = "CC",				-- Fear
 	[27641]  = "CC",				-- Fear
 	[27990]  = "CC",				-- Fear
 	[29168]  = "CC",				-- Fear
 	[30002]  = "CC",				-- Fear
 	[26042]  = "CC",				-- Psychic Scream
+	[27610]  = "CC",				-- Psychic Scream
 	[9915]   = "Root",				-- Frost Nova
 	[14907]  = "Root",				-- Frost Nova
 	[22645]  = "Root",				-- Frost Nova
@@ -776,25 +873,21 @@ local spellIds = {
 	[30095]  = "Snare",				-- Cone of Cold
 	[20717]  = "Snare",				-- Sand Breath
 	[16568]  = "Snare",				-- Mind Flay
-	[23953]  = "Snare",				-- Mind Flay
 	[28310]  = "Snare",				-- Mind Flay
 	[29407]  = "Snare",				-- Mind Flay
-	[26044]  = "CC",				-- Mind Flay
 	[16094]  = "Snare",				-- Frost Breath
-	[16099]  = "Snare",				-- Frost Breath
 	[16340]  = "Snare",				-- Frost Breath
 	[17174]  = "Snare",				-- Concussive Shot
 	[27634]  = "Snare",				-- Concussive Shot
 	[20654]  = "Root",				-- Entangling Roots
 	[22800]  = "Root",				-- Entangling Roots
-	[24648]  = "Root",				-- Entangling Roots
-	[26071]  = "Root",				-- Entangling Roots
 	[12520]  = "Root",				-- Teleport from Azshara Tower
 	[12521]  = "Root",				-- Teleport from Azshara Tower
 	[12024]  = "Root",				-- Net
 	[12023]  = "Root",				-- Web
 	[13608]  = "Root",				-- Hooked Net
 	[10017]  = "Root",				-- Frost Hold
+	[23279]  = "Root",				-- Crippling Clip
 	[3542]   = "Root",				-- Naraxis Web
 	[5567]   = "Root",				-- Miring Mud
 	[4932]   = "ImmuneSpell",		-- Ward of Myzrael
@@ -804,7 +897,6 @@ local spellIds = {
 	[3143]   = "CC",				-- Glacial Roar
 	[5403]   = "Root",				-- Crash of Waves
 	[6605]   = "CC",				-- Terrifying Screech
-	[3242]   = "CC",				-- Ravage
 	[3260]   = "CC",				-- Violent Shield Effect
 	[3263]   = "CC",				-- Touch of Ravenclaw
 	[3271]   = "CC",				-- Fatigued
@@ -818,11 +910,10 @@ local spellIds = {
 	[7961]   = "CC",				-- Azrethoc's Stomp
 	[8151]   = "CC",				-- Surprise Attack
 	[3635]   = "CC",				-- Crystal Gaze
-	[6869]   = "CC",				-- Fall down
 	[8646]   = "CC",				-- Snap Kick
-	[24671]  = "CC",				-- Snap Kick
 	[27620]  = "Silence",			-- Snap Kick
 	[27814]  = "Silence",			-- Kick
+	[21990]  = "CC",				-- Tornado
 	[19725]  = "CC",				-- Turn Undead
 	[19469]  = "CC",				-- Poison Mind
 	[10134]  = "CC",				-- Sand Storm
@@ -837,21 +928,24 @@ local spellIds = {
 	[29685]  = "CC",				-- Terrifying Roar
 	[17276]  = "CC",				-- Scald
 	[18812]  = "CC",				-- Knockdown
-	[19128]  = "CC",				-- Knockdown
 	[11430]  = "CC",				-- Slam
 	[28335]  = "CC",				-- Whirlwind
 	[16451]  = "CC",				-- Judge's Gavel
 	[23601]  = "CC",				-- Scatter Shot
-	[24261]  = "CC",				-- Brain Wash
 	[25260]  = "CC",				-- Wings of Despair
 	[23275]  = "CC",				-- Dreadful Fright
 	[24919]  = "CC",				-- Nauseous
 	[29484]  = "CC",				-- Web Spray
 	[21167]  = "CC",				-- Snowball
+	[25815]  = "CC",				-- Frightening Shriek
+	[28786]  = "CC",				-- Locust Swarm
 	[9612]   = "CC",				-- Ink Spray (Chance to hit reduced by 50%)
 	[4320]   = "Silence",			-- Trelane's Freezing Touch
+	[4243]   = "Silence",			-- Pester Effect
 	[9552]   = "Silence",			-- Searing Flames
+	[10576]  = "Silence",			-- Piercing Howl
 	[12943]  = "Silence",			-- Fell Curse Effect
+	[23417]  = "Silence",			-- Smother
 	[10851]  = "Disarm",			-- Grab Weapon
 	[6576]   = "CC",				-- Intimidating Growl
 	[7093]   = "CC",				-- Intimidation
@@ -2105,11 +2199,126 @@ local spellIds = {
 	[22678]  = "CC",				-- Fear
 	[23603]  = "CC",				-- Wild Polymorph
 	[23364]  = "CC",				-- Tail Lash
-	[25654]  = "CC",				-- Tail Lash
 	[23365]  = "Disarm",			-- Dropped Weapon
 	[23415]  = "ImmunePhysical",	-- Improved Blessing of Protection
 	[23414]  = "Root",				-- Paralyze
 	[22687]  = "Other",				-- Veil of Shadow
+	------------------------
+	-- Zul'Gurub Raid
+	-- -- Trash
+	[24619]  = "Silence",			-- Soul Tap
+	[24048]  = "CC",				-- Whirling Trip
+	[24600]  = "CC",				-- Web Spin
+	[24335]  = "CC",				-- Wyvern Sting
+	[24020]  = "CC",				-- Axe Flurry
+	[24671]  = "CC",				-- Snap Kick
+	[24333]  = "CC",				-- Ravage
+	[6869]   = "CC",				-- Fall down
+	[24053]  = "CC",				-- Hex
+	[24021]  = "ImmuneSpell",		-- Anti-Magic Shield
+	[24674]  = "Other",				-- Veil of Shadow
+	[24002]  = "Snare",				-- Tranquilizing Poison
+	[24003]  = "Snare",				-- Tranquilizing Poison
+	-- -- High Priestess Jeklik
+	[23918]  = "Silence",			-- Sonic Burst
+	[22884]  = "CC",				-- Psychic Scream
+	[22911]  = "CC",				-- Charge
+	[23919]  = "CC",				-- Swoop
+	[26044]  = "CC",				-- Mind Flay
+	-- -- High Priestess Mar'li
+	[24110]  = "Silence",			-- Enveloping Webs
+	-- -- High Priest Thekal
+	--[22666]  = "Silence",			-- Silence
+	[21060]  = "CC",				-- Blind
+	[12540]  = "CC",				-- Gouge
+	[22691]  = "Disarm",			-- Disarm
+	[24193]  = "CC",				-- Charge
+	-- -- Bloodlord Mandokir & Ohgan
+	[24408]  = "CC",				-- Charge
+	[25821]  = "CC",				-- Charge
+	-- -- Gahz'ranka
+	[16099]  = "Snare",				-- Frost Breath
+	-- -- Jin'do the Hexxer
+	[17172]  = "CC",				-- Hex
+	[24261]  = "CC",				-- Brain Wash
+	-- -- Edge of Madness: Gri'lek, Hazza'rah, Renataki, Wushoolay
+	[24648]  = "Root",				-- Entangling Roots
+	[24664]  = "CC",				-- Sleep
+	-- -- Hakkar
+	[24687]  = "Silence",			-- Aspect of Jeklik
+	[24686]  = "CC",				-- Aspect of Mar'li
+	[24690]  = "CC",				-- Aspect of Arlokk
+	[24327]  = "CC",				-- Cause Insanity
+	[24178]  = "CC",				-- Will of Hakkar
+	[24322]  = "CC",				-- Blood Siphon
+	[24323]  = "CC",				-- Blood Siphon
+	[24324]  = "CC",				-- Blood Siphon
+	------------------------
+	-- Ruins of Ahn'Qiraj Raid
+	-- -- Trash
+	[25371]  = "CC",				-- Consume
+	[25654]  = "CC",				-- Tail Lash
+	--[3589]   = "Silence",			-- Deafening Screech
+	--[12252]  = "Root",			-- Web Spray
+	[25515]  = "CC",				-- Bash
+	[25187]  = "Snare",				-- Hive'Zara Catalyst
+	-- -- Kurinnaxx
+	[25656]  = "CC",				-- Sand Trap
+	-- -- General Rajaxx
+	[19134]  = "CC",				-- Intimidating Shout
+	[29544]  = "CC",				-- Intimidating Shout
+	[25425]  = "CC",				-- Shockwave
+	[25282]  = "Immune",			-- Shield of Rajaxx
+	-- -- Moam
+	[25685]  = "CC",				-- Energize
+	-- -- Ayamiss the Hunter
+	[25852]  = "CC",				-- Lash
+	[6608]   = "Disarm",			-- Dropped Weapon
+	[25725]  = "CC",				-- Paralyze
+	-- -- Ossirian the Unscarred
+	[25189]  = "CC",				-- Enveloping Winds
+	------------------------
+	-- Temple of Ahn'Qiraj Raid
+	-- -- Trash
+	[18327]  = "Silence",			-- Silence
+	[26069]  = "Silence",			-- Silence
+	[26070]  = "CC",				-- Fear
+	[26072]  = "CC",				-- Dust Cloud
+	[25698]  = "CC",				-- Explode
+	[26079]  = "CC",				-- Cause Insanity
+	[26049]  = "CC",				-- Mana Burn
+	[26071]  = "Root",				-- Entangling Roots
+	--[13022]  = "ImmuneSpell",		-- Fire and Arcane Reflect (only reflect fire and arcane spells)
+	--[19595]  = "ImmuneSpell",		-- Shadow and Frost Reflect (only reflect shadow and frost spells)
+	[1906]   = "Snare",				-- Debilitating Charge
+	[25809]  = "Snare",				-- Crippling Poison
+	[26078]  = "Snare",				-- Vekniss Catalyst
+	-- -- The Prophet Skeram
+	[785]    = "CC",				-- True Fulfillment
+	-- -- Bug Trio: Yauj, Vem, Kri
+	[3242]   = "CC",				-- Ravage
+	[26580]  = "CC",				-- Fear
+	[19128]  = "CC",				-- Knockdown
+	[25989]  = "Snare",				-- Toxin
+	-- -- Fankriss the Unyielding
+	[720]    = "CC",				-- Entangle
+	[731]    = "CC",				-- Entangle
+	[1121]   = "CC",				-- Entangle
+	-- -- Viscidus
+	[25937]  = "CC",				-- Viscidus Freeze
+	-- -- Princess Huhuran
+	[26180]  = "CC",				-- Wyvern Sting
+	[26053]  = "Silence",			-- Noxious Poison
+	-- -- Twin Emperors: Vek'lor & Vek'nilash
+	[800]    = "CC",				-- Twin Teleport
+	[804]    = "Root",				-- Explode Bug
+	[568]    = "Snare",				-- Arcane Burst
+	-- -- Ouro
+	[26102]  = "CC",				-- Sand Blast
+	-- -- C'Thun
+	[23953]  = "Snare",				-- Mind Flay
+	[26211]  = "Snare",				-- Hamstring
+	[26141]  = "Snare",				-- Hamstring
 	------------------------
 	-- Classic World Bosses
 	-- -- Azuregos
@@ -2130,7 +2339,6 @@ local spellIds = {
 	[25806]  = "CC",				-- Creature of Nightmare
 	[12528]  = "Silence",			-- Silence
 	[23207]  = "Silence",			-- Silence
-	[26069]  = "Silence",			-- Silence
 	[29943]  = "Silence",			-- Silence
 	[30225]  = "Silence",			-- Silence
 	------------------------
@@ -2178,9 +2386,9 @@ local spellIds = {
 	[7621]   = "CC",				-- Arugal's Curse
 	[7068]   = "Other",				-- Veil of Shadow
 	[23224]  = "Other",				-- Veil of Shadow
+	[28440]  = "Other",				-- Veil of Shadow
 	[7803]   = "CC",				-- Thundershock
 	[7074]   = "Silence",			-- Screams of the Past
-	[24021]  = "ImmuneSpell",		-- Anti-Magic Shield
 	[93956]  = "Other",				-- Cursed Veil	
 	[67781]  = "Snare",				-- Desecration
 	[93691]  = "Snare",				-- Desecration
@@ -2215,8 +2423,8 @@ local spellIds = {
 	[302956] = "Root",				-- Catch of the Day
 	-- -- The Stockade
 	[3419]   = "Other",				-- Improved Blocking
-	[19134]  = "CC",				-- Intimidating Shout
-	[29544]  = "CC",				-- Intimidating Shout
+	--[19134]  = "CC",				-- Intimidating Shout
+	--[29544]  = "CC",				-- Intimidating Shout
 	[6253]   = "CC",				-- Backhand
 	[204735] = "Snare",				-- Frostbolt
 	[86740]  = "CC",				-- Dirty Blow
@@ -2231,7 +2439,6 @@ local spellIds = {
 	[74720]  = "CC",				-- Pound
 	-- -- Razorfen Kraul
 	[8281]   = "Silence",			-- Sonic Burst
-	[23918]  = "Silence",			-- Sonic Burst
 	[39052]  = "Silence",			-- Sonic Burst
 	[8359]   = "CC",				-- Left for Dead
 	[8285]   = "CC",				-- Rampage
@@ -2295,16 +2502,13 @@ local spellIds = {
 	[11836]  = "CC",				-- Freeze Solid
 	[11131]  = "Snare",				-- Icicle
 	[11641]  = "CC",				-- Hex
-	[12540]  = "CC",				-- Gouge
 	-- -- The Temple of Atal'Hakkar (Sunken Temple)
 	[12888]  = "CC",				-- Cause Insanity
-	[24327]  = "CC",				-- Cause Insanity
-	[26079]  = "CC",				-- Cause Insanity
 	[12480]  = "CC",				-- Hex of Jammal'an
 	[12890]  = "CC",				-- Deep Slumber
-	[25852]  = "CC",				-- Lash
+	--[25852]  = "CC",				-- Lash
 	[6607]   = "CC",				-- Lash
-	[6608]   = "Disarm",			-- Dropped Weapon
+	--[6608]   = "Disarm",			-- Dropped Weapon
 	[25774]  = "CC",				-- Mind Shatter
 	[33126]  = "Disarm",			-- Dropped Weapon
 	[34259]  = "CC",				-- Fear
@@ -2340,6 +2544,7 @@ local spellIds = {
 	[22566]  = "CC",				-- Hex
 	[15618]  = "CC",				-- Snap Kick
 	[16075]  = "CC",				-- Throw Axe
+	[16045]  = "CC",				-- Encage
 	[16104]  = "CC",				-- Crystallize
 	[16508]  = "CC",				-- Intimidating Roar
 	[15609]  = "Root",				-- Hooked Net
@@ -2371,7 +2576,7 @@ local spellIds = {
 	[12557]  = "Snare",				-- Cone of Cold
 	[16869]  = "CC",				-- Ice Tomb
 	[17244]  = "CC",				-- Possess
-	[18327]  = "Silence",			-- Silence
+	--[18327]  = "Silence",			-- Silence
 	[17307]  = "CC",				-- Knockout
 	[15970]  = "CC",				-- Sleep
 	[3589]   = "Silence",			-- Deafening Screech
@@ -2380,15 +2585,12 @@ local spellIds = {
 	[82107]  = "CC",				-- Deep Freeze
 	-- -- Dire Maul
 	[17145]  = "Snare",				-- Blast Wave
-	[21060]  = "CC",				-- Blind
 	[22651]  = "CC",				-- Sacrifice
 	[22419]  = "Disarm",			-- Riptide
-	[22691]  = "Disarm",			-- Disarm
+	--[22691]  = "Disarm",			-- Disarm
 	[22833]  = "CC",				-- Booze Spit (chance to hit reduced by 75%)
 	[22856]  = "CC",				-- Ice Lock
 	[16727]  = "CC",				-- War Stomp
-	[22884]  = "CC",				-- Psychic Scream
-	[22911]  = "CC",				-- Charge
 	--[22735]  = "ImmuneSpell",		-- Spirit of Runn Tum (not immune, 50% chance reflect spells)
 	[22994]  = "Root",				-- Entangle
 	[22924]  = "Root",				-- Grasping Vines
@@ -2406,9 +2608,7 @@ local spellIds = {
 	-- -- Scholomance
 	[5708]   = "CC",				-- Swoop
 	[18144]  = "CC",				-- Swoop
-	[23919]  = "CC",				-- Swoop
 	[18103]  = "CC",				-- Backhand
-	[24619]  = "Silence",			-- Soul Tap
 	[8140]   = "Other",				-- Befuddlement
 	[8611]   = "Immune",			-- Phase Shift
 	[17651]  = "Immune",			-- Image Projection
@@ -2433,53 +2633,61 @@ end
 local anchors = {
 	None = {}, -- empty but necessary
 	Blizzard = {
-		player = "PlayerPortrait",
-		pet    = "PetPortrait",
-		target = "TargetFramePortrait",
-		focus  = "FocusFramePortrait",
-		party1 = "PartyMemberFrame1Portrait",
-		party2 = "PartyMemberFrame2Portrait",
-		party3 = "PartyMemberFrame3Portrait",
-		party4 = "PartyMemberFrame4Portrait",
-		--party1pet = "PartyMemberFrame1PetFramePortrait",
-		--party2pet = "PartyMemberFrame2PetFramePortrait",
-		--party3pet = "PartyMemberFrame3PetFramePortrait",
-		--party4pet = "PartyMemberFrame4PetFramePortrait",
-		arena1 = "ArenaEnemyFrame1ClassPortrait",
-		arena2 = "ArenaEnemyFrame2ClassPortrait",
-		arena3 = "ArenaEnemyFrame3ClassPortrait",
-		arena4 = "ArenaEnemyFrame4ClassPortrait",
-		arena5 = "ArenaEnemyFrame5ClassPortrait",
+		player       = "PlayerPortrait",
+		pet          = "PetPortrait",
+		target       = "TargetFramePortrait",
+		targettarget = "TargetFrameToTPortrait",
+		focus        = "FocusFramePortrait",
+		focustarget  = "FocusFrameToTPortrait",
+		party1       = "PartyMemberFrame1Portrait",
+		party2       = "PartyMemberFrame2Portrait",
+		party3       = "PartyMemberFrame3Portrait",
+		party4       = "PartyMemberFrame4Portrait",
+		--party1pet    = "PartyMemberFrame1PetFramePortrait",
+		--party2pet    = "PartyMemberFrame2PetFramePortrait",
+		--party3pet    = "PartyMemberFrame3PetFramePortrait",
+		--party4pet    = "PartyMemberFrame4PetFramePortrait",
+		arena1      = "ArenaEnemyFrame1ClassPortrait",
+		arena2      = "ArenaEnemyFrame2ClassPortrait",
+		arena3      = "ArenaEnemyFrame3ClassPortrait",
+		arena4      = "ArenaEnemyFrame4ClassPortrait",
+		arena5      = "ArenaEnemyFrame5ClassPortrait",
 	},
 	Perl = {
-		player = "Perl_Player_Portrait",
-		pet    = "Perl_Player_Pet_Portrait",
-		target = "Perl_Target_Portrait",
-		focus  = "Perl_Focus_Portrait",
-		party1 = "Perl_Party_MemberFrame1_Portrait",
-		party2 = "Perl_Party_MemberFrame2_Portrait",
-		party3 = "Perl_Party_MemberFrame3_Portrait",
-		party4 = "Perl_Party_MemberFrame4_Portrait",
+		player       = "Perl_Player_PortraitFrame",
+		pet          = "Perl_Player_Pet_PortraitFrame",
+		target       = "Perl_Target_PortraitFrame",
+		targettarget = "Perl_Target_Target_PortraitFrame",
+		focus        = "Perl_Focus_PortraitFrame",
+		focustarget  = "Perl_Focus_Target_PortraitFrame",
+		party1       = "Perl_Party_MemberFrame1_PortraitFrame",
+		party2       = "Perl_Party_MemberFrame2_PortraitFrame",
+		party3       = "Perl_Party_MemberFrame3_PortraitFrame",
+		party4       = "Perl_Party_MemberFrame4_PortraitFrame",
 	},
 	XPerl = {
-		player = "XPerl_PlayerportraitFrameportrait",
-		pet    = "XPerl_Player_PetportraitFrameportrait",
-		target = "XPerl_TargetportraitFrameportrait",
-		focus  = "XPerl_FocusportraitFrameportrait",
-		party1 = "XPerl_party1portraitFrameportrait",
-		party2 = "XPerl_party2portraitFrameportrait",
-		party3 = "XPerl_party3portraitFrameportrait",
-		party4 = "XPerl_party4portraitFrameportrait",
+		player       = "XPerl_PlayerportraitFrameportrait",
+		pet          = "XPerl_Player_PetportraitFrameportrait",
+		target       = "XPerl_TargetportraitFrameportrait",
+		targettarget = "XPerl_TargettargetportraitFrameportrait",
+		focus        = "XPerl_FocusportraitFrameportrait",
+		focustarget = "XPerl_FocustargetportraitFrameportrait",
+		party1       = "XPerl_party1portraitFrameportrait",
+		party2       = "XPerl_party2portraitFrameportrait",
+		party3       = "XPerl_party3portraitFrameportrait",
+		party4       = "XPerl_party4portraitFrameportrait",
 	},
 	LUI = {
-		player = "oUF_LUI_player",
-		pet    = "oUF_LUI_pet",
-		target = "oUF_LUI_target",
-		focus  = "oUF_LUI_focus",
-		party1 = "oUF_LUI_partyUnitButton1",
-		party2 = "oUF_LUI_partyUnitButton2",
-		party3 = "oUF_LUI_partyUnitButton3",
-		party4 = "oUF_LUI_partyUnitButton4",
+		player       = "oUF_LUI_player",
+		pet          = "oUF_LUI_pet",
+		target       = "oUF_LUI_target",
+		targettarget = "oUF_LUI_targettarget",
+		focus        = "oUF_LUI_focus",
+		focustarget  = "oUF_LUI_focustarget",
+		party1       = "oUF_LUI_partyUnitButton1",
+		party2       = "oUF_LUI_partyUnitButton2",
+		party3       = "oUF_LUI_partyUnitButton3",
+		party4       = "oUF_LUI_partyUnitButton4",
 	},
 	SyncFrames = {
 		arena1 = "SyncFrame1Class",
@@ -2488,32 +2696,50 @@ local anchors = {
 		arena4 = "SyncFrame4Class",
 		arena5 = "SyncFrame5Class",
 	},
-	--SUF = {
-	--	player = SUFUnitplayer.portraitModel.portrait,
-	--	pet    = SUFUnitpet.portraitModel.portrait,
-	--	target = SUFUnittarget.portraitModel.portrait,
-	--	focus  = SUFUnitfocus.portraitModel.portrait,
-	--	party1 = SUFUnitparty1.portraitModel.portrait, -- SUFHeaderpartyUnitButton1 ?
-	--	party2 = SUFUnitparty2.portraitModel.portrait,
-	--	party3 = SUFUnitparty3.portraitModel.portrait,
-	--	party4 = SUFUnitparty4.portraitModel.portrait,
-	--},
+	SUF = {
+		player       = SUFUnitplayer and SUFUnitplayer.portrait or nil,
+		pet          = SUFUnitpet and SUFUnitpet.portrait or nil,
+		target       = SUFUnittarget and SUFUnittarget.portrait or nil,
+		targettarget = SUFUnittargettarget and SUFUnittargettarget.portrait or nil,
+		focus        = SUFUnitfocus and SUFUnitfocus.portrait or nil,
+		focustarget  = SUFUnitfocustarget and SUFUnitfocustarget.portrait or nil,
+		party1       = SUFHeaderpartyUnitButton1 and SUFHeaderpartyUnitButton1.portrait or nil,
+		party2       = SUFHeaderpartyUnitButton2 and SUFHeaderpartyUnitButton2.portrait or nil,
+		party3       = SUFHeaderpartyUnitButton3 and SUFHeaderpartyUnitButton3.portrait or nil,
+		party4       = SUFHeaderpartyUnitButton4 and SUFHeaderpartyUnitButton4.portrait or nil,
+		arena1       = SUFHeaderarenaUnitButton1 and SUFHeaderarenaUnitButton1.portrait or nil,
+		arena2       = SUFHeaderarenaUnitButton2 and SUFHeaderarenaUnitButton2.portrait or nil,
+		arena3       = SUFHeaderarenaUnitButton3 and SUFHeaderarenaUnitButton3.portrait or nil,
+		arena4       = SUFHeaderarenaUnitButton4 and SUFHeaderarenaUnitButton4.portrait or nil,
+		arena5       = SUFHeaderarenaUnitButton5 and SUFHeaderarenaUnitButton5.portrait or nil,
+	},
 	-- more to come here?
 }
 
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 6.1, -- This is the settings version, not necessarily the same as the LoseControl version
+	version = 6.2, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
 	noBlizzardCooldownCount = true,
 	noLossOfControlCooldown = false,
 	disablePartyInBG = true,
 	disableArenaInBG = true,
 	disablePartyInRaid = true,
-	disablePlayerInterrupts = true,
+	disablePlayerTargetTarget = false,
+	disableTargetTargetTarget = false,
+	disablePlayerTargetPlayerTargetTarget = true,
+	disableTargetDeadTargetTarget = true,
+	disablePlayerFocusTarget = false,
+	disableFocusFocusTarget = false,
+	disablePlayerFocusPlayerFocusTarget = true,
+	disableFocusDeadFocusTarget = true,
 	showNPCInterruptsTarget = true,
 	showNPCInterruptsFocus = true,
+	showNPCInterruptsTargetTarget = true,
+	showNPCInterruptsFocusTarget = true,
+	duplicatePlayerPortrait = true,
+	customSpellIds = { },
 	priority = {		-- higher numbers have more priority; 0 = disabled
 		PvE = 90,
 		Immune = 80,
@@ -2523,7 +2749,7 @@ local DBdefaults = {
 		Silence = 50,
 		Interrupt = 40,
 		Disarm = 30,
-		Other = 0,
+		Other = 10,
 		Root = 0,
 		Snare = 0,
 	},
@@ -2533,78 +2759,299 @@ local DBdefaults = {
 			size = 36,
 			alpha = 1,
 			anchor = "None",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = false, ImmuneSpell = false, ImmunePhysical = false, CC = true,  Silence = true,  Disarm = true,  Other = false, Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = false, ImmuneSpell = false, ImmunePhysical = false, CC = true,  Silence = true,  Disarm = true,  Other = false, Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = false
+				}
+			}
+		},
+		player2 = {
+			enabled = true,
+			size = 56,
+			alpha = 1,
+			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true, Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true, Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true
+				}
+			}
 		},
 		pet = {
 			enabled = true,
 			size = 36,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true
+				}
+			}
 		},
 		target = {
 			enabled = true,
 			size = 56,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true,
+					enemy    = true
+				}
+			}
+		},
+		targettarget = {
+			enabled = true,
+			size = 36,
+			alpha = 1,
+			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true,
+					enemy    = true
+				}
+			}
 		},
 		focus = {
 			enabled = true,
 			size = 56,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true,
+					enemy    = true
+				}
+			}
+		},
+		focustarget = {
+			enabled = true,
+			size = 36,
+			alpha = 1,
+			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true,
+					enemy    = true
+				}
+			}
 		},
 		party1 = {
 			enabled = true,
 			size = 36,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true
+				}
+			}
 		},
 		party2 = {
 			enabled = true,
 			size = 36,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true
+				}
+			}
 		},
 		party3 = {
 			enabled = true,
 			size = 36,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true
+				}
+			}
 		},
 		party4 = {
 			enabled = true,
 			size = 36,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true
+				}
+			}
 		},
 		arena1 = {
 			enabled = true,
 			size = 28,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true,
+					enemy    = true
+				}
+			}
 		},
 		arena2 = {
 			enabled = true,
 			size = 28,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true,
+					enemy    = true
+				}
+			}
 		},
 		arena3 = {
 			enabled = true,
 			size = 28,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true,
+					enemy    = true
+				}
+			}
 		},
 		arena4 = {
 			enabled = true,
 			size = 28,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true,
+					enemy    = true
+				}
+			}
 		},
 		arena5 = {
 			enabled = true,
 			size = 28,
 			alpha = 1,
 			anchor = "Blizzard",
+			categoriesEnabled = {
+				buff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				debuff = {
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true },
+					enemy    = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+				},
+				interrupt = {
+					friendly = true,
+					enemy    = true
+				}
+			}
 		},
 	},
 }
@@ -2624,25 +3071,188 @@ function LoseControl:RegisterUnitEvents(enabled)
 	local unitId = self.unitId
 	if debug then print("RegisterUnitEvents", unitId, enabled) end
 	if enabled then
-		self:RegisterUnitEvent("UNIT_AURA", unitId)
 		if unitId == "target" then
+			self:RegisterUnitEvent("UNIT_AURA", unitId)
 			self:RegisterEvent("PLAYER_TARGET_CHANGED")
+		elseif unitId == "targettarget" then
+			self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+			self:RegisterEvent("PLAYER_TARGET_CHANGED")
+			self:RegisterUnitEvent("UNIT_TARGET", "target")
+			self:RegisterEvent("UNIT_AURA")
+			RegisterUnitWatch(self, true)
+			if (not TARGETTOTARGET_ANCHORTRIGGER_UNIT_AURA_HOOK) then
+				-- Update unit frecuently when exists
+				self.UpdateStateFuncCache = function() self:UpdateState(true) end
+				function self:UpdateState(autoCall)
+					if not autoCall and self.timerActive then return end
+					if (self.frame.enabled and not self.unlockMode and UnitExists(self.unitId)) then
+						self.unitGUID = UnitGUID(self.unitId)
+						self:UNIT_AURA(self.unitId, 300)
+						self.timerActive = true
+						C_Timer.After(2.5, self.UpdateStateFuncCache)
+					else
+						self.timerActive = false
+					end
+				end
+				-- Attribute state-unitexists from RegisterUnitWatch
+				self:SetScript("OnAttributeChanged", function(self, name, value)
+					if (self.frame.enabled and not self.unlockMode) then
+						self.unitGUID = UnitGUID(self.unitId)
+						self:UNIT_AURA(self.unitId, 200)
+					end
+					if value then
+						self:UpdateState()
+					end
+				end)
+				-- TargetTarget Blizzard Frame Show
+				TargetFrameToT:HookScript("OnShow", function()
+					if (self.frame.enabled and not self.unlockMode) then
+						self.unitGUID = UnitGUID(self.unitId)
+						if self.frame.anchor == "Blizzard" then
+							self:UNIT_AURA(self.unitId, -30)
+						else
+							self:UNIT_AURA(self.unitId, 30)
+						end
+					end
+				end)
+				-- TargetTarget Blizzard Debuff Show/Hide
+				for i = 1, 4 do
+					local TframeToTDebuff = _G["TargetFrameToTDebuff"..i]
+					if (TframeToTDebuff ~= nil) then
+						TframeToTDebuff:HookScript("OnShow", function()
+							if (self.frame.enabled) then
+								local timeCombatLogAuraEvent = GetTime()
+								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
+									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
+										self.unitGUID = UnitGUID(self.unitId)
+										self:UNIT_AURA(self.unitId, 40)
+									end
+								end)
+							end
+						end)
+						TframeToTDebuff:HookScript("OnHide", function()
+							if (self.frame.enabled) then
+								local timeCombatLogAuraEvent = GetTime()
+								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
+									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
+										self.unitGUID = UnitGUID(self.unitId)
+										self:UNIT_AURA(self.unitId, 43)
+									end
+								end)
+							end
+						end)
+					end
+				end
+				TARGETTOTARGET_ANCHORTRIGGER_UNIT_AURA_HOOK = true
+			end
 		elseif unitId == "focus" then
+			self:RegisterUnitEvent("UNIT_AURA", unitId)
 			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
+		elseif unitId == "focustarget" then
+			self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
+			self:RegisterUnitEvent("UNIT_TARGET", "focus")
+			self:RegisterEvent("UNIT_AURA")
+			RegisterUnitWatch(self, true)
+			if (not FOCUSTOTARGET_ANCHORTRIGGER_UNIT_AURA_HOOK) then
+				-- Update unit frecuently when exists
+				self.UpdateStateFuncCache = function() self:UpdateState(true) end
+				function self:UpdateState(autoCall)
+					if not autoCall and self.timerActive then return end
+					if (self.frame.enabled and not self.unlockMode and UnitExists(self.unitId)) then
+						self.unitGUID = UnitGUID(self.unitId)
+						self:UNIT_AURA(self.unitId, 300)
+						self.timerActive = true
+						C_Timer.After(2.5, self.UpdateStateFuncCache)
+					else
+						self.timerActive = false
+					end
+				end
+				-- Attribute state-unitexists from RegisterUnitWatch
+				self:SetScript("OnAttributeChanged", function(self, name, value)
+					if (self.frame.enabled and not self.unlockMode) then
+						self.unitGUID = UnitGUID(self.unitId)
+						self:UNIT_AURA(self.unitId, 200)
+					end
+					if value then
+						self:UpdateState()
+					end
+				end)
+				-- FocusTarget Blizzard Frame Show
+				FocusFrameToT:HookScript("OnShow", function()
+					if (self.frame.enabled and not self.unlockMode) then
+						self.unitGUID = UnitGUID(self.unitId)
+						if self.frame.anchor == "Blizzard" then
+							self:UNIT_AURA(self.unitId, -30)
+						else
+							self:UNIT_AURA(self.unitId, 30)
+						end
+					end
+				end)
+				-- FocusTarget Blizzard Debuff Show/Hide
+				for i = 1, 4 do
+					local FframeToTDebuff = _G["FocusFrameToTDebuff"..i]
+					if (FframeToTDebuff ~= nil) then
+						FframeToTDebuff:HookScript("OnShow", function()
+							if (self.frame.enabled) then
+								local timeCombatLogAuraEvent = GetTime()
+								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
+									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
+										self.unitGUID = UnitGUID(self.unitId)
+										self:UNIT_AURA(self.unitId, 30)
+									end
+								end)
+							end
+						end)
+						FframeToTDebuff:HookScript("OnHide", function()
+							if (self.frame.enabled) then
+								local timeCombatLogAuraEvent = GetTime()
+								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
+									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
+										self.unitGUID = UnitGUID(self.unitId)
+										self:UNIT_AURA(self.unitId, 31)
+									end
+								end)
+							end
+						end)
+					end
+				end
+				FOCUSTOTARGET_ANCHORTRIGGER_UNIT_AURA_HOOK = true
+			end
 		elseif unitId == "pet" then
+			self:RegisterUnitEvent("UNIT_AURA", unitId)
 			self:RegisterUnitEvent("UNIT_PET", "player")
+		else
+			self:RegisterUnitEvent("UNIT_AURA", unitId)
 		end
 	else
-		self:UnregisterEvent("UNIT_AURA")
 		if unitId == "target" then
+			self:UnregisterEvent("UNIT_AURA")
 			self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+		elseif unitId == "targettarget" then
+			self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+			self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+			self:UnregisterEvent("UNIT_TARGET")
+			self:UnregisterEvent("UNIT_AURA")
+			UnregisterUnitWatch(self)
 		elseif unitId == "focus" then
+			self:UnregisterEvent("UNIT_AURA")
 			self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
+		elseif unitId == "focustarget" then
+			self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+			self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
+			self:UnregisterEvent("UNIT_TARGET")
+			self:UnregisterEvent("UNIT_AURA")
+			UnregisterUnitWatch(self)
 		elseif unitId == "pet" then
+			self:UnregisterEvent("UNIT_AURA")
 			self:UnregisterEvent("UNIT_PET")
+		else
+			self:UnregisterEvent("UNIT_AURA")
 		end
 		if not self.unlockMode then
 			self:Hide()
+			self:GetParent():Hide()
 		end
 	end
 	if (LoseControlDB.priority.Interrupt > 0) then
@@ -2661,6 +3271,51 @@ function LoseControl:RegisterUnitEvents(enabled)
 	else
 		LCframes["target"]:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	end
+end
+
+-- Function to update spellIds table with customSpellIds from user
+function LoseControl:UpdateSpellIdsTableWithCustomSpellIds()
+	for oSpellId, oPriority  in pairs(origSpellIdsChanged) do
+		if (oPriority == "None") then
+			spellIds[oSpellId] = nil
+		else
+			spellIds[oSpellId] = oPriority
+		end
+	end
+	origSpellIdsChanged = { }
+	for cSpellId, cPriority in pairs(LoseControlDB.customSpellIds) do
+		if (cPriority == "None") then
+			local oPriority = spellIds[cSpellId]
+			origSpellIdsChanged[cSpellId] = (oPriority == nil) and "None" or oPriority
+			spellIds[cSpellId] = nil
+		elseif (LoseControlDB.priority[cPriority]) then
+			local oPriority = spellIds[cSpellId]
+			origSpellIdsChanged[cSpellId] = (oPriority == nil) and "None" or oPriority
+			spellIds[cSpellId] = cPriority
+		end
+	end
+end
+
+-- Function to check and clean customSpellIds table
+function LoseControl:CheckAndCleanCustomSpellIdsTable()
+	for cSpellId, cPriority  in pairs(LoseControlDB.customSpellIds) do
+		if (cPriority == "None") then
+			if (origSpellIdsChanged[cSpellId] == "None") then
+				LoseControlDB.customSpellIds[cSpellId] = nil
+				print(addonName, "|cff00ff00["..cSpellId.."]->("..cPriority..")|r Removed from custom list. Reason: This spellId is no longer present in the addon's default spellId list")
+			end
+		elseif (LoseControlDB.priority[cPriority]) then
+			if (origSpellIdsChanged[cSpellId] == cPriority) then
+				LoseControlDB.customSpellIds[cSpellId] = nil
+				print(addonName, "|cff00ff00["..cSpellId.."]->("..cPriority..")|r Removed from custom list. Reason: This spellId is already added with the same priority category in the addon's default spellId list")
+			end
+		else
+			LoseControlDB.customSpellIds[cSpellId] = nil
+			print(addonName, "|cff00ff00["..cSpellId.."]->("..cPriority..")|r Removed from custom list. Reason: This spellId has an invalid associated category")
+		end
+	end
+	print(addonName, "Finished the check-and-clean of custom list")
+	LoseControl:UpdateSpellIdsTableWithCustomSpellIds()
 end
 
 local function SetInterruptIconsSize(iconFrame, iconSize)
@@ -2745,35 +3400,101 @@ end
 -- Handle default settings
 function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == addonName then
-		if (_G.LoseControlDB == nil) or (_G.LoseControlDB.version == nil) then -- never installed before
+		if (_G.LoseControlDB == nil) or (_G.LoseControlDB.version == nil) then
 			_G.LoseControlDB = CopyTable(DBdefaults)
 			print(L["LoseControl reset."])
 		end
 		if _G.LoseControlDB.version < DBdefaults.version then
-			for k, v in pairs(DBdefaults) do
-				if (_G.LoseControlDB[k] == nil) then
-					_G.LoseControlDB[k] = v
+			for j, u in pairs(DBdefaults) do
+				if (_G.LoseControlDB[j] == nil) then
+					_G.LoseControlDB[j] = u
+				elseif (type(u) == "table") then
+					for k, v in pairs(u) do
+						if (_G.LoseControlDB[j][k] == nil) then
+							_G.LoseControlDB[j][k] = v
+						elseif (type(v) == "table") then
+							for l, w in pairs(v) do
+								if (_G.LoseControlDB[j][k][l] == nil) then
+									_G.LoseControlDB[j][k][l] = w
+								elseif (type(w) == "table") then
+									for m, x in pairs(w) do
+										if (_G.LoseControlDB[j][k][l][m] == nil) then
+											_G.LoseControlDB[j][k][l][m] = x
+										elseif (type(x) == "table") then
+											for n, y in pairs(x) do
+												if (_G.LoseControlDB[j][k][l][m][n] == nil) then
+													_G.LoseControlDB[j][k][l][m][n] = y
+												elseif (type(y) == "table") then
+													for o, z in pairs(y) do
+														if (_G.LoseControlDB[j][k][l][m][n][o] == nil) then
+															_G.LoseControlDB[j][k][l][m][n][o] = z
+														end
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
 				end
 			end
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "6.10"
+		self.VERSION = "6.11"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
 		if LoseControlDB.noLossOfControlCooldown then
 			LoseControl:DisableLossOfControlUI()
 		end
+		if (LoseControlDB.duplicatePlayerPortrait and LoseControlDB.frames.player.anchor == "Blizzard") then
+			LoseControlDB.duplicatePlayerPortrait = false
+		end
+		LoseControlDB.frames.player2.enabled = LoseControlDB.duplicatePlayerPortrait and LoseControlDB.frames.player.enabled
 		if LoseControlDB.noCooldownCount then
 			self:SetHideCountdownNumbers(LoseControlDB.noBlizzardCooldownCount)
 			for _, v in pairs(LCframes) do
 				v:SetHideCountdownNumbers(LoseControlDB.noBlizzardCooldownCount)
 			end
+			LCframeplayer2:SetHideCountdownNumbers(LoseControlDB.noBlizzardCooldownCount)
 		else
 			self:SetHideCountdownNumbers(true)
 			for _, v in pairs(LCframes) do
 				v:SetHideCountdownNumbers(true)
+			end
+			LCframeplayer2:SetHideCountdownNumbers(true)
+		end
+		self:UpdateSpellIdsTableWithCustomSpellIds()
+		playerGUID = UnitGUID("player")
+		if Masque then
+			for _, v in pairs(LCframes) do
+				v.MasqueGroup = Masque:Group(addonName, v.unitId)
+				if (LoseControlDB.frames[v.unitId].anchor ~= "Blizzard") then
+					v.MasqueGroup:AddButton(v:GetParent(), {
+						FloatingBG = false,
+						Icon = v.texture,
+						Cooldown = v,
+						Flash = _G[v:GetParent():GetName().."Flash"],
+						Pushed = v:GetParent():GetPushedTexture(),
+						Normal = v:GetParent():GetNormalTexture(),
+						Disabled = v:GetParent():GetDisabledTexture(),
+						Checked = false,
+						Border = _G[v:GetParent():GetName().."Border"],
+						AutoCastable = false,
+						Highlight = v:GetParent():GetHighlightTexture(),
+						Hotkey = _G[v:GetParent():GetName().."HotKey"],
+						Count = _G[v:GetParent():GetName().."Count"],
+						Name = _G[v:GetParent():GetName().."Name"],
+						Duration = false,
+						Shine = _G[v:GetParent():GetName().."Shine"],
+					}, "Button", true)
+					if v.MasqueGroup then
+						v.MasqueGroup:ReSkin()
+					end
+				end
 			end
 		end
 	end
@@ -2781,10 +3502,69 @@ end
 
 LoseControl:RegisterEvent("ADDON_LOADED")
 
+function LoseControl:CheckSUFUnitsAnchors(updateFrame)
+	if not(ShadowUF and (SUFUnitplayer or SUFUnitpet or SUFUnittarget or SUFUnittargettarget or SUFHeaderpartyUnitButton1 or SUFHeaderpartyUnitButton2 or SUFHeaderpartyUnitButton3 or SUFHeaderpartyUnitButton4)) then return false end
+	local frames = { self.unitId }
+	if strfind(self.unitId, "party") then
+		frames = { "party1", "party2", "party3", "party4" }
+	elseif strfind(self.unitId, "arena") then
+		frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+	end
+	for _, unitId in ipairs(frames) do
+		if anchors.SUF.player == nil then anchors.SUF.player = SUFUnitplayer and SUFUnitplayer.portrait or nil end
+		if anchors.SUF.pet == nil then anchors.SUF.pet    = SUFUnitpet and SUFUnitpet.portrait or nil end
+		if anchors.SUF.target == nil then anchors.SUF.target = SUFUnittarget and SUFUnittarget.portrait or nil end
+		if anchors.SUF.targettarget == nil then anchors.SUF.targettarget = SUFUnittargettarget and SUFUnittargettarget.portrait or nil end
+		if anchors.SUF.focus == nil then anchors.SUF.focus = SUFUnitfocus and SUFUnitfocus.portrait or nil end
+		if anchors.SUF.focustarget == nil then anchors.SUF.focustarget = SUFUnitfocustarget and SUFUnitfocustarget.portrait or nil end
+		if anchors.SUF.party1 == nil then anchors.SUF.party1 = SUFHeaderpartyUnitButton1 and SUFHeaderpartyUnitButton1.portrait or nil end
+		if anchors.SUF.party2 == nil then anchors.SUF.party2 = SUFHeaderpartyUnitButton2 and SUFHeaderpartyUnitButton2.portrait or nil end
+		if anchors.SUF.party3 == nil then anchors.SUF.party3 = SUFHeaderpartyUnitButton3 and SUFHeaderpartyUnitButton3.portrait or nil end
+		if anchors.SUF.party4 == nil then anchors.SUF.party4 = SUFHeaderpartyUnitButton4 and SUFHeaderpartyUnitButton4.portrait or nil end
+		if anchors.SUF.arena1 == nil then anchors.SUF.arena1 = SUFHeaderarenaUnitButton1 and SUFHeaderarenaUnitButton1.portrait or nil end
+		if anchors.SUF.arena2 == nil then anchors.SUF.arena2 = SUFHeaderarenaUnitButton2 and SUFHeaderarenaUnitButton2.portrait or nil end
+		if anchors.SUF.arena3 == nil then anchors.SUF.arena3 = SUFHeaderarenaUnitButton3 and SUFHeaderarenaUnitButton3.portrait or nil end
+		if anchors.SUF.arena4 == nil then anchors.SUF.arena4 = SUFHeaderarenaUnitButton4 and SUFHeaderarenaUnitButton4.portrait or nil end
+		if anchors.SUF.arena5 == nil then anchors.SUF.arena5 = SUFHeaderarenaUnitButton5 and SUFHeaderarenaUnitButton5.portrait or nil end
+		if updateFrame and anchors.SUF[unitId] ~= nil then
+			local frame = LoseControlDB.frames[self.fakeUnitId or unitId]
+			local icon = LCframes[unitId]
+			if self.fakeUnitId == "player2" then
+				icon = LCframeplayer2
+			end
+			local newAnchor = _G[anchors[frame.anchor][unitId]] or (type(anchors[frame.anchor][unitId])=="table" and anchors[frame.anchor][unitId] or UIParent)
+			if newAnchor ~= nil and icon.anchor ~= newAnchor then
+				icon.anchor = newAnchor
+				icon:SetPoint(
+					frame.point or "CENTER",
+					icon.anchor,
+					frame.relativePoint or "CENTER",
+					frame.x or 0,
+					frame.y or 0
+				)
+				icon:GetParent():SetPoint(
+					frame.point or "CENTER",
+					icon.anchor,
+					frame.relativePoint or "CENTER",
+					frame.x or 0,
+					frame.y or 0
+				)
+				if icon.anchor:GetParent() then
+					icon:SetFrameLevel(icon.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
+				end
+			end
+		end
+	end
+	if self.fakeUnitId ~= "player2" and self.unitId == "player" then
+		LCframeplayer2:CheckSUFUnitsAnchors(updateFrame)
+	end
+	return true
+end
+
 -- Initialize a frame's position and register for events
 function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy arena frames that aren't created until you zone into an arena
 	local unitId = self.unitId
-	self.frame = LoseControlDB.frames[unitId] -- store a local reference to the frame's settings
+	self.frame = LoseControlDB.frames[self.fakeUnitId or unitId] -- store a local reference to the frame's settings
 	local frame = self.frame
 	local inInstance, instanceType = IsInInstance()
 	local enabled = frame.enabled and not (
@@ -2795,13 +3575,21 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	) and not (
 		IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
 	)
-	self.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
+	if (ShadowUF ~= nil) and not(self:CheckSUFUnitsAnchors(false)) and (self.SUFDelayedSearch == nil) then
+		self.SUFDelayedSearch = GetTime()
+		C_Timer.After(8, function()	-- delay checking to make sure all variables of the other addons are loaded
+			self:CheckSUFUnitsAnchors(true)
+		end)
+	end
+	self.anchor = _G[anchors[frame.anchor][unitId]] or (type(anchors[frame.anchor][unitId])=="table" and anchors[frame.anchor][unitId] or UIParent)
 	self.unitGUID = UnitGUID(self.unitId)
 	self.parent:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
-	--self:SetFrameStrata(frame.strata or "LOW")
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
+	self:GetParent():ClearAllPoints()
 	self:SetWidth(frame.size)
 	self:SetHeight(frame.size)
+	self:GetParent():SetWidth(frame.size)
+	self:GetParent():SetHeight(frame.size)
 	self:RegisterUnitEvents(enabled)
 	
 	self:SetPoint(
@@ -2811,14 +3599,28 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		frame.x or 0,
 		frame.y or 0
 	)
+	self:GetParent():SetPoint(
+		frame.point or "CENTER",
+		self.anchor,
+		frame.relativePoint or "CENTER",
+		frame.x or 0,
+		frame.y or 0
+	)
+	if self.anchor:GetParent() then
+		self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
+	end
+	if self.MasqueGroup then
+		self.MasqueGroup:ReSkin()
+	end
 	
 	SetInterruptIconsSize(self, frame.size)
 	
 	--self:SetAlpha(frame.alpha) -- doesn't seem to work; must manually set alpha after the cooldown is displayed, otherwise it doesn't apply.
 	self:Hide()
+	self:GetParent():Hide()
 	
 	if enabled and not self.unlockMode then
-		self:UNIT_AURA(self.unitId)
+		self:UNIT_AURA(self.unitId, 0)
 	end
 end
 
@@ -2836,8 +3638,9 @@ function LoseControl:GROUP_ROSTER_UPDATE()
 	)
 	self:RegisterUnitEvents(enabled)
 	self.unitGUID = UnitGUID(unitId)
+	self:CheckSUFUnitsAnchors(true)
 	if enabled and not self.unlockMode then
-		self:UNIT_AURA(unitId)
+		self:UNIT_AURA(unitId, 0)
 	end
 end
 
@@ -2849,7 +3652,7 @@ function LoseControl:GROUP_LEFT()
 	self:GROUP_ROSTER_UPDATE()
 end
 
-local function UpdateUnitAuraByUnitGUID(unitGUID)
+local function UpdateUnitAuraByUnitGUID(unitGUID, typeUpdate)
 	local inInstance, instanceType = IsInInstance()
 	for k, v in pairs(LCframes) do
 		local enabled = v.frame.enabled and not (
@@ -2862,7 +3665,10 @@ local function UpdateUnitAuraByUnitGUID(unitGUID)
 		)
 		if enabled and not v.unlockMode then
 			if v.unitGUID == unitGUID then
-				v:UNIT_AURA(k)
+				v:UNIT_AURA(k, typeUpdate)
+				if (k == "player") and LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
+					LCframeplayer2:UNIT_AURA(k, typeUpdate)
+				end
 			end
 		end
 	end
@@ -2881,8 +3687,9 @@ function LoseControl:ARENA_OPPONENT_UPDATE()
 		)
 	)
 	self.unitGUID = UnitGUID(self.unitId)
+	self:CheckSUFUnitsAnchors(true)
 	if enabled and not self.unlockMode then
-		self:UNIT_AURA(unitId)
+		self:UNIT_AURA(unitId, 0)
 	end
 end
 
@@ -2890,274 +3697,325 @@ function LoseControl:ARENA_PREP_OPPONENT_SPECIALIZATIONS()
 	self:ARENA_OPPONENT_UPDATE()
 end
 
--- This event check pvp interrupts
+-- This event check pvp interrupts and targettarget/focustarget unit aura triggers
 function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
-	local _, event, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId, _, _, _, _, spellSchool = CombatLogGetCurrentEventInfo()
-	if (destGUID ~= nil) then
-		if (event == "SPELL_INTERRUPT") then
-			local duration = interruptsIds[spellId]
-			if (duration ~= nil) then
-				local _, destClass = GetPlayerInfoByGUID(destGUID)
-				if (destClass == "DRUID") then
-					local unitIdFromGUID
-					for _, v in pairs(LCframes) do
-						if (UnitGUID(v.unitId) == destGUID) then
-							unitIdFromGUID = v.unitId
-							break
-						end
-					end
-					if (unitIdFromGUID ~= nil) then
-						for i = 1, 40 do
-							local _, _, _, _, _, _, _, _, _, auxSpellId = UnitBuff(unitIdFromGUID, i)
-							if not auxSpellId then break end
-							if auxSpellId == 234084 then		-- Moon and Stars (Druid)
-								duration = duration * 0.3
+	if self.unitId == "target" then
+		-- Check Interrupts
+		local _, event, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId, _, _, _, _, spellSchool = CombatLogGetCurrentEventInfo()
+		if (destGUID ~= nil) then
+			if (event == "SPELL_INTERRUPT") then
+				local duration = interruptsIds[spellId]
+				if (duration ~= nil) then
+					local _, destClass = GetPlayerInfoByGUID(destGUID)
+					if (destClass == "DRUID") then
+						local unitIdFromGUID
+						for _, v in pairs(LCframes) do
+							if (UnitGUID(v.unitId) == destGUID) then
+								unitIdFromGUID = v.unitId
 								break
 							end
-						end	
+						end
+						if (unitIdFromGUID ~= nil) then
+							for i = 1, 40 do
+								local _, _, _, _, _, _, _, _, _, auxSpellId = UnitBuff(unitIdFromGUID, i)
+								if not auxSpellId then break end
+								if auxSpellId == 234084 then		-- Moon and Stars (Druid)
+									duration = duration * 0.3
+									break
+								end
+							end
+						end
 					end
-				end
-				local expirationTime = GetTime() + duration
-				if debug then print("interrupt", ")", destGUID, "|", GetSpellInfo(spellId), "|", duration, "|", expirationTime, "|", spellId) end
-				local priority = LoseControlDB.priority.Interrupt
-				local _, _, icon = GetSpellInfo(spellId)
-				if (InterruptAuras[destGUID] == nil) then
-					InterruptAuras[destGUID] = {}
-				end
-				tblinsert(InterruptAuras[destGUID], { ["spellId"] = spellId, ["duration"] = duration, ["expirationTime"] = expirationTime, ["priority"] = priority, ["icon"] = icon, ["spellSchool"] = spellSchool })
-				UpdateUnitAuraByUnitGUID(destGUID)
-			end
-		elseif (((event == "UNIT_DIED") or (event == "UNIT_DESTROYED") or (event == "UNIT_DISSIPATES")) and (select(2, GetPlayerInfoByGUID(destGUID)) ~= "HUNTER")) then
-			InterruptAuras[destGUID] = nil
-			UpdateUnitAuraByUnitGUID(destGUID)
-		end
-	end
-	if ((sourceGUID ~= nil) and (event == "SPELL_CAST_SUCCESS") and (spellId == 235219)) then
-		local needUpdateUnitAura = false
-		if (InterruptAuras[sourceGUID] ~= nil) then
-			for k, v in pairs(InterruptAuras[sourceGUID]) do
-				if (bit_band(v.spellSchool, 16) > 0) then
-					needUpdateUnitAura = true
-					if (v.spellSchool > 16) then
-						InterruptAuras[sourceGUID][k].spellSchool = InterruptAuras[sourceGUID][k].spellSchool - 16
-					else
-						InterruptAuras[sourceGUID][k] = nil
+					local expirationTime = GetTime() + duration
+					if debug then print("interrupt", ")", destGUID, "|", GetSpellInfo(spellId), "|", duration, "|", expirationTime, "|", spellId) end
+					local priority = LoseControlDB.priority.Interrupt
+					local _, _, icon = GetSpellInfo(spellId)
+					if (InterruptAuras[destGUID] == nil) then
+						InterruptAuras[destGUID] = {}
 					end
+					tblinsert(InterruptAuras[destGUID], { ["spellId"] = spellId, ["duration"] = duration, ["expirationTime"] = expirationTime, ["priority"] = priority, ["icon"] = icon, ["spellSchool"] = spellSchool })
+					UpdateUnitAuraByUnitGUID(destGUID, -20)
 				end
-			end
-			if (next(InterruptAuras[sourceGUID]) == nil) then
-				InterruptAuras[sourceGUID] = nil
+			elseif (((event == "UNIT_DIED") or (event == "UNIT_DESTROYED") or (event == "UNIT_DISSIPATES")) and (select(2, GetPlayerInfoByGUID(destGUID)) ~= "HUNTER")) then
+				if (InterruptAuras[destGUID] ~= nil) then
+					InterruptAuras[destGUID] = nil
+					UpdateUnitAuraByUnitGUID(destGUID, -21)
+				end
 			end
 		end
-		if needUpdateUnitAura then
-			UpdateUnitAuraByUnitGUID(sourceGUID)
+		if ((sourceGUID ~= nil) and (event == "SPELL_CAST_SUCCESS") and (spellId == 235219)) then
+			local needUpdateUnitAura = false
+			if (InterruptAuras[sourceGUID] ~= nil) then
+				for k, v in pairs(InterruptAuras[sourceGUID]) do
+					if (bit_band(v.spellSchool, 16) > 0) then
+						needUpdateUnitAura = true
+						if (v.spellSchool > 16) then
+							InterruptAuras[sourceGUID][k].spellSchool = InterruptAuras[sourceGUID][k].spellSchool - 16
+						else
+							InterruptAuras[sourceGUID][k] = nil
+						end
+					end
+				end
+				if (next(InterruptAuras[sourceGUID]) == nil) then
+					InterruptAuras[sourceGUID] = nil
+				end
+			end
+			if needUpdateUnitAura then
+				UpdateUnitAuraByUnitGUID(sourceGUID, -22)
+			end
+		end
+	elseif (self.unitId == "targettarget" and self.unitGUID ~= nil and (not(LoseControlDB.disablePlayerTargetTarget) or (self.unitGUID ~= playerGUID)) and (not(LoseControlDB.disableTargetTargetTarget) or (self.unitGUID ~= LCframes.target.unitGUID))) or (self.unitId == "focustarget" and self.unitGUID ~= nil and (not(LoseControlDB.disablePlayerFocusTarget) or (self.unitGUID ~= playerGUID)) and (not(LoseControlDB.disableFocusFocusTarget) or (self.unitGUID ~= LCframes.focus.unitGUID))) then
+		-- Manage targettarget/focustarget UNIT_AURA triggers
+		local _, event, _, _, _, _, _, destGUID = CombatLogGetCurrentEventInfo()
+		if (destGUID ~= nil and destGUID == self.unitGUID) then
+			if (event == "SPELL_AURA_APPLIED") or (event == "SPELL_PERIODIC_AURA_APPLIED") or
+			 (event == "SPELL_AURA_REMOVED") or (event == "SPELL_PERIODIC_AURA_REMOVED") or
+			 (event == "SPELL_AURA_APPLIED_DOSE") or (event == "SPELL_PERIODIC_AURA_APPLIED_DOSE") or
+			 (event == "SPELL_AURA_REMOVED_DOSE") or (event == "SPELL_PERIODIC_AURA_REMOVED_DOSE") or
+			 (event == "SPELL_AURA_REFRESH") or (event == "SPELL_PERIODIC_AURA_REFRESH") or
+			 (event == "SPELL_AURA_BROKEN") or (event == "SPELL_PERIODIC_AURA_BROKEN") or
+			 (event == "SPELL_AURA_BROKEN_SPELL") or (event == "SPELL_PERIODIC_AURA_BROKEN_SPELL") or
+			 (event == "UNIT_DIED") or (event == "UNIT_DESTROYED") or (event == "UNIT_DISSIPATES") then
+				local timeCombatLogAuraEvent = GetTime()
+				C_Timer.After(0.01, function()	-- execute in some close next frame to accurate use of UnitAura function
+					if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent ~= timeCombatLogAuraEvent)) then
+						self:UNIT_AURA(self.unitId, 3)
+					end
+				end)
+			end
 		end
 	end
 end
 
 -- This is the main event. Check for (de)buffs and update the frame icon and cooldown.
-function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
-	if not self.anchor:IsVisible() then return end
+function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is gained/lost
+	if (((typeUpdate ~= nil and typeUpdate > 0) or (typeUpdate == nil and self.unitId == "targettarget") or (typeUpdate == nil and self.unitId == "focustarget")) and (self.lastTimeUnitAuraEvent == GetTime())) then return end
+	if ((self.unitId == "targettarget" or self.unitId == "focustarget") and (not UnitIsUnit(unitId, self.unitId))) then return end
 	local priority = LoseControlDB.priority
 	local maxPriority = 1
 	local maxExpirationTime = 0
+	local maxPriorityIsInterrupt = false
 	local Icon, Duration
+	local forceEventUnitAuraAtEnd = false
+	self.lastTimeUnitAuraEvent = GetTime()
 
-	-- Check debuffs
-	for i = 1, 40 do
-		local name, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i, "HARMFUL")
-		if not spellId then break end -- no more debuffs, terminate the loop
-		if debug then print(unitId, "debuff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
+	if (self.anchor:IsVisible() or (self.frame.anchor ~= "None" and self.frame.anchor ~= "Blizzard")) and UnitExists(self.unitId) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetPlayerTargetTarget) or not(UnitIsUnit("player", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetTarget) or not(UnitIsUnit("targettarget", "player")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetTargetTarget) or not(UnitIsUnit("targettarget", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetDeadTargetTarget) or (UnitHealth("target") > 0))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusPlayerFocusTarget) or not(UnitIsUnit("player", "focus") and UnitIsUnit("player", "focustarget")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusTarget) or not(UnitIsUnit("focustarget", "player")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusFocusTarget) or not(UnitIsUnit("focustarget", "focus")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusDeadFocusTarget) or (UnitHealth("focus") > 0))) then
+		local reactionToPlayer = ((self.unitId == "target" or self.unitId == "focus" or self.unitId == "targettarget" or self.unitId == "focustarget" or strfind(self.unitId, "arena")) and UnitCanAttack("player", unitId)) and "enemy" or "friendly"
+		-- Check debuffs
+		for i = 1, 40 do
+			local localForceEventUnitAuraAtEnd = false
+			local name, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i, "HARMFUL")
+			if not spellId then break end -- no more debuffs, terminate the loop
+			if (self.unitId == "targettarget") or (self.unitId == "focustarget") then
+				if debug then print(unitId, "debuff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
+			end
 
-		if duration == 0 and expirationTime == 0 then
-			expirationTime = GetTime() + 1 -- normal expirationTime = 0
+			if duration == 0 and expirationTime == 0 then
+				expirationTime = GetTime() + 1 -- normal expirationTime = 0
+			elseif expirationTime > 0 then
+				localForceEventUnitAuraAtEnd = (self.unitId == "targettarget")
+			end
+			
+			-- exceptions
+			if spellId == 212183 and unitId == "player" then -- Smoke Bomb (don't show countdown)
+				expirationTime = 0
+			elseif spellId == 212638 or spellId == 212150 then	-- Tracker's Net and Cheap Tricks
+				if (UnitIsPlayer(unitId)) then
+					local _, class = UnitClass(unitId)
+					if ((class == "PRIEST") or (class == "MAGE") or (class == "WARLOCK")) then
+						break
+					elseif ((class == "SHAMAN") or (class == "DRUID")) then
+						if (unitId == "player") then 
+							local specID = GetSpecialization()
+							if (specID ~= nil) then
+								specID = GetSpecializationInfo(specID);
+							end
+							if ((specID ~= nil) and (specID ~= 0) and (specID ~= 263) and (specID ~= 103) and (specID ~= 104)) then
+								break
+							end
+						else
+							local powerTypeID = UnitPowerType(unitId)
+							if ((powerTypeID ~= nil) and (powerTypeID ~= 1) and (powerTypeID ~= 3) and (powerTypeID ~= 11)) then
+								break
+							end
+						end
+					end
+				end
+			end
+
+			local spellCategory = spellIds[spellId]
+			local Priority = priority[spellCategory]
+			if self.frame.categoriesEnabled.debuff[reactionToPlayer][spellCategory] then
+				if Priority then
+					if Priority == maxPriority and expirationTime > maxExpirationTime then
+						maxExpirationTime = expirationTime
+						Duration = duration
+						Icon = icon
+						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
+					elseif Priority > maxPriority then
+						maxPriority = Priority
+						maxExpirationTime = expirationTime
+						Duration = duration
+						Icon = icon
+						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
+					end
+				end
+			end
+		end
+
+		-- Check buffs
+		for i = 1, 40 do
+			local localForceEventUnitAuraAtEnd = false
+			local name, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
+			if not spellId then break end -- no more debuffs, terminate the loop
+			if debug then print(unitId, "buff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
+			
+			if duration == 0 and expirationTime == 0 then
+				expirationTime = GetTime() + 1 -- normal expirationTime = 0
+			elseif expirationTime > 0 then
+				localForceEventUnitAuraAtEnd = (self.unitId == "targettarget")
+			end
+			
+			-- exceptions
+			-- exception for The Breast Within
+			if (spellId == 19574) then
+				spellId = 212704
+				for j = 1, 40 do
+					local _, _, _, _, _, _, _, _, _, auxSpellId = UnitBuff(unitId, j)
+					if not auxSpellId then break end
+					if auxSpellId == 212704 then
+						spellId = 19574
+						break
+					end
+				end
+			end
+			
+			local spellCategory = spellIds[spellId]
+			local Priority = priority[spellCategory]
+			if self.frame.categoriesEnabled.buff[reactionToPlayer][spellCategory] then
+				if Priority then
+					if Priority == maxPriority and expirationTime > maxExpirationTime then
+						maxExpirationTime = expirationTime
+						Duration = duration
+						Icon = icon
+						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
+					elseif Priority > maxPriority then
+						maxPriority = Priority
+						maxExpirationTime = expirationTime
+						Duration = duration
+						Icon = icon
+						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
+					end
+				end
+			end
 		end
 		
-		-- exceptions
-		if spellId == 212183 and unitId == "player" then -- Smoke Bomb (don't show countdown)
-			expirationTime = 0
-		elseif spellId == 212638 or spellId == 212150 then	-- Tracker's Net and Cheap Tricks
-			if (UnitIsPlayer(unitId)) then
-				local _, class = UnitClass(unitId)
-				if ((class == "PRIEST") or (class == "MAGE") or (class == "WARLOCK")) then
-					break
-				elseif ((class == "SHAMAN") or (class == "DRUID")) then
-					if (unitId == "player") then 
-						local specID = GetSpecialization()
-						if (specID ~= nil) then
-							specID = GetSpecializationInfo(specID);
-						end
-						if ((specID ~= nil) and (specID ~= 0) and (specID ~= 263) and (specID ~= 103) and (specID ~= 104)) then
-							break
+		-- Check interrupts
+		if ((self.unitGUID ~= nil) and (priority.Interrupt > 0) and self.frame.categoriesEnabled.interrupt[reactionToPlayer] and (UnitIsPlayer(unitId) or (((unitId ~= "target") or (LoseControlDB.showNPCInterruptsTarget)) and ((unitId ~= "focus") or (LoseControlDB.showNPCInterruptsFocus)) and ((unitId ~= "targettarget") or (LoseControlDB.showNPCInterruptsTargetTarget)) and ((unitId ~= "focustarget") or (LoseControlDB.showNPCInterruptsFocusTarget))))) then
+			local spellSchoolInteruptsTable = {
+				[1] = {false, 0},
+				[2] = {false, 0},
+				[4] = {false, 0},
+				[8] = {false, 0},
+				[16] = {false, 0},
+				[32] = {false, 0},
+				[64] = {false, 0}
+			}
+			if (InterruptAuras[self.unitGUID] ~= nil) then
+				for k, v in pairs(InterruptAuras[self.unitGUID]) do
+					local Priority = v.priority
+					local expirationTime = v.expirationTime
+					local duration = v.duration
+					local icon = v.icon
+					local spellSchool = v.spellSchool
+					if (expirationTime < GetTime()) then
+						InterruptAuras[self.unitGUID][k] = nil
+						if (next(InterruptAuras[self.unitGUID]) == nil) then
+							InterruptAuras[self.unitGUID] = nil
 						end
 					else
-						local powerTypeID = UnitPowerType(unitId)
-						if ((powerTypeID ~= nil) and (powerTypeID ~= 1) and (powerTypeID ~= 3) and (powerTypeID ~= 11)) then
-							break
-						end
-					end
-				end
-			end
-		end
-
-		local Priority = priority[spellIds[spellId]]
-		if unitId ~= "player" or (spellIds[spellId] ~= "Immune" and spellIds[spellId] ~= "ImmuneSpell" and spellIds[spellId] ~= "ImmunePhysical" and spellIds[spellId] ~= "Other") then
-			if Priority then
-				if Priority == maxPriority and expirationTime > maxExpirationTime then
-					maxExpirationTime = expirationTime
-					Duration = duration
-					Icon = icon
-				elseif Priority > maxPriority then
-					maxPriority = Priority
-					maxExpirationTime = expirationTime
-					Duration = duration
-					Icon = icon
-				end
-			end
-		end
-	end
-
-	-- Check buffs
-	for i = 1, 40 do
-		local name, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
-		if not spellId then break end
-		if debug then print(unitId, "buff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
-		
-		if expirationTime == 0 then
-			expirationTime = GetTime() + 1 -- normal expirationTime = 0
-		end
-		
-		-- exceptions
-		-- exception for The Breast Within
-		if (spellId == 19574) then
-			spellId = 212704
-			for j = 1, 40 do
-				local _, _, _, _, _, _, _, _, _, auxSpellId = UnitBuff(unitId, j)
-				if not auxSpellId then break end
-				if auxSpellId == 212704 then
-					spellId = 19574
-					break
-				end
-			end
-		end
-		
-		local Priority = priority[spellIds[spellId]]
-		if unitId ~= "player" or (spellIds[spellId] ~= "Immune" and spellIds[spellId] ~= "ImmuneSpell" and spellIds[spellId] ~= "ImmunePhysical" and spellIds[spellId] ~= "Other") then
-			if Priority then
-				if Priority == maxPriority and expirationTime > maxExpirationTime then
-					maxExpirationTime = expirationTime
-					Duration = duration
-					Icon = icon
-				elseif Priority > maxPriority then
-					maxPriority = Priority
-					maxExpirationTime = expirationTime
-					Duration = duration
-					Icon = icon
-				end
-			end
-		end
-	end
-	
-	-- Check interrupts
-	local maxPriorityIsInterrupt = false
-	if ((self.unitGUID ~= nil) and (priority.Interrupt > 0) and ((unitId ~= "player") or (not LoseControlDB.disablePlayerInterrupts)) and ((unitId ~= "target") or (LoseControlDB.showNPCInterruptsTarget) or UnitIsPlayer(unitId)) and ((unitId ~= "focus") or (LoseControlDB.showNPCInterruptsFocus) or UnitIsPlayer(unitId))) then 
-		local spellSchoolInteruptsTable = {
-			[1] = {false, 0},
-			[2] = {false, 0},
-			[4] = {false, 0},
-			[8] = {false, 0},
-			[16] = {false, 0},
-			[32] = {false, 0},
-			[64] = {false, 0}
-		}
-		if (InterruptAuras[self.unitGUID] ~= nil) then
-			for k, v in pairs(InterruptAuras[self.unitGUID]) do
-				local Priority = v.priority
-				local expirationTime = v.expirationTime
-				local duration = v.duration
-				local icon = v.icon
-				local spellSchool = v.spellSchool
-				if (expirationTime < GetTime()) then
-					InterruptAuras[self.unitGUID][k] = nil
-					if (next(InterruptAuras[self.unitGUID]) == nil) then
-						InterruptAuras[self.unitGUID] = nil
-					end
-				else
-					if Priority then
-						for schoolIntId, _ in pairs(spellSchoolInteruptsTable) do
-							if (bit_band(spellSchool, schoolIntId) > 0) then
-								spellSchoolInteruptsTable[schoolIntId][1] = true
-								if expirationTime > spellSchoolInteruptsTable[schoolIntId][2] then
-									spellSchoolInteruptsTable[schoolIntId][2] = expirationTime
+						if Priority then
+							for schoolIntId, _ in pairs(spellSchoolInteruptsTable) do
+								if (bit_band(spellSchool, schoolIntId) > 0) then
+									spellSchoolInteruptsTable[schoolIntId][1] = true
+									if expirationTime > spellSchoolInteruptsTable[schoolIntId][2] then
+										spellSchoolInteruptsTable[schoolIntId][2] = expirationTime
+									end
 								end
 							end
-						end
-						if Priority == maxPriority and expirationTime > maxExpirationTime then
-							maxExpirationTime = expirationTime
-							Duration = duration
-							Icon = icon
-							maxPriorityIsInterrupt = true
-							local nextTimerUpdate = expirationTime - GetTime() + 0.05
-							if nextTimerUpdate < 0.05 then
-								nextTimerUpdate = 0.05
-							end
-							C_Timer.After(nextTimerUpdate, function()
-								self:UNIT_AURA(unitId)
-								for e, f in pairs(InterruptAuras) do
-									for g, h in pairs(f) do
-										if (h.expirationTime < GetTime()) then
-											InterruptAuras[e][g] = nil
+							if Priority == maxPriority and expirationTime > maxExpirationTime then
+								maxExpirationTime = expirationTime
+								Duration = duration
+								Icon = icon
+								maxPriorityIsInterrupt = true
+								forceEventUnitAuraAtEnd = false
+								local nextTimerUpdate = expirationTime - GetTime() + 0.05
+								if nextTimerUpdate < 0.05 then
+									nextTimerUpdate = 0.05
+								end
+								C_Timer.After(nextTimerUpdate, function()
+									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < (GetTime() - 0.04))) then
+										self:UNIT_AURA(unitId, 20)
+									end
+									for e, f in pairs(InterruptAuras) do
+										for g, h in pairs(f) do
+											if (h.expirationTime < GetTime()) then
+												InterruptAuras[e][g] = nil
+											end
+										end
+										if (next(InterruptAuras[e]) == nil) then
+											InterruptAuras[e] = nil
 										end
 									end
-									if (next(InterruptAuras[e]) == nil) then
-										InterruptAuras[e] = nil
-									end
+								end)
+							elseif Priority > maxPriority then
+								maxPriority = Priority
+								maxExpirationTime = expirationTime
+								Duration = duration
+								Icon = icon
+								maxPriorityIsInterrupt = true
+								forceEventUnitAuraAtEnd = false
+								local nextTimerUpdate = expirationTime - GetTime() + 0.05
+								if nextTimerUpdate < 0.05 then
+									nextTimerUpdate = 0.05
 								end
-							end)
-						elseif Priority > maxPriority then
-							maxPriority = Priority
-							maxExpirationTime = expirationTime
-							Duration = duration
-							Icon = icon
-							maxPriorityIsInterrupt = true
-							local nextTimerUpdate = expirationTime - GetTime() + 0.05
-							if nextTimerUpdate < 0.05 then
-								nextTimerUpdate = 0.05
-							end
-							C_Timer.After(nextTimerUpdate, function()
-								self:UNIT_AURA(unitId)
-								for e, f in pairs(InterruptAuras) do
-									for g, h in pairs(f) do
-										if (h.expirationTime < GetTime()) then
-											InterruptAuras[e][g] = nil
+								C_Timer.After(nextTimerUpdate, function()
+									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < (GetTime() - 0.04))) then
+										self:UNIT_AURA(unitId, 20)
+									end
+									for e, f in pairs(InterruptAuras) do
+										for g, h in pairs(f) do
+											if (h.expirationTime < GetTime()) then
+												InterruptAuras[e][g] = nil
+											end
+										end
+										if (next(InterruptAuras[e]) == nil) then
+											InterruptAuras[e] = nil
 										end
 									end
-									if (next(InterruptAuras[e]) == nil) then
-										InterruptAuras[e] = nil
-									end
-								end
-							end)
+								end)
+							end
 						end
 					end
 				end
 			end
-		end
-		for schoolIntId, schoolIntFrame in pairs(self.iconInterruptList) do
-			if spellSchoolInteruptsTable[schoolIntId][1] then
-				if (not schoolIntFrame:IsShown()) then
-					schoolIntFrame:Show()
-				end
-				local orderInt = 1
-				for schoolInt2Id, schoolInt2Info in pairs(spellSchoolInteruptsTable) do
-					if ((schoolInt2Info[1]) and ((spellSchoolInteruptsTable[schoolIntId][2] < schoolInt2Info[2]) or ((spellSchoolInteruptsTable[schoolIntId][2] == schoolInt2Info[2]) and (schoolIntId > schoolInt2Id)))) then
-						orderInt = orderInt + 1
+			for schoolIntId, schoolIntFrame in pairs(self.iconInterruptList) do
+				if spellSchoolInteruptsTable[schoolIntId][1] then
+					if (not schoolIntFrame:IsShown()) then
+						schoolIntFrame:Show()
 					end
+					local orderInt = 1
+					for schoolInt2Id, schoolInt2Info in pairs(spellSchoolInteruptsTable) do
+						if ((schoolInt2Info[1]) and ((spellSchoolInteruptsTable[schoolIntId][2] < schoolInt2Info[2]) or ((spellSchoolInteruptsTable[schoolIntId][2] == schoolInt2Info[2]) and (schoolIntId > schoolInt2Id)))) then
+							orderInt = orderInt + 1
+						end
+					end
+					schoolIntFrame:SetPoint("BOTTOMRIGHT", self.interruptIconOrderPos[orderInt][1], self.interruptIconOrderPos[orderInt][2])
+					schoolIntFrame.interruptIconOrder = orderInt
+				elseif schoolIntFrame:IsShown() then
+					schoolIntFrame.interruptIconOrder = nil
+					schoolIntFrame:Hide()
 				end
-				schoolIntFrame:SetPoint("BOTTOMRIGHT", self.interruptIconOrderPos[orderInt][1], self.interruptIconOrderPos[orderInt][2])
-				schoolIntFrame.interruptIconOrder = orderInt
-			elseif schoolIntFrame:IsShown() then
-				schoolIntFrame.interruptIconOrder = nil
-				schoolIntFrame:Hide()
 			end
 		end
 	end
@@ -3171,10 +4029,11 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			self.iconInterruptBackground:Hide()
 		end
 		self:Hide()
+		self:GetParent():Hide()
 	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
 		self.maxExpirationTime = maxExpirationTime
 		if self.anchor ~= UIParent then
-			self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()) -- must be dynamic, frame level changes all the time
+			self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()+((self.frame.anchor ~= "None" and self.frame.anchor ~= "Blizzard") and 3 or 0)) -- must be dynamic, frame level changes all the time
 			if not self.drawlayer and self.anchor.GetDrawLayer then
 				self.drawlayer = self.anchor:GetDrawLayer() -- back up the current draw layer
 			end
@@ -3204,7 +4063,19 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			self.texture:SetTexture(Icon)
 			self:SetSwipeColor(0, 0, 0, 0.8)	-- This is the default alpha of the normal swipe cooldown texture
 		end
+		if forceEventUnitAuraAtEnd and maxExpirationTime > 0 and Duration > 0 then
+			local nextTimerUpdate = maxExpirationTime - GetTime() + 0.10
+			if nextTimerUpdate < 0.10 then
+				nextTimerUpdate = 0.10
+			end
+			C_Timer.After(nextTimerUpdate, function()
+				if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < (GetTime() - 0.08))) then
+					self:UNIT_AURA(unitId, 4)
+				end
+			end)
+		end
 		self:Show()
+		self:GetParent():Show()
 		if Duration > 0 then
 			if not self:GetDrawSwipe() then
 				self:SetDrawSwipe(true)
@@ -3218,37 +4089,47 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			self:SetCooldown(GetTime(), 0)	--needs execute two times (or the icon can dissapear; yes, it's weird...)
 		end
 		--UIFrameFadeOut(self, Duration, self.frame.alpha, 0)
-		self:SetAlpha(self.frame.alpha) -- hack to apply transparency to the cooldown timer
+		self:GetParent():SetAlpha(self.frame.alpha) -- hack to apply transparency to the cooldown timer
 	end
 end
 
 function LoseControl:PLAYER_FOCUS_CHANGED()
 	--if (debug) then print("PLAYER_FOCUS_CHANGED") end
-	if (self.unitId == "focus") then
-		self.unitGUID = UnitGUID("focus")
-	end
-	if not self.unlockMode then
-		self:UNIT_AURA("focus")
+	if (self.unitId == "focus" or self.unitId == "focustarget") then
+		self.unitGUID = UnitGUID(self.unitId)
+		if not self.unlockMode then
+			self:UNIT_AURA(self.unitId, -10)
+		end
 	end
 end
 
 function LoseControl:PLAYER_TARGET_CHANGED()
 	--if (debug) then print("PLAYER_TARGET_CHANGED") end
-	if (self.unitId == "target") then
-		self.unitGUID = UnitGUID("target")
+	if (self.unitId == "target" or self.unitId == "targettarget") then
+		self.unitGUID = UnitGUID(self.unitId)
+		if not self.unlockMode then
+			self:UNIT_AURA(self.unitId, -11)
+		end
 	end
-	if not self.unlockMode then
-		self:UNIT_AURA("target")
+end
+
+function LoseControl:UNIT_TARGET(unitId)
+	--if (debug) then print("UNIT_TARGET", unitId) end
+	if (self.unitId == "targettarget" or self.unitId == "focustarget") then
+		self.unitGUID = UnitGUID(self.unitId)
+		if not self.unlockMode then
+			self:UNIT_AURA(self.unitId, -12)
+		end
 	end
 end
 
 function LoseControl:UNIT_PET(unitId)
 	--if (debug) then print("UNIT_PET", unitId) end
 	if (self.unitId == "pet") then
-		self.unitGUID = UnitGUID("pet")
-	end
-	if not self.unlockMode then
-		self:UNIT_AURA("pet")
+		self.unitGUID = UnitGUID(self.unitId)
+		if not self.unlockMode then
+			self:UNIT_AURA(self.unitId, -13)
+		end
 	end
 end
 
@@ -3258,15 +4139,72 @@ function LoseControl:StopMoving()
 	frame.point, frame.anchor, frame.relativePoint, frame.x, frame.y = self:GetPoint()
 	if not frame.anchor then
 		frame.anchor = "None"
+		local AnchorDropDown = _G['LoseControlOptionsPanel'..self.unitId..'AnchorDropDown']
+		if (AnchorDropDown) then
+			UIDropDownMenu_SetSelectedValue(AnchorDropDown, frame.anchor)
+		end
+		if self.MasqueGroup then
+			self.MasqueGroup:RemoveButton(self:GetParent())
+			self.MasqueGroup:AddButton(self:GetParent(), {
+				FloatingBG = false,
+				Icon = self.texture,
+				Cooldown = self,
+				Flash = _G[self:GetParent():GetName().."Flash"],
+				Pushed = self:GetParent():GetPushedTexture(),
+				Normal = self:GetParent():GetNormalTexture(),
+				Disabled = self:GetParent():GetDisabledTexture(),
+				Checked = false,
+				Border = _G[self:GetParent():GetName().."Border"],
+				AutoCastable = false,
+				Highlight = self:GetParent():GetHighlightTexture(),
+				Hotkey = _G[self:GetParent():GetName().."HotKey"],
+				Count = _G[self:GetParent():GetName().."Count"],
+				Name = _G[self:GetParent():GetName().."Name"],
+				Duration = false,
+				Shine = _G[self:GetParent():GetName().."Shine"],
+			}, "Button", true)
+		end
 	end
-	self.anchor = _G[anchors[frame.anchor][self.unitId]] or UIParent
+	self.anchor = _G[anchors[frame.anchor][self.unitId]] or (type(anchors[frame.anchor][self.unitId])=="table" and anchors[frame.anchor][self.unitId] or UIParent)
+	self:ClearAllPoints()
+	self:GetParent():ClearAllPoints()
+	self:SetPoint(
+		frame.point or "CENTER",
+		self.anchor,
+		frame.relativePoint or "CENTER",
+		frame.x or 0,
+		frame.y or 0
+	)
+	self:GetParent():SetPoint(
+		frame.point or "CENTER",
+		self.anchor,
+		frame.relativePoint or "CENTER",
+		frame.x or 0,
+		frame.y or 0
+	)
+	if self.MasqueGroup then
+		self.MasqueGroup:ReSkin()
+	end
 	self:StopMovingOrSizing()
 end
 
 -- Constructor method
 function LoseControl:new(unitId)
 	local o = CreateFrame("Cooldown", addonName .. unitId, nil, 'CooldownFrameTemplate') --, UIParent)
-	local op = CreateFrame("Frame", addonName .. "FrameParent" .. unitId)
+	local op = CreateFrame("Button", addonName .. "ButtonParent" .. unitId, nil, 'ActionButtonTemplate')
+	op:EnableMouse(false)
+	if op:GetPushedTexture() ~= nil then op:GetPushedTexture():SetAlpha(0) op:GetPushedTexture():Hide() end
+	if op:GetNormalTexture() ~= nil then op:GetNormalTexture():SetAlpha(0) op:GetNormalTexture():Hide() end
+	if op:GetDisabledTexture() ~= nil then op:GetDisabledTexture():SetAlpha(0) op:GetDisabledTexture():Hide() end
+	if op:GetHighlightTexture() ~= nil then op:GetHighlightTexture():SetAlpha(0) op:GetHighlightTexture():Hide() end
+	if _G[op:GetName().."Shine"] ~= nil then _G[op:GetName().."Shine"]:SetAlpha(0) _G[op:GetName().."Shine"]:Hide() end
+	if _G[op:GetName().."Count"] ~= nil then _G[op:GetName().."Count"]:SetAlpha(0) _G[op:GetName().."Count"]:Hide() end
+	if _G[op:GetName().."HotKey"] ~= nil then _G[op:GetName().."HotKey"]:SetAlpha(0) _G[op:GetName().."HotKey"]:Hide() end
+	if _G[op:GetName().."Flash"] ~= nil then _G[op:GetName().."Flash"]:SetAlpha(0) _G[op:GetName().."Flash"]:Hide() end
+	if _G[op:GetName().."Name"] ~= nil then _G[op:GetName().."Name"]:SetAlpha(0) _G[op:GetName().."Name"]:Hide() end
+	if _G[op:GetName().."Border"] ~= nil then _G[op:GetName().."Border"]:SetAlpha(0) _G[op:GetName().."Border"]:Hide() end
+	if _G[op:GetName().."Icon"] ~= nil then _G[op:GetName().."Icon"]:SetAlpha(0) _G[op:GetName().."Icon"]:Hide() end
+	
 	setmetatable(o, self)
 	self.__index = self
 	
@@ -3276,13 +4214,19 @@ function LoseControl:new(unitId)
 	o:SetDrawEdge(false)
 
 	-- Init class members
-	o.unitId = unitId -- ties the object to a unit
+	if unitId == "player2" then
+		o.unitId = "player" -- ties the object to a unit
+		o.fakeUnitId = unitId
+	else
+		o.unitId = unitId -- ties the object to a unit
+	end
+	o:SetAttribute("unit", o.unitId)
 	o.texture = o:CreateTexture(nil, "BORDER") -- displays the debuff; draw layer should equal "BORDER" because cooldown spirals are drawn in the "ARTWORK" layer.
 	o.texture:SetAllPoints(o) -- anchor the texture to the frame
 	o:SetReverse(true) -- makes the cooldown shade from light to dark instead of dark to light
 
 	o.text = o:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	o.text:SetText(L[unitId])
+	o.text:SetText(L[o.unitId])
 	o.text:SetPoint("BOTTOM", o, "BOTTOM")
 	o.text:Hide()
 
@@ -3297,6 +4241,7 @@ function LoseControl:new(unitId)
 	--o.overlay:SetPoint("BOTTOMRIGHT", 1, -1)
 	--o.overlay:SetVertexColor(0.25, 0.25, 0.25)
 	o:Hide()
+	op:Hide()
 
 	-- Create and initialize Interrupt Mini Icons
 	o.iconInterruptBackground = o:CreateTexture(addonName .. unitId .. "InterruptIconBackground", "ARTWORK", nil, -2)
@@ -3351,8 +4296,11 @@ end
 
 -- Create new object instance for each frame
 for k in pairs(DBdefaults.frames) do
-	LCframes[k] = LoseControl:new(k)
+	if (k ~= "player2") then
+		LCframes[k] = LoseControl:new(k)
+	end
 end
+LCframeplayer2 = LoseControl:new("player2")
 
 -------------------------------------------------------------------------------
 -- Add main Interface Option Panel
@@ -3382,25 +4330,43 @@ function Unlock:OnClick()
 			tinsert(keys, k)
 		end
 		for k, v in pairs(LCframes) do
+			v.maxExpirationTime = 0
 			v.unlockMode = true
 			local frame = LoseControlDB.frames[k]
-			if frame.enabled and (_G[anchors[frame.anchor][k]] or frame.anchor == "None") then -- only unlock frames whose anchor exists
+			if frame.enabled and (_G[anchors[frame.anchor][k]] or (type(anchors[frame.anchor][k])=="table" and anchors[frame.anchor][k] or frame.anchor == "None")) then -- only unlock frames whose anchor exists
 				v:RegisterUnitEvents(false)
 				v.texture:SetTexture(select(3, GetSpellInfo(keys[random(#keys)])))
 				v.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
-				--v:SetFrameStrata(frame.strata or "MEDIUM")
 				if v.anchor:GetParent() then
-					v:SetFrameLevel(v.anchor:GetParent():GetFrameLevel())
+					v:SetFrameLevel(v.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
 				end
 				v.text:Show()
 				v:Show()
+				v:GetParent():Show()
 				v:SetDrawSwipe(true)
 				v:SetCooldown( GetTime(), 60 )
-				v:SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
+				v:GetParent():SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
 				v:SetMovable(true)
 				v:RegisterForDrag("LeftButton")
 				v:EnableMouse(true)
 			end
+		end
+		LCframeplayer2.maxExpirationTime = 0
+		LCframeplayer2.unlockMode = true
+		local frame = LoseControlDB.frames.player2
+		if frame.enabled and (_G[anchors[frame.anchor][LCframeplayer2.unit]] or (type(anchors[frame.anchor][LCframeplayer2.unit])=="table" and anchors[frame.anchor][LCframeplayer2.unit] or frame.anchor == "None")) then -- only unlock frames whose anchor exists
+			LCframeplayer2:RegisterUnitEvents(false)
+			LCframeplayer2.texture:SetTexture(select(3, GetSpellInfo(keys[random(#keys)])))
+			LCframeplayer2.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
+			if LCframeplayer2.anchor:GetParent() then
+				LCframeplayer2:SetFrameLevel(LCframeplayer2.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
+			end
+			LCframeplayer2.text:Show()
+			LCframeplayer2:Show()
+			LCframeplayer2:GetParent():Show()
+			LCframeplayer2:SetDrawSwipe(true)
+			LCframeplayer2:SetCooldown( GetTime(), 60 )
+			LCframeplayer2:GetParent():SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
 		end
 	else
 		_G[O.."UnlockText"]:SetText(L["Unlock"])
@@ -3412,6 +4378,9 @@ function Unlock:OnClick()
 			v.text:Hide()
 			v:PLAYER_ENTERING_WORLD()
 		end
+		LCframeplayer2.unlockMode = false
+		LCframeplayer2.text:Hide()
+		LCframeplayer2:PLAYER_ENTERING_WORLD()
 	end
 end
 Unlock:SetScript("OnClick", Unlock.OnClick)
@@ -3425,6 +4394,7 @@ function DisableBlizzardCooldownCount:Check(value)
 	for _, v in pairs(LCframes) do
 		v:SetHideCountdownNumbers(LoseControlDB.noBlizzardCooldownCount)
 	end
+	LCframeplayer2:SetHideCountdownNumbers(LoseControlDB.noBlizzardCooldownCount)
 end
 DisableBlizzardCooldownCount:SetScript("OnClick", function(self)
 	DisableBlizzardCooldownCount:Check(self:GetChecked())
@@ -3496,7 +4466,7 @@ end
 
 local PrioritySlider = {}
 for k in pairs(DBdefaults.priority) do
-	PrioritySlider[k] = CreateSlider(L[k], OptionsPanel, 0, 100, 5)
+	PrioritySlider[k] = CreateSlider(L[k], OptionsPanel, 0, 100, 5, "Priority"..k.."Slider")
 	PrioritySlider[k]:SetScript("OnValueChanged", function(self, value)
 		_G[self:GetName() .. "Text"]:SetText(L[k] .. " (" .. value .. ")")
 		LoseControlDB.priority[k] = value
@@ -3540,6 +4510,7 @@ OptionsPanel.default = function() -- This method will run when the player clicks
 	for _, v in pairs(LCframes) do
 		v:PLAYER_ENTERING_WORLD()
 	end
+	LCframeplayer2:PLAYER_ENTERING_WORLD()
 end
 
 OptionsPanel.refresh = function() -- This method will run when the Interface Options frame calls its OnShow function and after defaults have been applied via the panel.default method described above.
@@ -3551,6 +4522,9 @@ OptionsPanel.refresh = function() -- This method will run when the Interface Opt
 		_G[O.."DisableBlizzardCooldownCountText"]:SetTextColor(0.5,0.5,0.5)
 		DisableBlizzardCooldownCount:SetChecked(true)
 		DisableBlizzardCooldownCount:Check(true)
+	else
+		DisableBlizzardCooldownCount:Enable()
+		_G[O.."DisableBlizzardCooldownCountText"]:SetTextColor(_G[O.."DisableCooldownCountText"]:GetTextColor())
 	end
 	local priority = LoseControlDB.priority
 	for k in pairs(priority) do
@@ -3574,13 +4548,57 @@ end
 
 -------------------------------------------------------------------------------
 -- Create sub-option frames
-for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
+for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena" }) do
 	local OptionsPanelFrame = CreateFrame("Frame", O..v)
 	OptionsPanelFrame.parent = addonName
 	OptionsPanelFrame.name = L[v]
 
 	local AnchorDropDownLabel = OptionsPanelFrame:CreateFontString(O..v.."AnchorDropDownLabel", "ARTWORK", "GameFontNormal")
 	AnchorDropDownLabel:SetText(L["Anchor"])
+	local AnchorDropDown2Label
+	if v == "player" then
+		AnchorDropDown2Label = OptionsPanelFrame:CreateFontString(O..v.."AnchorDropDown2Label", "ARTWORK", "GameFontNormal")
+		AnchorDropDown2Label:SetText(L["Anchor"])
+	end
+	local CategoriesEnabledLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoriesEnabledLabel", "ARTWORK", "GameFontNormal")
+	CategoriesEnabledLabel:SetText(L["CategoriesEnabledLabel"])
+	CategoriesEnabledLabel:SetJustifyH("LEFT")
+	local CategoryEnabledInterruptLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledInterruptLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledInterruptLabel:SetText(L["Interrupt"]..":")
+	local CategoryEnabledPvELabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledPvELabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledPvELabel:SetText(L["PvE"]..":")
+	local CategoryEnabledImmuneLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledImmuneLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledImmuneLabel:SetText(L["Immune"]..":")
+	local CategoryEnabledImmuneSpellLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledImmuneSpellLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledImmuneSpellLabel:SetText(L["ImmuneSpell"]..":")
+	local CategoryEnabledImmunePhysicalLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledImmunePhysicalLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledImmunePhysicalLabel:SetText(L["ImmunePhysical"]..":")
+	local CategoryEnabledCCLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledCCLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledCCLabel:SetText(L["CC"]..":")
+	local CategoryEnabledSilenceLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledSilenceLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledSilenceLabel:SetText(L["Silence"]..":")
+	local CategoryEnabledDisarmLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledDisarmLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledDisarmLabel:SetText(L["Disarm"]..":")
+	local CategoryEnabledRootLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledRootLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledRootLabel:SetText(L["Root"]..":")
+	local CategoryEnabledSnareLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledSnareLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledSnareLabel:SetText(L["Snare"]..":")
+	local CategoryEnabledOtherLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoryEnabledOtherLabel", "ARTWORK", "GameFontNormal")
+	CategoryEnabledOtherLabel:SetText(L["Other"]..":")
+	local CategoriesLabels = {
+		["Interrupt"] = CategoryEnabledInterruptLabel,
+		["PvE"] = CategoryEnabledPvELabel,
+		["Immune"] = CategoryEnabledImmuneLabel,
+		["ImmuneSpell"] = CategoryEnabledImmuneSpellLabel,
+		["ImmunePhysical"] = CategoryEnabledImmunePhysicalLabel,
+		["CC"] = CategoryEnabledCCLabel,
+		["Silence"] = CategoryEnabledSilenceLabel,
+		["Disarm"] = CategoryEnabledDisarmLabel,
+		["Root"] = CategoryEnabledRootLabel,
+		["Snare"] = CategoryEnabledSnareLabel,
+		["Other"] = CategoryEnabledOtherLabel
+	}
+	
 	local AnchorDropDown = CreateFrame("Frame", O..v.."AnchorDropDown", OptionsPanelFrame, "UIDropDownMenuTemplate")
 	function AnchorDropDown:OnClick()
 		UIDropDownMenu_SetSelectedValue(AnchorDropDown, self.value)
@@ -3594,6 +4612,7 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			local frame = LoseControlDB.frames[unitId]
 			local icon = LCframes[unitId]
 			frame.anchor = self.value
+			icon.anchor = _G[anchors[frame.anchor][unitId]] or (type(anchors[frame.anchor][unitId])=="table" and anchors[frame.anchor][unitId] or UIParent)
 			if self.value ~= "None" then -- reset the frame position so it centers on the anchor frame
 				frame.point = nil
 				frame.relativePoint = nil
@@ -3606,16 +4625,50 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 					elseif (strfind(unitId, "arena")) then
 						portrSizeValue = 28
 					end
+					if (unitId == "player") and LoseControlDB.duplicatePlayerPortrait then
+						local DuplicatePlayerPortrait = _G['LoseControlOptionsPanel'..unitId..'DuplicatePlayerPortrait']
+						if DuplicatePlayerPortrait then
+							DuplicatePlayerPortrait:SetChecked(false)
+							DuplicatePlayerPortrait:Check(false)
+						end
+					end
 					frame.size = portrSizeValue
 					icon:SetWidth(portrSizeValue)
 					icon:SetHeight(portrSizeValue)
+					icon:GetParent():SetWidth(portrSizeValue)
+					icon:GetParent():SetHeight(portrSizeValue)
+					if icon.MasqueGroup then
+						icon.MasqueGroup:RemoveButton(icon:GetParent())
+					end
 					_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"]:SetValue(portrSizeValue)
 				end
+			else
+				if icon.MasqueGroup then
+					icon.MasqueGroup:RemoveButton(icon:GetParent())
+					icon.MasqueGroup:AddButton(icon:GetParent(), {
+						FloatingBG = false,
+						Icon = icon.texture,
+						Cooldown = icon,
+						Flash = _G[icon:GetParent():GetName().."Flash"],
+						Pushed = icon:GetParent():GetPushedTexture(),
+						Normal = icon:GetParent():GetNormalTexture(),
+						Disabled = icon:GetParent():GetDisabledTexture(),
+						Checked = false,
+						Border = _G[icon:GetParent():GetName().."Border"],
+						AutoCastable = false,
+						Highlight = icon:GetParent():GetHighlightTexture(),
+						Hotkey = _G[icon:GetParent():GetName().."HotKey"],
+						Count = _G[icon:GetParent():GetName().."Count"],
+						Name = _G[icon:GetParent():GetName().."Name"],
+						Duration = false,
+						Shine = _G[icon:GetParent():GetName().."Shine"],
+					}, "Button", true)
+				end
 			end
-			icon.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
 			SetInterruptIconsSize(icon, frame.size)
 
 			icon:ClearAllPoints() -- if we don't do this then the frame won't always move
+			icon:GetParent():ClearAllPoints()
 			icon:SetPoint(
 				frame.point or "CENTER",
 				icon.anchor,
@@ -3623,10 +4676,67 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 				frame.x or 0,
 				frame.y or 0
 			)
+			icon:GetParent():SetPoint(
+				frame.point or "CENTER",
+				icon.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+			if icon.anchor:GetParent() then
+				icon:SetFrameLevel(icon.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
+			end
+			if icon.MasqueGroup then
+				icon.MasqueGroup:ReSkin()
+			end
 		end
 	end
 
-	local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanelFrame, 16, 512, 4, OptionsPanelFrame:GetName() .. "IconSizeSlider")
+	local AnchorDropDown2
+	if v == "player" then
+		AnchorDropDown2	= CreateFrame("Frame", O..v.."AnchorDropDown2", OptionsPanelFrame, "UIDropDownMenuTemplate")
+		function AnchorDropDown2:OnClick()
+			UIDropDownMenu_SetSelectedValue(AnchorDropDown2, self.value)
+			local frame = LoseControlDB.frames.player2
+			local icon = LCframeplayer2
+			frame.anchor = self.value
+			frame.point = nil
+			frame.relativePoint = nil
+			frame.x = nil
+			frame.y = nil
+			if self.value == "Blizzard" then
+				local portrSizeValue = 56
+				frame.size = portrSizeValue
+				icon:SetWidth(portrSizeValue)
+				icon:SetHeight(portrSizeValue)
+				icon:GetParent():SetWidth(portrSizeValue)
+				icon:GetParent():SetHeight(portrSizeValue)
+			end
+			icon.anchor = _G[anchors[frame.anchor][LCframes.player.unitId]] or (type(anchors[frame.anchor][LCframes.player.unitId])=="table" and anchors[frame.anchor][LCframes.player.unitId] or UIParent)
+			SetInterruptIconsSize(icon, frame.size)
+			icon:ClearAllPoints() -- if we don't do this then the frame won't always move
+			icon:GetParent():ClearAllPoints()
+			icon:SetPoint(
+				frame.point or "CENTER",
+				icon.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+			icon:GetParent():SetPoint(
+				frame.point or "CENTER",
+				icon.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+			if icon.anchor:GetParent() then
+				icon:SetFrameLevel(icon.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
+			end
+		end
+	end
+
+	local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanelFrame, 16, 256, 2, OptionsPanelFrame:GetName() .. "IconSizeSlider")
 	SizeSlider:SetScript("OnValueChanged", function(self, value)
 		_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
 		local frames = { v }
@@ -3639,11 +4749,16 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			LoseControlDB.frames[frame].size = value
 			LCframes[frame]:SetWidth(value)
 			LCframes[frame]:SetHeight(value)
+			LCframes[frame]:GetParent():SetWidth(value)
+			LCframes[frame]:GetParent():SetHeight(value)
+			if LCframes[frame].MasqueGroup then
+				LCframes[frame].MasqueGroup:ReSkin()
+			end
 			SetInterruptIconsSize(LCframes[frame], value)
 		end
 	end)
 
-	local AlphaSlider = CreateSlider(L["Opacity"], OptionsPanelFrame, 0, 100, 5) -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
+	local AlphaSlider = CreateSlider(L["Opacity"], OptionsPanelFrame, 0, 100, 2, OptionsPanelFrame:GetName() .. "OpacitySlider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
 	AlphaSlider:SetScript("OnValueChanged", function(self, value)
 		_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
 		local frames = { v }
@@ -3654,9 +4769,22 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].alpha = value / 100 -- the real alpha value
-			LCframes[frame]:SetAlpha(value / 100)
+			LCframes[frame]:GetParent():SetAlpha(value / 100)
 		end
 	end)
+
+	local AlphaSlider2
+	if v == "player" then
+		AlphaSlider2 = CreateSlider(L["Opacity"], OptionsPanelFrame, 0, 100, 2, OptionsPanelFrame:GetName() .. "Opacity2Slider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
+		AlphaSlider2:SetScript("OnValueChanged", function(self, value)
+			_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
+			local frames = { v }
+			if v == "player" then
+				LoseControlDB.frames.player2.alpha = value / 100 -- the real alpha value
+				LCframeplayer2:GetParent():SetAlpha(value / 100)
+			end
+		end)
+	end
 
 	local DisableInBG
 	if v == "party" then
@@ -3666,6 +4794,7 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			LoseControlDB.disablePartyInBG = self:GetChecked()
 			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
 				for i = 1, 4 do
+					LCframes[v .. i].maxExpirationTime = 0
 					LCframes[v .. i]:PLAYER_ENTERING_WORLD()
 				end
 			end
@@ -3677,6 +4806,7 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			LoseControlDB.disableArenaInBG = self:GetChecked()
 			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
 				for i = 1, 5 do
+					LCframes[v .. i].maxExpirationTime = 0
 					LCframes[v .. i]:PLAYER_ENTERING_WORLD()
 				end
 			end
@@ -3691,26 +4821,15 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			LoseControlDB.disablePartyInRaid = self:GetChecked()
 			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
 				for i = 1, 4 do
+					LCframes[v .. i].maxExpirationTime = 0
 					LCframes[v .. i]:PLAYER_ENTERING_WORLD()
 				end
 			end
 		end)
 	end
 
-	local DisableInterrupts
-	if v == "player" then
-		DisableInterrupts = CreateFrame("CheckButton", O..v.."DisableInterrupts", OptionsPanelFrame, "OptionsCheckButtonTemplate")
-		_G[O..v.."DisableInterruptsText"]:SetText(L["DisableInterrupts"])
-		DisableInterrupts:SetScript("OnClick", function(self)
-			LoseControlDB.disablePlayerInterrupts = self:GetChecked()
-			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
-				LCframes[v]:PLAYER_ENTERING_WORLD()
-			end
-		end)
-	end
-	
 	local ShowNPCInterrupts
-	if v == "target" or v == "focus" then
+	if v == "target" or v == "focus" or v == "targettarget" or v == "focustarget"  then
 		ShowNPCInterrupts = CreateFrame("CheckButton", O..v.."ShowNPCInterrupts", OptionsPanelFrame, "OptionsCheckButtonTemplate")
 		_G[O..v.."ShowNPCInterruptsText"]:SetText(L["ShowNPCInterrupts"])
 		ShowNPCInterrupts:SetScript("OnClick", function(self)
@@ -3718,10 +4837,340 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 				LoseControlDB.showNPCInterruptsTarget = self:GetChecked()
 			elseif v == "focus" then
 				LoseControlDB.showNPCInterruptsFocus = self:GetChecked()
+			elseif v == "targettarget" then
+				LoseControlDB.showNPCInterruptsTargetTarget = self:GetChecked()
+			elseif v == "focustarget" then
+				LoseControlDB.showNPCInterruptsFocusTarget = self:GetChecked()
 			end
 			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				LCframes[v].maxExpirationTime = 0
 				LCframes[v]:PLAYER_ENTERING_WORLD()
 			end
+		end)
+	end
+
+	local DisablePlayerTargetTarget
+	if v == "targettarget" or v == "focustarget" then
+		DisablePlayerTargetTarget = CreateFrame("CheckButton", O..v.."DisablePlayerTargetTarget", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisablePlayerTargetTargetText"]:SetText(L["DisablePlayerTargetTarget"])
+		DisablePlayerTargetTarget:SetScript("OnClick", function(self)
+			if v == "targettarget" then
+				LoseControlDB.disablePlayerTargetTarget = self:GetChecked()
+			elseif v == "focustarget" then
+				LoseControlDB.disablePlayerFocusTarget = self:GetChecked()
+			end
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				LCframes[v].maxExpirationTime = 0
+				LCframes[v]:PLAYER_ENTERING_WORLD()
+			end
+		end)
+	end
+
+	local DisableTargetTargetTarget
+	if v == "targettarget" then
+		DisableTargetTargetTarget = CreateFrame("CheckButton", O..v.."DisableTargetTargetTarget", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisableTargetTargetTargetText"]:SetText(L["DisableTargetTargetTarget"])
+		DisableTargetTargetTarget:SetScript("OnClick", function(self)
+			LoseControlDB.disableTargetTargetTarget = self:GetChecked()
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				LCframes[v].maxExpirationTime = 0
+				LCframes[v]:PLAYER_ENTERING_WORLD()
+			end
+		end)
+	end
+
+	local DisablePlayerTargetPlayerTargetTarget
+	if v == "targettarget" then
+		DisablePlayerTargetPlayerTargetTarget = CreateFrame("CheckButton", O..v.."DisablePlayerTargetPlayerTargetTarget", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisablePlayerTargetPlayerTargetTargetText"]:SetText(L["DisablePlayerTargetPlayerTargetTarget"])
+		DisablePlayerTargetPlayerTargetTarget:SetScript("OnClick", function(self)
+			LoseControlDB.disablePlayerTargetPlayerTargetTarget = self:GetChecked()
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				LCframes[v].maxExpirationTime = 0
+				LCframes[v]:PLAYER_ENTERING_WORLD()
+			end
+		end)
+	end
+
+	local DisableTargetDeadTargetTarget
+	if v == "targettarget" then
+		DisableTargetDeadTargetTarget = CreateFrame("CheckButton", O..v.."DisableTargetDeadTargetTarget", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisableTargetDeadTargetTargetText"]:SetText(L["DisableTargetDeadTargetTarget"])
+		DisableTargetDeadTargetTarget:SetScript("OnClick", function(self)
+			LoseControlDB.disableTargetDeadTargetTarget = self:GetChecked()
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				LCframes[v].maxExpirationTime = 0
+				LCframes[v]:PLAYER_ENTERING_WORLD()
+			end
+		end)
+	end
+	
+	local DisableFocusFocusTarget
+	if v == "focustarget" then
+		DisableFocusFocusTarget = CreateFrame("CheckButton", O..v.."DisableFocusFocusTarget", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisableFocusFocusTargetText"]:SetText(L["DisableFocusFocusTarget"])
+		DisableFocusFocusTarget:SetScript("OnClick", function(self)
+			LoseControlDB.disableFocusFocusTarget = self:GetChecked()
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				LCframes[v].maxExpirationTime = 0
+				LCframes[v]:PLAYER_ENTERING_WORLD()
+			end
+		end)
+	end
+
+	local DisablePlayerFocusPlayerFocusTarget
+	if v == "focustarget" then
+		DisablePlayerFocusPlayerFocusTarget = CreateFrame("CheckButton", O..v.."DisablePlayerFocusPlayerFocusTarget", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisablePlayerFocusPlayerFocusTargetText"]:SetText(L["DisablePlayerFocusPlayerFocusTarget"])
+		DisablePlayerFocusPlayerFocusTarget:SetScript("OnClick", function(self)
+			LoseControlDB.disablePlayerFocusPlayerFocusTarget = self:GetChecked()
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				LCframes[v].maxExpirationTime = 0
+				LCframes[v]:PLAYER_ENTERING_WORLD()
+			end
+		end)
+	end
+
+	local DisableFocusDeadFocusTarget
+	if v == "focustarget" then
+		DisableFocusDeadFocusTarget = CreateFrame("CheckButton", O..v.."DisableFocusDeadFocusTarget", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisableFocusDeadFocusTargetText"]:SetText(L["DisableFocusDeadFocusTarget"])
+		DisableFocusDeadFocusTarget:SetScript("OnClick", function(self)
+			LoseControlDB.disableFocusDeadFocusTarget = self:GetChecked()
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				LCframes[v].maxExpirationTime = 0
+				LCframes[v]:PLAYER_ENTERING_WORLD()
+			end
+		end)
+	end
+
+	local catListEnChecksButtons = { "PvE", "Immune", "ImmuneSpell", "ImmunePhysical", "CC", "Silence", "Disarm", "Root", "Snare", "Other" }
+	local CategoriesCheckButtons = { }
+	local FriendlyInterrupt = CreateFrame("CheckButton", O..v.."FriendlyInterrupt", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+	FriendlyInterrupt:SetHitRectInsets(0, -36, 0, 0)
+	_G[O..v.."FriendlyInterruptText"]:SetText(L["CatFriendly"])
+	FriendlyInterrupt:SetScript("OnClick", function(self)
+		local frames = { v }
+		if v == "party" then
+			frames = { "party1", "party2", "party3", "party4" }
+		end
+		for _, frame in ipairs(frames) do
+			LoseControlDB.frames[frame].categoriesEnabled.interrupt.friendly = self:GetChecked()
+			LCframes[frame].maxExpirationTime = 0
+			if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
+				LCframes[frame]:UNIT_AURA(frame, 0)
+			end
+		end
+	end)
+	tblinsert(CategoriesCheckButtons, { frame = FriendlyInterrupt, auraType = "interrupt", reaction = "friendly", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 140, yPos = 5 })
+	if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or strfind(v, "arena") then
+		local EnemyInterrupt = CreateFrame("CheckButton", O..v.."EnemyInterrupt", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		EnemyInterrupt:SetHitRectInsets(0, -36, 0, 0)
+		_G[O..v.."EnemyInterruptText"]:SetText(L["CatEnemy"])
+		EnemyInterrupt:SetScript("OnClick", function(self)
+			LoseControlDB.frames[v].categoriesEnabled.interrupt.enemy = self:GetChecked()
+			LCframes[v].maxExpirationTime = 0
+			if LoseControlDB.frames[v].enabled and not LCframes[v].unlockMode then
+				LCframes[v]:UNIT_AURA(v, 0)
+			end
+		end)
+		tblinsert(CategoriesCheckButtons, { frame = EnemyInterrupt, auraType = "interrupt", reaction = "enemy", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 270, yPos = 5 })
+	end
+	for _, cat in pairs(catListEnChecksButtons) do
+		local FriendlyBuff = CreateFrame("CheckButton", O..v.."Friendly"..cat.."Buff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		FriendlyBuff:SetHitRectInsets(0, -36, 0, 0)
+		_G[O..v.."Friendly"..cat.."BuffText"]:SetText(L["CatFriendlyBuff"])
+		FriendlyBuff:SetScript("OnClick", function(self)
+			local frames = { v }
+			if v == "party" then
+				frames = { "party1", "party2", "party3", "party4" }
+			end
+			for _, frame in ipairs(frames) do
+				LoseControlDB.frames[frame].categoriesEnabled.buff.friendly[cat] = self:GetChecked()
+				LCframes[frame].maxExpirationTime = 0
+				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
+					LCframes[frame]:UNIT_AURA(frame, 0)
+				end
+			end
+		end)
+		tblinsert(CategoriesCheckButtons, { frame = FriendlyBuff, auraType = "buff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 140, yPos = 5 })
+		local FriendlyDebuff = CreateFrame("CheckButton", O..v.."Friendly"..cat.."Debuff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		FriendlyDebuff:SetHitRectInsets(0, -36, 0, 0)
+		_G[O..v.."Friendly"..cat.."DebuffText"]:SetText(L["CatFriendlyDebuff"])
+		FriendlyDebuff:SetScript("OnClick", function(self)
+			local frames = { v }
+			if v == "party" then
+				frames = { "party1", "party2", "party3", "party4" }
+			end
+			for _, frame in ipairs(frames) do
+				LoseControlDB.frames[frame].categoriesEnabled.debuff.friendly[cat] = self:GetChecked()
+				LCframes[frame].maxExpirationTime = 0
+				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
+					LCframes[frame]:UNIT_AURA(frame, 0)
+				end
+			end
+		end)
+		tblinsert(CategoriesCheckButtons, { frame = FriendlyDebuff, auraType = "debuff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 205, yPos = 5 })
+		if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or strfind(v, "arena") then
+			local EnemyBuff = CreateFrame("CheckButton", O..v.."Enemy"..cat.."Buff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+			EnemyBuff:SetHitRectInsets(0, -36, 0, 0)
+			_G[O..v.."Enemy"..cat.."BuffText"]:SetText(L["CatEnemyBuff"])
+			EnemyBuff:SetScript("OnClick", function(self)
+				LoseControlDB.frames[v].categoriesEnabled.buff.enemy[cat] = self:GetChecked()
+				LCframes[v].maxExpirationTime = 0
+				if LoseControlDB.frames[v].enabled and not LCframes[v].unlockMode then
+					LCframes[v]:UNIT_AURA(v, 0)
+				end
+			end)
+			tblinsert(CategoriesCheckButtons, { frame = EnemyBuff, auraType = "buff", reaction = "enemy", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 270, yPos = 5 })
+		end
+		if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or strfind(v, "arena") then
+			local EnemyDebuff = CreateFrame("CheckButton", O..v.."Enemy"..cat.."Debuff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+			EnemyDebuff:SetHitRectInsets(0, -36, 0, 0)
+			_G[O..v.."Enemy"..cat.."DebuffText"]:SetText(L["CatEnemyDebuff"])
+			EnemyDebuff:SetScript("OnClick", function(self)
+				LoseControlDB.frames[v].categoriesEnabled.debuff.enemy[cat] = self:GetChecked()
+				LCframes[v].maxExpirationTime = 0
+				if LoseControlDB.frames[v].enabled and not LCframes[v].unlockMode then
+					LCframes[v]:UNIT_AURA(v, 0)
+				end
+			end)
+			tblinsert(CategoriesCheckButtons, { frame = EnemyDebuff, auraType = "debuff", reaction = "enemy", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 335, yPos = 5 })
+		end
+	end
+
+	local CategoriesCheckButtonsPlayer2
+	if (v == "player") then
+		CategoriesCheckButtonsPlayer2 = { }
+		local FriendlyInterruptPlayer2 = CreateFrame("CheckButton", O..v.."FriendlyInterruptPlayer2", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		FriendlyInterruptPlayer2:SetHitRectInsets(0, -36, 0, 0)
+		_G[O..v.."FriendlyInterruptPlayer2Text"]:SetText(L["CatFriendly"].."|cfff28614(Icon2)|r")
+		FriendlyInterruptPlayer2:SetScript("OnClick", function(self)
+			LoseControlDB.frames.player2.categoriesEnabled.interrupt.friendly = self:GetChecked()
+			LCframeplayer2.maxExpirationTime = 0
+			if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
+				LCframeplayer2:UNIT_AURA(v, 0)
+			end
+		end)
+		tblinsert(CategoriesCheckButtonsPlayer2, { frame = FriendlyInterruptPlayer2, auraType = "interrupt", reaction = "friendly", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 310, yPos = 5 })
+		for _, cat in pairs(catListEnChecksButtons) do
+			local FriendlyBuffPlayer2 = CreateFrame("CheckButton", O..v.."Friendly"..cat.."BuffPlayer2", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+			FriendlyBuffPlayer2:SetHitRectInsets(0, -36, 0, 0)
+			_G[O..v.."Friendly"..cat.."BuffPlayer2Text"]:SetText(L["CatFriendlyBuff"].."|cfff28614(Icon2)|r")
+			FriendlyBuffPlayer2:SetScript("OnClick", function(self)
+				LoseControlDB.frames.player2.categoriesEnabled.buff.friendly[cat] = self:GetChecked()
+				LCframeplayer2.maxExpirationTime = 0
+				if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
+					LCframeplayer2:UNIT_AURA(v, 0)
+				end
+			end)
+			tblinsert(CategoriesCheckButtonsPlayer2, { frame = FriendlyBuffPlayer2, auraType = "buff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 310, yPos = 5 })
+			local FriendlyDebuffPlayer2 = CreateFrame("CheckButton", O..v.."Friendly"..cat.."DebuffPlayer2", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+			FriendlyDebuffPlayer2:SetHitRectInsets(0, -36, 0, 0)
+			_G[O..v.."Friendly"..cat.."DebuffPlayer2Text"]:SetText(L["CatFriendlyDebuff"].."|cfff28614(Icon2)|r")
+			FriendlyDebuffPlayer2:SetScript("OnClick", function(self)
+				LoseControlDB.frames.player2.categoriesEnabled.debuff.friendly[cat] = self:GetChecked()
+				LCframeplayer2.maxExpirationTime = 0
+				if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
+					LCframeplayer2:UNIT_AURA(v, 0)
+				end
+			end)
+			tblinsert(CategoriesCheckButtonsPlayer2, { frame = FriendlyDebuffPlayer2, auraType = "debuff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 419, yPos = 5 })
+		end
+	end
+
+	local DuplicatePlayerPortrait
+	if v == "player" then
+		DuplicatePlayerPortrait = CreateFrame("CheckButton", O..v.."DuplicatePlayerPortrait", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DuplicatePlayerPortraitText"]:SetText(L["DuplicatePlayerPortrait"])
+		function DuplicatePlayerPortrait:Check(value)
+			LoseControlDB.duplicatePlayerPortrait = self:GetChecked()
+			local enable = LoseControlDB.duplicatePlayerPortrait and LoseControlDB.frames.player.enabled
+			if AlphaSlider2 then
+				if enable then
+					BlizzardOptionsPanel_Slider_Enable(AlphaSlider2)
+				else
+					BlizzardOptionsPanel_Slider_Disable(AlphaSlider2)
+				end
+			end
+			if AnchorDropDown2 then
+				if enable then
+					UIDropDownMenu_EnableDropDown(AnchorDropDown2)
+				else
+					UIDropDownMenu_DisableDropDown(AnchorDropDown2)
+				end
+			end
+			if CategoriesCheckButtonsPlayer2 then
+				if enable then
+					for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+						BlizzardOptionsPanel_CheckButton_Enable(checkbuttonframeplayer2.frame)
+					end
+				else
+					for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+						BlizzardOptionsPanel_CheckButton_Disable(checkbuttonframeplayer2.frame)
+					end
+				end
+			end
+			LoseControlDB.frames.player2.enabled = enable
+			LCframeplayer2.maxExpirationTime = 0
+			LCframeplayer2:RegisterUnitEvents(enable)
+			if self:GetChecked() and LoseControlDB.frames.player.anchor ~= "None" then
+				local frame = LoseControlDB.frames["player"]
+				frame.anchor = "None"
+				local AnchorDropDown = _G['LoseControlOptionsPanel'..LCframes.player.unitId..'AnchorDropDown']
+				if (AnchorDropDown) then
+					UIDropDownMenu_SetSelectedValue(AnchorDropDown, frame.anchor)
+				end
+				if LCframes.player.MasqueGroup then
+					LCframes.player.MasqueGroup:RemoveButton(LCframes.player:GetParent())
+					LCframes.player.MasqueGroup:AddButton(LCframes.player:GetParent(), {
+						FloatingBG = false,
+						Icon = LCframes.player.texture,
+						Cooldown = LCframes.player,
+						Flash = _G[LCframes.player:GetParent():GetName().."Flash"],
+						Pushed = LCframes.player:GetParent():GetPushedTexture(),
+						Normal = LCframes.player:GetParent():GetNormalTexture(),
+						Disabled = LCframes.player:GetParent():GetDisabledTexture(),
+						Checked = false,
+						Border = _G[LCframes.player:GetParent():GetName().."Border"],
+						AutoCastable = false,
+						Highlight = LCframes.player:GetParent():GetHighlightTexture(),
+						Hotkey = _G[LCframes.player:GetParent():GetName().."HotKey"],
+						Count = _G[LCframes.player:GetParent():GetName().."Count"],
+						Name = _G[LCframes.player:GetParent():GetName().."Name"],
+						Duration = false,
+						Shine = _G[LCframes.player:GetParent():GetName().."Shine"],
+					}, "Button", true)
+				end
+				LCframes.player.anchor = _G[anchors[frame.anchor][LCframes.player.unitId]] or (type(anchors[frame.anchor][LCframes.player.unitId])=="table" and anchors[frame.anchor][LCframes.player.unitId] or UIParent)
+				LCframes.player:ClearAllPoints()
+				LCframes.player:SetPoint(
+					"CENTER",
+					LCframes.player.anchor,
+					"CENTER",
+					0,
+					0
+				)
+				LCframes.player:GetParent():SetPoint(
+					"CENTER",
+					LCframes.player.anchor,
+					"CENTER",
+					0,
+					0
+				)
+				if LCframes.player.anchor:GetParent() then
+					LCframes.player:SetFrameLevel(LCframes.player.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
+				end
+				if LCframes.player.MasqueGroup then
+					LCframes.player.MasqueGroup:ReSkin()
+				end
+			end
+			if enable and not LCframeplayer2.unlockMode then
+				LCframeplayer2:UNIT_AURA(v, 0)
+			end
+		end
+		DuplicatePlayerPortrait:SetScript("OnClick", function(self)
+			DuplicatePlayerPortrait:Check(self:GetChecked())
 		end)
 	end
 
@@ -3732,17 +5181,88 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 		if enabled then
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Enable(DisableInRaid) end
-			if DisableInterrupts then BlizzardOptionsPanel_CheckButton_Enable(DisableInterrupts) end
 			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Enable(ShowNPCInterrupts) end
+			if DisablePlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisablePlayerTargetTarget) end
+			if DisableTargetTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisableTargetTargetTarget) end
+			if DisablePlayerTargetPlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisablePlayerTargetPlayerTargetTarget) end
+			if DisableTargetDeadTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisableTargetDeadTargetTarget) end
+			if DisableFocusFocusTarget then BlizzardOptionsPanel_CheckButton_Enable(DisableFocusFocusTarget) end
+			if DisablePlayerFocusPlayerFocusTarget then BlizzardOptionsPanel_CheckButton_Enable(DisablePlayerFocusPlayerFocusTarget) end
+			if DisableFocusDeadFocusTarget then BlizzardOptionsPanel_CheckButton_Enable(DisableFocusDeadFocusTarget) end
+			if DuplicatePlayerPortrait then BlizzardOptionsPanel_CheckButton_Enable(DuplicatePlayerPortrait) end
+			for _, checkbuttonframe in pairs(CategoriesCheckButtons) do
+				BlizzardOptionsPanel_CheckButton_Enable(checkbuttonframe.frame)
+			end
+			if CategoriesCheckButtonsPlayer2 then
+				if LoseControlDB.duplicatePlayerPortrait then
+					for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+						BlizzardOptionsPanel_CheckButton_Enable(checkbuttonframeplayer2.frame)
+					end
+				else
+					for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+						BlizzardOptionsPanel_CheckButton_Disable(checkbuttonframeplayer2.frame)
+					end
+				end
+			end
+			CategoriesEnabledLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledInterruptLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledPvELabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledImmuneLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledImmuneSpellLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledImmunePhysicalLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledCCLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledSilenceLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledDisarmLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledRootLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledSnareLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledOtherLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
+			UIDropDownMenu_EnableDropDown(AnchorDropDown)
+			if LoseControlDB.duplicatePlayerPortrait then
+				if AlphaSlider2 then BlizzardOptionsPanel_Slider_Enable(AlphaSlider2) end
+				if AnchorDropDown2 then UIDropDownMenu_EnableDropDown(AnchorDropDown2) end
+			else
+				if AlphaSlider2 then BlizzardOptionsPanel_Slider_Disable(AlphaSlider2) end
+				if AnchorDropDown2 then UIDropDownMenu_DisableDropDown(AnchorDropDown2) end
+			end
 		else
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Disable(DisableInRaid) end
-			if DisableInterrupts then BlizzardOptionsPanel_CheckButton_Disable(DisableInterrupts) end
 			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Disable(ShowNPCInterrupts) end
+			if DisablePlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisablePlayerTargetTarget) end
+			if DisableTargetTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisableTargetTargetTarget) end
+			if DisablePlayerTargetPlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisablePlayerTargetPlayerTargetTarget) end
+			if DisableTargetDeadTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisableTargetDeadTargetTarget) end
+			if DisableFocusFocusTarget then BlizzardOptionsPanel_CheckButton_Disable(DisableFocusFocusTarget) end
+			if DisablePlayerFocusPlayerFocusTarget then BlizzardOptionsPanel_CheckButton_Disable(DisablePlayerFocusPlayerFocusTarget) end
+			if DisableFocusDeadFocusTarget then BlizzardOptionsPanel_CheckButton_Disable(DisableFocusDeadFocusTarget) end
+			if DuplicatePlayerPortrait then BlizzardOptionsPanel_CheckButton_Disable(DuplicatePlayerPortrait) end
+			for _, checkbuttonframe in pairs(CategoriesCheckButtons) do
+				BlizzardOptionsPanel_CheckButton_Disable(checkbuttonframe.frame)
+			end
+			if CategoriesCheckButtonsPlayer2 then
+				for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+					BlizzardOptionsPanel_CheckButton_Disable(checkbuttonframeplayer2.frame)
+				end
+			end
+			CategoriesEnabledLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledInterruptLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledPvELabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledImmuneLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledImmuneSpellLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledImmunePhysicalLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledCCLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledSilenceLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledDisarmLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledRootLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledSnareLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledOtherLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
+			UIDropDownMenu_DisableDropDown(AnchorDropDown)
+			if AlphaSlider2 then BlizzardOptionsPanel_Slider_Disable(AlphaSlider2) end
+			if AnchorDropDown2 then UIDropDownMenu_DisableDropDown(AnchorDropDown2) end
 		end
 		local frames = { v }
 		if v == "party" then
@@ -3761,9 +5281,18 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			) and not (
 				IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
 			)
+			LCframes[frame].maxExpirationTime = 0
 			LCframes[frame]:RegisterUnitEvents(enable)
 			if enable and not LCframes[frame].unlockMode then
-				LCframes[frame]:UNIT_AURA(frame)
+				LCframes[frame]:UNIT_AURA(frame, 0)
+			end
+			if (frame == "player") then
+				LoseControlDB.frames.player2.enabled = enabled and LoseControlDB.duplicatePlayerPortrait
+				LCframeplayer2.maxExpirationTime = 0
+				LCframeplayer2:RegisterUnitEvents(enabled and LoseControlDB.duplicatePlayerPortrait)
+				if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
+					LCframeplayer2:UNIT_AURA(frame, 0)
+				end
 			end
 		end
 	end)
@@ -3771,12 +5300,42 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 	Enabled:SetPoint("TOPLEFT", 16, -32)
 	if DisableInBG then DisableInBG:SetPoint("TOPLEFT", Enabled, 200, 0) end
 	if DisableInRaid then DisableInRaid:SetPoint("TOPLEFT", Enabled, 200, -25) end
-	if DisableInterrupts then DisableInterrupts:SetPoint("TOPLEFT", Enabled, 200, 0) end
 	if ShowNPCInterrupts then ShowNPCInterrupts:SetPoint("TOPLEFT", Enabled, 200, 0) end
+	if DisablePlayerTargetTarget then DisablePlayerTargetTarget:SetPoint("TOPLEFT", Enabled, 200, -25) end
+	if DisableTargetTargetTarget then DisableTargetTargetTarget:SetPoint("TOPLEFT", Enabled, 200, -50) end
+	if DisablePlayerTargetPlayerTargetTarget then DisablePlayerTargetPlayerTargetTarget:SetPoint("TOPLEFT", Enabled, 200, -75) end
+	if DisableTargetDeadTargetTarget then DisableTargetDeadTargetTarget:SetPoint("TOPLEFT", Enabled, 200, -100) end
+	if DisableFocusFocusTarget then DisableFocusFocusTarget:SetPoint("TOPLEFT", Enabled, 200, -50) end
+	if DisablePlayerFocusPlayerFocusTarget then DisablePlayerFocusPlayerFocusTarget:SetPoint("TOPLEFT", Enabled, 200, -75) end
+	if DisableFocusDeadFocusTarget then DisableFocusDeadFocusTarget:SetPoint("TOPLEFT", Enabled, 200, -100) end
+	if DuplicatePlayerPortrait then DuplicatePlayerPortrait:SetPoint("TOPLEFT", Enabled, 305, 0) end
 	SizeSlider:SetPoint("TOPLEFT", Enabled, "BOTTOMLEFT", 0, -32)
 	AlphaSlider:SetPoint("TOPLEFT", SizeSlider, "BOTTOMLEFT", 0, -32)
 	AnchorDropDownLabel:SetPoint("TOPLEFT", AlphaSlider, "BOTTOMLEFT", 0, -12)
 	AnchorDropDown:SetPoint("TOPLEFT", AnchorDropDownLabel, "BOTTOMLEFT", 0, -8)
+	CategoriesEnabledLabel:SetPoint("TOPLEFT", AnchorDropDown, "BOTTOMLEFT", 0, -14)
+	CategoryEnabledInterruptLabel:SetPoint("TOPLEFT", CategoriesEnabledLabel, "BOTTOMLEFT", 0, -12)
+	CategoryEnabledPvELabel:SetPoint("TOPLEFT", CategoryEnabledInterruptLabel, "BOTTOMLEFT", 0, -8)
+	CategoryEnabledImmuneLabel:SetPoint("TOPLEFT", CategoryEnabledPvELabel, "BOTTOMLEFT", 0, -8)
+	CategoryEnabledImmuneSpellLabel:SetPoint("TOPLEFT", CategoryEnabledImmuneLabel, "BOTTOMLEFT", 0, -8)
+	CategoryEnabledImmunePhysicalLabel:SetPoint("TOPLEFT", CategoryEnabledImmuneSpellLabel, "BOTTOMLEFT", 0, -8)
+	CategoryEnabledCCLabel:SetPoint("TOPLEFT", CategoryEnabledImmunePhysicalLabel, "BOTTOMLEFT", 0, -8)
+	CategoryEnabledSilenceLabel:SetPoint("TOPLEFT", CategoryEnabledCCLabel, "BOTTOMLEFT", 0, -8)
+	CategoryEnabledDisarmLabel:SetPoint("TOPLEFT", CategoryEnabledSilenceLabel, "BOTTOMLEFT", 0, -8)
+	CategoryEnabledRootLabel:SetPoint("TOPLEFT", CategoryEnabledDisarmLabel, "BOTTOMLEFT", 0, -8)
+	CategoryEnabledSnareLabel:SetPoint("TOPLEFT", CategoryEnabledRootLabel, "BOTTOMLEFT", 0, -8)
+	CategoryEnabledOtherLabel:SetPoint("TOPLEFT", CategoryEnabledSnareLabel, "BOTTOMLEFT", 0, -8)
+	if AlphaSlider2 then AlphaSlider2:SetPoint("TOPLEFT", Enabled, "BOTTOMLEFT", 305, -81) end
+	if AnchorDropDown2Label then AnchorDropDown2Label:SetPoint("TOPLEFT", AlphaSlider2, "BOTTOMLEFT", 0, -12) end
+	if AnchorDropDown2 then AnchorDropDown2:SetPoint("TOPLEFT", AnchorDropDown2Label, "BOTTOMLEFT", 0, -8) end
+	for _, checkbuttonframe in pairs(CategoriesCheckButtons) do
+		checkbuttonframe.frame:SetPoint("TOPLEFT", checkbuttonframe.anchorPos, checkbuttonframe.xPos, checkbuttonframe.yPos)
+	end
+	if CategoriesCheckButtonsPlayer2 then
+		for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+			checkbuttonframeplayer2.frame:SetPoint("TOPLEFT", checkbuttonframeplayer2.anchorPos, checkbuttonframeplayer2.xPos, checkbuttonframeplayer2.yPos)
+		end
+	end
 
 	OptionsPanelFrame.default = OptionsPanel.default
 	OptionsPanelFrame.refresh = function()
@@ -3789,40 +5348,152 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			DisableInBG:SetChecked(LoseControlDB.disableArenaInBG)
 			unitId = "arena1"
 		elseif unitId == "player" then
-			DisableInterrupts:SetChecked(LoseControlDB.disablePlayerInterrupts)
+			DuplicatePlayerPortrait:SetChecked(LoseControlDB.duplicatePlayerPortrait)
+			AlphaSlider2:SetValue(LoseControlDB.frames.player2.alpha * 100)
 		elseif unitId == "target" then
 			ShowNPCInterrupts:SetChecked(LoseControlDB.showNPCInterruptsTarget)
 		elseif unitId == "focus" then
 			ShowNPCInterrupts:SetChecked(LoseControlDB.showNPCInterruptsFocus)
+		elseif unitId == "targettarget" then
+			ShowNPCInterrupts:SetChecked(LoseControlDB.showNPCInterruptsTargetTarget)
+			DisablePlayerTargetTarget:SetChecked(LoseControlDB.disablePlayerTargetTarget)
+			DisableTargetTargetTarget:SetChecked(LoseControlDB.disableTargetTargetTarget)
+			DisablePlayerTargetPlayerTargetTarget:SetChecked(LoseControlDB.disablePlayerTargetPlayerTargetTarget)
+			DisableTargetDeadTargetTarget:SetChecked(LoseControlDB.disableTargetDeadTargetTarget)
+		elseif unitId == "focustarget" then
+			ShowNPCInterrupts:SetChecked(LoseControlDB.showNPCInterruptsFocusTarget)
+			DisablePlayerTargetTarget:SetChecked(LoseControlDB.disablePlayerFocusTarget)
+			DisableFocusFocusTarget:SetChecked(LoseControlDB.disableFocusFocusTarget)
+			DisablePlayerFocusPlayerFocusTarget:SetChecked(LoseControlDB.disablePlayerFocusPlayerFocusTarget)
+			DisableFocusDeadFocusTarget:SetChecked(LoseControlDB.disableFocusDeadFocusTarget)
+		end
+		LCframes[unitId]:CheckSUFUnitsAnchors(true)
+		for _, checkbuttonframe in pairs(CategoriesCheckButtons) do
+			if checkbuttonframe.auraType ~= "interrupt" then
+				checkbuttonframe.frame:SetChecked(LoseControlDB.frames[unitId].categoriesEnabled[checkbuttonframe.auraType][checkbuttonframe.reaction][checkbuttonframe.categoryType])
+			else
+				checkbuttonframe.frame:SetChecked(LoseControlDB.frames[unitId].categoriesEnabled[checkbuttonframe.auraType][checkbuttonframe.reaction])
+			end
+		end
+		if CategoriesCheckButtonsPlayer2 then
+			for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+				if checkbuttonframeplayer2.auraType ~= "interrupt" then
+					checkbuttonframeplayer2.frame:SetChecked(LoseControlDB.frames.player2.categoriesEnabled[checkbuttonframeplayer2.auraType][checkbuttonframeplayer2.reaction][checkbuttonframeplayer2.categoryType])
+				else
+					checkbuttonframeplayer2.frame:SetChecked(LoseControlDB.frames.player2.categoriesEnabled[checkbuttonframeplayer2.auraType][checkbuttonframeplayer2.reaction])
+				end
+			end
 		end
 		local frame = LoseControlDB.frames[unitId]
 		Enabled:SetChecked(frame.enabled)
 		if frame.enabled then
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Enable(DisableInRaid) end
-			if DisableInterrupts then BlizzardOptionsPanel_CheckButton_Enable(DisableInterrupts) end
 			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Enable(ShowNPCInterrupts) end
+			if DisablePlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisablePlayerTargetTarget) end
+			if DisableTargetTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisableTargetTargetTarget) end
+			if DisablePlayerTargetPlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisablePlayerTargetPlayerTargetTarget) end
+			if DisableTargetDeadTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisableTargetDeadTargetTarget) end
+			if DisableFocusFocusTarget then BlizzardOptionsPanel_CheckButton_Enable(DisableFocusFocusTarget) end
+			if DisablePlayerFocusPlayerFocusTarget then BlizzardOptionsPanel_CheckButton_Enable(DisablePlayerFocusPlayerFocusTarget) end
+			if DisableFocusDeadFocusTarget then BlizzardOptionsPanel_CheckButton_Enable(DisableFocusDeadFocusTarget) end
+			if DuplicatePlayerPortrait then BlizzardOptionsPanel_CheckButton_Enable(DuplicatePlayerPortrait) end
+			for _, checkbuttonframe in pairs(CategoriesCheckButtons) do
+				BlizzardOptionsPanel_CheckButton_Enable(checkbuttonframe.frame)
+			end
+			if CategoriesCheckButtonsPlayer2 then
+				if LoseControlDB.duplicatePlayerPortrait then
+					for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+						BlizzardOptionsPanel_CheckButton_Enable(checkbuttonframeplayer2.frame)
+					end
+				else
+					for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+						BlizzardOptionsPanel_CheckButton_Disable(checkbuttonframeplayer2.frame)
+					end
+				end
+			end
+			CategoriesEnabledLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledInterruptLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledPvELabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledImmuneLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledImmuneSpellLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledImmunePhysicalLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledCCLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledSilenceLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledDisarmLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledRootLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledSnareLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			CategoryEnabledOtherLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
+			UIDropDownMenu_EnableDropDown(AnchorDropDown)
+			if LoseControlDB.duplicatePlayerPortrait then
+				if AlphaSlider2 then BlizzardOptionsPanel_Slider_Enable(AlphaSlider2) end
+				if AnchorDropDown2 then UIDropDownMenu_EnableDropDown(AnchorDropDown2) end
+			else
+				if AlphaSlider2 then BlizzardOptionsPanel_Slider_Disable(AlphaSlider2) end
+				if AnchorDropDown2 then UIDropDownMenu_DisableDropDown(AnchorDropDown2) end
+			end
 		else
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Disable(DisableInRaid) end
-			if DisableInterrupts then BlizzardOptionsPanel_CheckButton_Disable(DisableInterrupts) end
 			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Disable(ShowNPCInterrupts) end
+			if DisablePlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisablePlayerTargetTarget) end
+			if DisableTargetTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisableTargetTargetTarget) end
+			if DisablePlayerTargetPlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisablePlayerTargetPlayerTargetTarget) end
+			if DisableTargetDeadTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisableTargetDeadTargetTarget) end
+			if DisableFocusFocusTarget then BlizzardOptionsPanel_CheckButton_Disable(DisableFocusFocusTarget) end
+			if DisablePlayerFocusPlayerFocusTarget then BlizzardOptionsPanel_CheckButton_Disable(DisablePlayerFocusPlayerFocusTarget) end
+			if DisableFocusDeadFocusTarget then BlizzardOptionsPanel_CheckButton_Disable(DisableFocusDeadFocusTarget) end
+			if DuplicatePlayerPortrait then BlizzardOptionsPanel_CheckButton_Disable(DuplicatePlayerPortrait) end
+			for _, checkbuttonframe in pairs(CategoriesCheckButtons) do
+				BlizzardOptionsPanel_CheckButton_Disable(checkbuttonframe.frame)
+			end
+			if CategoriesCheckButtonsPlayer2 then
+				for _, checkbuttonframeplayer2 in pairs(CategoriesCheckButtonsPlayer2) do
+					BlizzardOptionsPanel_CheckButton_Disable(checkbuttonframeplayer2.frame)
+				end
+			end
+			CategoriesEnabledLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledInterruptLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledPvELabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledImmuneLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledImmuneSpellLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledImmunePhysicalLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledCCLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledSilenceLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledDisarmLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledRootLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledSnareLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			CategoryEnabledOtherLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
+			UIDropDownMenu_DisableDropDown(AnchorDropDown)
+			if AlphaSlider2 then BlizzardOptionsPanel_Slider_Disable(AlphaSlider2) end
+			if AnchorDropDown2 then UIDropDownMenu_DisableDropDown(AnchorDropDown2) end
 		end
 		SizeSlider:SetValue(frame.size)
 		AlphaSlider:SetValue(frame.alpha * 100)
 		UIDropDownMenu_Initialize(AnchorDropDown, function() -- called on refresh and also every time the drop down menu is opened
 			AddItem(AnchorDropDown, L["None"], "None")
 			AddItem(AnchorDropDown, "Blizzard", "Blizzard")
-			if _G[anchors["Perl"][unitId]] then AddItem(AnchorDropDown, "Perl", "Perl") end
-			if _G[anchors["XPerl"][unitId]] then AddItem(AnchorDropDown, "XPerl", "XPerl") end
-			if _G[anchors["LUI"][unitId]] then AddItem(AnchorDropDown, "LUI", "LUI") end
-			if _G[anchors["SyncFrames"][unitId]] then AddItem(AnchorDropDown, "SyncFrames", "SyncFrames") end
+			if _G[anchors["Perl"][unitId]] or (type(anchors["Perl"][unitId])=="table" and anchors["Perl"][unitId]) then AddItem(AnchorDropDown, "Perl", "Perl") end
+			if _G[anchors["XPerl"][unitId]] or (type(anchors["XPerl"][unitId])=="table" and anchors["XPerl"][unitId]) then AddItem(AnchorDropDown, "XPerl", "XPerl") end
+			if _G[anchors["LUI"][unitId]] or (type(anchors["LUI"][unitId])=="table" and anchors["LUI"][unitId]) then AddItem(AnchorDropDown, "LUI", "LUI") end
+			if _G[anchors["SUF"][unitId]] or (type(anchors["SUF"][unitId])=="table" and anchors["SUF"][unitId]) then AddItem(AnchorDropDown, "SUF", "SUF") end
+			if _G[anchors["SyncFrames"][unitId]] or (type(anchors["SyncFrames"][unitId])=="table" and anchors["SyncFrames"][unitId]) then AddItem(AnchorDropDown, "SyncFrames", "SyncFrames") end
 		end)
 		UIDropDownMenu_SetSelectedValue(AnchorDropDown, frame.anchor)
+		if AnchorDropDown2 then
+			UIDropDownMenu_Initialize(AnchorDropDown2, function() -- called on refresh and also every time the drop down menu is opened
+				AddItem(AnchorDropDown2, "Blizzard", "Blizzard")
+				if _G[anchors["Perl"][unitId]] or (type(anchors["Perl"][unitId])=="table" and anchors["Perl"][unitId]) then AddItem(AnchorDropDown2, "Perl", "Perl") end
+				if _G[anchors["XPerl"][unitId]] or (type(anchors["XPerl"][unitId])=="table" and anchors["XPerl"][unitId]) then AddItem(AnchorDropDown2, "XPerl", "XPerl") end
+				if _G[anchors["LUI"][unitId]] or (type(anchors["LUI"][unitId])=="table" and anchors["LUI"][unitId]) then AddItem(AnchorDropDown2, "LUI", "LUI") end
+				if _G[anchors["SUF"][unitId]] or (type(anchors["SUF"][unitId])=="table" and anchors["SUF"][unitId]) then AddItem(AnchorDropDown2, "SUF", "SUF") end
+			end)
+			UIDropDownMenu_SetSelectedValue(AnchorDropDown2, LoseControlDB.frames.player2.anchor)
+		end
 	end
 
 	InterfaceOptions_AddCategory(OptionsPanelFrame)
@@ -3840,7 +5511,14 @@ function SlashCmd:help()
 	print("    unlock")
 	print("    enable <unit>")
 	print("    disable <unit>")
-	print("<unit> can be: player, pet, target, focus, party1 ... party4, arena1 ... arena5")
+	print("    customspells add <spellId> <category>")
+	print("    customspells ban <spellId>")
+	print("    customspells remove <spellId>")
+	print("    customspells list")
+	print("    customspells wipe")
+	print("    customspells checkandclean")
+	print("<unit> can be: player, pet, target, focus, targettarget, focustarget, party1 ... party4, arena1 ... arena5")
+	print("<category> can be: none, pve, immune, immunespell, immunephysical, cc, silence, interrupt, disarm, other, root, snare")
 end
 function SlashCmd:debug(value)
 	if value == "on" then
@@ -3852,14 +5530,34 @@ function SlashCmd:debug(value)
 	end
 end
 function SlashCmd:reset(unitId)
-	if LoseControlDB.frames[unitId] then
+	if unitId == nil or unitId == "" or unitId == "all" then
+		OptionsPanel.default()
+	elseif unitId == "party" then
+		for _, v in ipairs({"party1", "party2", "party3", "party4"}) do
+			LoseControlDB.frames[v] = CopyTable(DBdefaults.frames[v])
+			LCframes[v]:PLAYER_ENTERING_WORLD()
+			print(L["LoseControl reset."].." "..v)
+		end
+	elseif unitId == "arena" then
+		for _, v in ipairs({"arena1", "arena2", "arena3", "arena4", "arena5"}) do
+			LoseControlDB.frames[v] = CopyTable(DBdefaults.frames[v])
+			LCframes[v]:PLAYER_ENTERING_WORLD()
+			print(L["LoseControl reset."].." "..v)
+		end
+	elseif LoseControlDB.frames[unitId] and unitId ~= "player2" then
 		LoseControlDB.frames[unitId] = CopyTable(DBdefaults.frames[unitId])
 		LCframes[unitId]:PLAYER_ENTERING_WORLD()
-	else
-		OptionsPanel.default()
+		if (unitId == "player") then
+			LoseControlDB.frames.player2 = CopyTable(DBdefaults.frames.player2)
+			LCframeplayer2:PLAYER_ENTERING_WORLD()
+		end
+		print(L["LoseControl reset."].." "..unitId)
 	end
 	Unlock:OnClick()
 	OptionsPanel.refresh()
+	for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena" }) do
+		_G[O..v].refresh()
+	end
 end
 function SlashCmd:lock()
 	Unlock:SetChecked(false)
@@ -3872,7 +5570,7 @@ function SlashCmd:unlock()
 	print(addonName, "unlocked.")
 end
 function SlashCmd:enable(unitId)
-	if LCframes[unitId] then
+	if LCframes[unitId] and unitId ~= "player2" then
 		LoseControlDB.frames[unitId].enabled = true
 		local inInstance, instanceType = IsInInstance()
 		local enabled = not (
@@ -3885,16 +5583,184 @@ function SlashCmd:enable(unitId)
 		)
 		LCframes[unitId]:RegisterUnitEvents(enabled)
 		if enabled and not LCframes[unitId].unlockMode then
-			LCframes[unitId]:UNIT_AURA(unitId)
+			LCframes[unitId]:UNIT_AURA(unitId, 0)
+		end
+		if (unitId == "player") then
+			LoseControlDB.frames.player2.enabled = LoseControlDB.duplicatePlayerPortrait
+			LCframeplayer2:RegisterUnitEvents(LoseControlDB.duplicatePlayerPortrait)
+			if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
+				LCframeplayer2:UNIT_AURA(unitId, 0)
+			end
 		end
 		print(addonName, unitId, "frame enabled.")
 	end
 end
 function SlashCmd:disable(unitId)
-	if LCframes[unitId] then
+	if LCframes[unitId] and unitId ~= "player2" then
 		LoseControlDB.frames[unitId].enabled = false
+		LCframes[unitId].maxExpirationTime = 0
 		LCframes[unitId]:RegisterUnitEvents(false)
+		if (unitId == "player") then
+			LoseControlDB.frames.player2.enabled = false
+			LCframeplayer2.maxExpirationTime = 0
+			LCframeplayer2:RegisterUnitEvents(false)
+		end
 		print(addonName, unitId, "frame disabled.")
+	end
+end
+function SlashCmd:cs(operation, spellId, category)
+	SlashCmd:customspells(operation, spellId, category)
+end
+function SlashCmd:customspells(operation, spellId, category)
+	if operation == "add" then
+		if spellId ~= nil and category ~= nil then
+			if category == "pve" then
+				category = "PvE"
+			elseif category == "immune" then
+				category = "Immune"
+			elseif category == "immunespell" then
+				category = "ImmuneSpell"
+			elseif category == "immunephysical" then
+				category = "ImmunePhysical"
+			elseif category == "cc" then
+				category = "CC"
+			elseif category == "silence" then
+				category = "Silence"
+			elseif category == "interrupt" then
+				category = "Interrupt"
+			elseif category == "disarm" then
+				category = "Disarm"
+			elseif category == "other" then
+				category = "Other"
+			elseif category == "root" then
+				category = "Root"
+			elseif category == "snare" then
+				category = "Snare"
+			elseif category == "none" then
+				category = "None"
+			else
+				category = nil
+			end
+			spellId = tonumber(spellId)
+			if (type(spellId) == "number") then
+				spellId = mathfloor(mathabs(spellId))
+				if (category) then
+					if (LoseControlDB.customSpellIds[spellId] == category) then
+						print(addonName, "Error adding new custom spell |cffff0000["..spellId.."]|r: The spell is already in the custom list")
+					else
+						LoseControlDB.customSpellIds[spellId] = category
+						LoseControl:UpdateSpellIdsTableWithCustomSpellIds()
+						local colortag
+						if (category == "None") then
+							if (origSpellIdsChanged[spellId] == "None") then
+								colortag = "|cffffc419"
+							else
+								colortag = "|cff00ff00"
+							end
+						elseif (LoseControlDB.priority[category]) then
+							if (origSpellIdsChanged[spellId] == category) then
+								colortag = "|cffffc419"
+							elseif (origSpellIdsChanged[spellId] ~= "None") then
+								colortag = "|cff74cf14"
+							else
+								colortag = "|cff00ff00"
+							end
+						else
+							colortag = "|cffff0000"
+						end
+						print(addonName, "The spell "..colortag.."["..spellId.."]->("..category..")|r has been added to the custom list")
+					end
+				else
+					print(addonName, "Error adding new custom spell |cffff0000["..spellId.."]|r: Invalid category")
+				end
+			else
+				print(addonName, "Error adding new custom spell: Invalid spellId")
+			end
+		else
+			print(addonName, "Error adding new custom spell: Wrong parameters")
+		end
+	elseif operation == "ban" then
+		if spellId ~= nil then
+			spellId = tonumber(spellId)
+			if (type(spellId) == "number") then
+				spellId = mathfloor(mathabs(spellId))
+				if (LoseControlDB.customSpellIds[spellId] == "None") then
+					print(addonName, "Error adding new custom spell |cffff0000["..spellId.."]|r: The spell is already in the custom list")
+				else
+					LoseControlDB.customSpellIds[spellId] = "None"
+					LoseControl:UpdateSpellIdsTableWithCustomSpellIds()
+					local colortag
+					if (origSpellIdsChanged[spellId] == "None") then
+						colortag = "|cffffc419"
+					else
+						colortag = "|cff00ff00"
+					end
+					print(addonName, "The spell "..colortag.."["..spellId.."]->(None)|r has been added to the custom list")
+				end
+			else
+				print(addonName, "Error adding new custom spell: Invalid spellId")
+			end
+		else
+			print(addonName, "Error adding new custom spell: Wrong parameters")
+		end
+	elseif operation == "remove" then
+		if spellId ~= nil then
+			spellId = tonumber(spellId)
+			if (type(spellId) == "number") then
+				spellId = mathfloor(mathabs(spellId))
+				if (LoseControlDB.customSpellIds[spellId]) then
+					print(addonName, "The spell |cff00ff00["..spellId.."]->("..LoseControlDB.customSpellIds[spellId]..")|r has been removed from the custom list")
+					LoseControlDB.customSpellIds[spellId] = nil
+					LoseControl:UpdateSpellIdsTableWithCustomSpellIds()
+				else
+					print(addonName, "Error removing custom spell |cffff0000["..spellId.."]|r: the spell is not in the custom list")
+				end
+			else
+				print(addonName, "Error removing custom spell: Invalid spellId")
+			end
+		else
+			print(addonName, "Error removing custom spell|r: Wrong parameters")
+		end
+	elseif operation == "list" then
+		print(addonName, "Custom spell list:")
+		if (next(LoseControlDB.customSpellIds) == nil) then
+			print(addonName, "Custom spell list is |cffffc419empty|r")
+		else
+			for cSpellId, cPriority  in pairs(LoseControlDB.customSpellIds) do
+				if (cPriority == "None") then
+					if (origSpellIdsChanged[cSpellId] == "None") then
+						print(addonName, "|cffffc419["..cSpellId.."]->("..cPriority..")|r")
+					else
+						print(addonName, "|cff00ff00["..cSpellId.."]->("..cPriority..")|r")
+					end
+				elseif (LoseControlDB.priority[cPriority]) then
+					if (origSpellIdsChanged[cSpellId] == cPriority) then
+						print(addonName, "|cffffc419["..cSpellId.."]->("..cPriority..")|r")
+					elseif (origSpellIdsChanged[cSpellId] ~= "None") then
+						print(addonName, "|cff74cf14["..cSpellId.."]->("..cPriority..")|r")
+					else
+						print(addonName, "|cff00ff00["..cSpellId.."]->("..cPriority..")|r")
+					end
+				else
+					print(addonName, "|cffff0000["..cSpellId.."]->("..cPriority..")|r")
+				end
+			end
+		end
+	elseif operation == "wipe" then
+		LoseControlDB.customSpellIds = { }
+		LoseControl:UpdateSpellIdsTableWithCustomSpellIds()
+		print(addonName, "Removed |cff00ff00all spells|r from custom list")
+	elseif operation == "checkandclean" then
+		LoseControl:CheckAndCleanCustomSpellIdsTable()
+	else
+		print(addonName, "customspells slash commands:")
+		print("    add <spellId> <category>")
+		print("    ban <spellId>")
+		print("    remove <spellId>")
+		print("    list")
+		print("    wipe")
+		print("    checkandclean")
+		print("<category> can be: none, pve, immune, immunespell, immunephysical, cc, silence, interrupt, disarm, other, root, snare")
 	end
 end
 

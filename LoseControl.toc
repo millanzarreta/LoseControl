@@ -1,7 +1,7 @@
 ## Interface: 80300
 ## Title: LoseControl
 ## Author: Kouri, millanzarreta
-## Version: 6.10
+## Version: 6.11
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter
@@ -16,6 +16,7 @@
 ## X-Website: http://www.curse.com/addons/wow/losecontrol
 ## X-Website2: http://www.wowinterface.com/downloads/info11642-LoseControl.html
 ## X-Category: Buffs
+## OptionalDeps: Masque, ShadowedUnitFrames
 ## SavedVariablesPerCharacter: LoseControlDB
 
 localization.lua
