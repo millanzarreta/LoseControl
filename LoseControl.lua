@@ -10,161 +10,154 @@ Thanks! :)
 ]]
 
 local L = "LoseControl"
+local UIParent = UIParent -- it's faster to keep local references to frequently used global vars
 
 local function log(msg) DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for convenience
 
 -------------------------------------------------------------------------------
-local CC      = LOSECONTROL["CC"]
-local Silence = LOSECONTROL["Silence"]
-local Disarm  = LOSECONTROL["Disarm"]
-local Root    = LOSECONTROL["Root"]
-local Snare   = LOSECONTROL["Snare"]
-local Immune  = LOSECONTROL["Immune"]
-local PvE     = LOSECONTROL["PvE"]
-
 local spellIds = {
 	-- Death Knight
-	[47481] = CC,		-- Gnaw (Ghoul)
-	[51209] = CC,		-- Hungering Cold
-	[47476] = Silence,	-- Strangulate
-	[45524] = Snare,	-- Chains of Ice
-	[55666] = Snare,	-- Desecration (no duration, lasts as long as you stand in it)
-	[58617] = Snare,	-- Glyph of Heart Strike
-	[50436] = Snare,	-- Icy Clutch (Chilblains)
+	[47481] = "CC",		-- Gnaw (Ghoul)
+	[51209] = "CC",		-- Hungering Cold
+	[47476] = "Silence",	-- Strangulate
+	[45524] = "Snare",	-- Chains of Ice
+	[55666] = "Snare",	-- Desecration (no duration, lasts as long as you stand in it)
+	[58617] = "Snare",	-- Glyph of Heart Strike
+	[50436] = "Snare",	-- Icy Clutch (Chilblains)
 	-- Druid
-	[5211]  = CC,		-- Bash (also Shaman Spirit Wolf ability)
-	[33786] = CC,		-- Cyclone
-	[2637]  = CC,		-- Hibernate (works against Druids in most forms and Shamans using Ghost Wolf)
-	[22570] = CC,		-- Maim
-	[9005]  = CC,		-- Pounce
-	[339]   = Root,		-- Entangling Roots
-	[19675] = Root,		-- Feral Charge Effect (immobilize with interrupt [spell lockout, not silence])
-	[58179] = Snare,	-- Infected Wounds
-	[61391] = Snare,	-- Typhoon
+	[5211]  = "CC",		-- Bash (also Shaman Spirit Wolf ability)
+	[33786] = "CC",		-- Cyclone
+	[2637]  = "CC",		-- Hibernate (works against Druids in most forms and Shamans using Ghost Wolf)
+	[22570] = "CC",		-- Maim
+	[9005]  = "CC",		-- Pounce
+	[339]   = "Root",	-- Entangling Roots
+	[19675] = "Root",	-- Feral Charge Effect (immobilize with interrupt [spell lockout, not silence])
+	[58179] = "Snare",	-- Infected Wounds
+	[61391] = "Snare",	-- Typhoon
 	-- Hunter
-	[3355]  = CC,		-- Freezing Trap Effect
-	[24394] = CC,		-- Intimidation
-	[1513]  = CC,		-- Scare Beast (works against Druids in most forms and Shamans using Ghost Wolf)
-	[19503] = CC,		-- Scatter Shot
-	[19386] = CC,		-- Wyvern Sting
-	[34490] = Silence,	-- Silencing Shot
-	[53359] = Disarm,	-- Chimera Shot - Scorpid
-	[19306] = Root,		-- Counterattack
-	[19185] = Root,		-- Entrapment
-	[35101] = Snare,	-- Concussive Barrage
-	[5116]  = Snare,	-- Concussive Shot
-	[13810] = Snare,	-- Frost Trap Aura (no duration, lasts as long as you stand in it)
-	[61394] = Snare,	-- Glyph of Freezing Trap
-	[2974]  = Snare,	-- Wing Clip
+	[3355]  = "CC",		-- Freezing Trap Effect
+	[24394] = "CC",		-- Intimidation
+	[1513]  = "CC",		-- Scare Beast (works against Druids in most forms and Shamans using Ghost Wolf)
+	[19503] = "CC",		-- Scatter Shot
+	[19386] = "CC",		-- Wyvern Sting
+	[34490] = "Silence",	-- Silencing Shot
+	[53359] = "Disarm",	-- Chimera Shot - Scorpid
+	[19306] = "Root",	-- Counterattack
+	[19185] = "Root",	-- Entrapment
+	[35101] = "Snare",	-- Concussive Barrage
+	[5116]  = "Snare",	-- Concussive Shot
+	[13810] = "Snare",	-- Frost Trap Aura (no duration, lasts as long as you stand in it)
+	[61394] = "Snare",	-- Glyph of Freezing Trap
+	[2974]  = "Snare",	-- Wing Clip
 	-- Hunter Pets
-	[50519] = CC,		-- Sonic Blast (Bat)
-	[50541] = Disarm,	-- Snatch (Bird of Prey)
-	[54644] = Snare,	-- Froststorm Breath (Chimera)
-	[50245] = Root,		-- Pin (Crab)
-	[50271] = Snare,	-- Tendon Rip (Hyena)
-	[50518] = CC,		-- Ravage (Ravager)
-	[54706] = Root,		-- Venom Web Spray (Silithid)
-	[4167]  = Root,		-- Web (Spider)
+	[50519] = "CC",		-- Sonic Blast (Bat)
+	[50541] = "Disarm",	-- Snatch (Bird of Prey)
+	[54644] = "Snare",	-- Froststorm Breath (Chimera)
+	[50245] = "Root",	-- Pin (Crab)
+	[50271] = "Snare",	-- Tendon Rip (Hyena)
+	[50518] = "CC",		-- Ravage (Ravager)
+	[54706] = "Root",	-- Venom Web Spray (Silithid)
+	[4167]  = "Root",	-- Web (Spider)
 	-- Mage
-	[44572] = CC,		-- Deep Freeze
-	[31661] = CC,		-- Dragon's Breath
-	[12355] = CC,		-- Impact
-	[118]   = CC,		-- Polymorph
-	[18469] = Silence,	-- Silenced - Improved Counterspell
-	[64346] = Disarm,	-- Fiery Payback
-	[33395] = Root,		-- Freeze (Water Elemental)
-	[122]   = Root,		-- Frost Nova
-	[11071] = Root,		-- Frostbite
-	[55080] = Root,		-- Shattered Barrier
-	[11113] = Snare,	-- Blast Wave
-	[6136]  = Snare,	-- Chilled (generic effect, used by lots of spells [looks weird on Improved Blizzard, might want to comment out])
-	[120]   = Snare,	-- Cone of Cold
-	[116]   = Snare,	-- Frostbolt
-	[47610] = Snare,	-- Frostfire Bolt
-	[31589] = Snare,	-- Slow
+	[44572] = "CC",		-- Deep Freeze
+	[31661] = "CC",		-- Dragon's Breath
+	[12355] = "CC",		-- Impact
+	[118]   = "CC",		-- Polymorph
+	[18469] = "Silence",	-- Silenced - Improved Counterspell
+	[64346] = "Disarm",	-- Fiery Payback
+	[33395] = "Root",	-- Freeze (Water Elemental)
+	[122]   = "Root",	-- Frost Nova
+	[11071] = "Root",	-- Frostbite
+	[55080] = "Root",	-- Shattered Barrier
+	[11113] = "Snare",	-- Blast Wave
+	[6136]  = "Snare",	-- Chilled (generic effect, used by lots of spells [looks weird on Improved Blizzard, might want to comment out])
+	[120]   = "Snare",	-- Cone of Cold
+	[116]   = "Snare",	-- Frostbolt
+	[47610] = "Snare",	-- Frostfire Bolt
+	[31589] = "Snare",	-- Slow
 	-- Paladin
-	[853]   = CC,		-- Hammer of Justice
-	[2812]  = CC,		-- Holy Wrath (works against Warlocks using Metamorphasis and Death Knights using Lichborne)
-	[20066] = CC,		-- Repentance
-	[20170] = CC,		-- Stun (Seal of Justice proc)
-	[10326] = CC,		-- Turn Evil (works against Warlocks using Metamorphasis and Death Knights using Lichborne)
-	[63529] = Silence,	-- Shield of the Templar
-	[20184] = Snare,	-- Judgement of Justice (100% movement snare, druids and shamans might want this though)
+	[853]   = "CC",		-- Hammer of Justice
+	[2812]  = "CC",		-- Holy Wrath (works against Warlocks using Metamorphasis and Death Knights using Lichborne)
+	[20066] = "CC",		-- Repentance
+	[20170] = "CC",		-- Stun (Seal of Justice proc)
+	[10326] = "CC",		-- Turn Evil (works against Warlocks using Metamorphasis and Death Knights using Lichborne)
+	[63529] = "Silence",	-- Shield of the Templar
+	[20184] = "Snare",	-- Judgement of Justice (100% movement snare; druids and shamans might want this though)
 	-- Priest
-	[605]   = CC,		-- Mind Control
-	[64044] = CC,		-- Psychic Horror
-	[8122]  = CC,		-- Psychic Scream
-	[9484]  = CC,		-- Shackle Undead (works against Death Knights using Lichborne)
-	[15487] = Silence,	-- Silence
-	--[64058] = Disarm,	-- Psychic Horror (duplicate debuff names not allowed atm, need to figure out how to support this later)
-	[15407] = Snare,	-- Mind Flay
+	[605]   = "CC",		-- Mind Control
+	[64044] = "CC",		-- Psychic Horror
+	[8122]  = "CC",		-- Psychic Scream
+	[9484]  = "CC",		-- Shackle Undead (works against Death Knights using Lichborne)
+	[15487] = "Silence",	-- Silence
+	--[64058] = "Disarm",	-- Psychic Horror (duplicate debuff names not allowed atm, need to figure out how to support this later)
+	[15407] = "Snare",	-- Mind Flay
 	-- Rogue
-	[2094]  = CC,		-- Blind
-	[1833]  = CC,		-- Cheap Shot
-	[1776]  = CC,		-- Gouge
-	[408]   = CC,		-- Kidney Shot
-	[6770]  = CC,		-- Sap
-	[1330]  = Silence,	-- Garrote - Silence
-	[18425] = Silence,	-- Silenced - Improved Kick
-	[51722] = Disarm,	-- Dismantle
-	[31125] = Snare,	-- Blade Twisting
-	[3409]  = Snare,	-- Crippling Poison
-	[26679] = Snare,	-- Deadly Throw
+	[2094]  = "CC",		-- Blind
+	[1833]  = "CC",		-- Cheap Shot
+	[1776]  = "CC",		-- Gouge
+	[408]   = "CC",		-- Kidney Shot
+	[6770]  = "CC",		-- Sap
+	[1330]  = "Silence",	-- Garrote - Silence
+	[18425] = "Silence",	-- Silenced - Improved Kick
+	[51722] = "Disarm",	-- Dismantle
+	[31125] = "Snare",	-- Blade Twisting
+	[3409]  = "Snare",	-- Crippling Poison
+	[26679] = "Snare",	-- Deadly Throw
 	-- Shaman
-	[39796] = CC,		-- Stoneclaw Stun
-	[51514] = CC,		-- Hex (although effectively a silence+disarm effect, it is conventionally thought of as a CC, plus you can trinket out of it)
-	[64695] = Root,		-- Earthgrab (Storm, Earth and Fire)
-	[63685] = Root,		-- Freeze (Frozen Power)
-	[3600]  = Snare,	-- Earthbind (5 second duration per pulse, but will keep re-applying the debuff as long as you stand within the pulse radius)
-	[8056]  = Snare,	-- Frost Shock
-	[8034]  = Snare,	-- Frostbrand Attack
+	[39796] = "CC",		-- Stoneclaw Stun
+	[51514] = "CC",		-- Hex (although effectively a silence+disarm effect, it is conventionally thought of as a "CC", plus you can trinket out of it)
+	[64695] = "Root",	-- Earthgrab (Storm, Earth and Fire)
+	[63685] = "Root",	-- Freeze (Frozen Power)
+	[3600]  = "Snare",	-- Earthbind (5 second duration per pulse, but will keep re-applying the debuff as long as you stand within the pulse radius)
+	[8056]  = "Snare",	-- Frost Shock
+	[8034]  = "Snare",	-- Frostbrand Attack
 	-- Warlock
-	[710]   = CC,		-- Banish (works against Warlocks using Metamorphasis and Druids using Tree Form)
-	[6789]  = CC,		-- Death Coil
-	[5782]  = CC,		-- Fear
-	[5484]  = CC,		-- Howl of Terror
-	[6358]  = CC,		-- Seduction (Succubus)
-	[30283] = CC,		-- Shadowfury
-	[24259] = Silence,	-- Spell Lock (Felhunter)
-	[18118] = Snare,	-- Aftermath
-	[18223] = Snare,	-- Curse of Exhaustion
+	[710]   = "CC",		-- Banish (works against Warlocks using Metamorphasis and Druids using Tree Form)
+	[6789]  = "CC",		-- Death Coil
+	[5782]  = "CC",		-- Fear
+	[5484]  = "CC",		-- Howl of Terror
+	[6358]  = "CC",		-- Seduction (Succubus)
+	[30283] = "CC",		-- Shadowfury
+	[24259] = "Silence",	-- Spell Lock (Felhunter)
+	[18118] = "Snare",	-- Aftermath
+	[18223] = "Snare",	-- Curse of Exhaustion
 	-- Warrior
-	[7922]  = CC,		-- Charge Stun
-	[12809] = CC,		-- Concussion Blow
-	[20253] = CC,		-- Intercept (also Warlock Felguard ability)
-	[5246]  = CC,		-- Intimidating Shout
-	[12798] = CC,		-- Revenge Stun
-	[46968] = CC,		-- Shockwave
-	[18498] = Silence,	-- Silenced - Gag Order
-	[676]   = Disarm,	-- Disarm
-	[58373] = Root,		-- Glyph of Hamstring
-	[23694] = Root,		-- Improved Hamstring
-	[1715]  = Snare,	-- Hamstring
-	[12323] = Snare,	-- Piercing Howl
+	[7922]  = "CC",		-- Charge Stun
+	[12809] = "CC",		-- Concussion Blow
+	[20253] = "CC",		-- Intercept (also Warlock Felguard ability)
+	[5246]  = "CC",		-- Intimidating Shout
+	[12798] = "CC",		-- Revenge Stun
+	[46968] = "CC",		-- Shockwave
+	[18498] = "Silence",	-- Silenced - Gag Order
+	[676]   = "Disarm",	-- Disarm
+	[58373] = "Root",	-- Glyph of Hamstring
+	[23694] = "Root",	-- Improved Hamstring
+	[1715]  = "Snare",	-- Hamstring
+	[12323] = "Snare",	-- Piercing Howl
 	-- Other
-	[30217] = CC,		-- Adamantite Grenade
-	[67769] = CC,		-- Cobalt Frag Bomb
-	[30216] = CC,		-- Fel Iron Bomb
-	[20549] = CC,		-- War Stomp
-	[25046] = Silence,	-- Arcane Torrent
-	[39965] = Root,		-- Frost Grenade
-	[55536] = Root,		-- Frostweave Net
-	[13099] = Root,		-- Net-o-Matic
-	[29703] = Snare,	-- Dazed
+	[30217] = "CC",		-- Adamantite Grenade
+	[67769] = "CC",		-- Cobalt Frag Bomb
+	[30216] = "CC",		-- Fel Iron Bomb
+	[20549] = "CC",		-- War Stomp
+	[25046] = "Silence",	-- Arcane Torrent
+	[39965] = "Root",	-- Frost Grenade
+	[55536] = "Root",	-- Frostweave Net
+	[13099] = "Root",	-- Net-o-Matic
+	[29703] = "Snare",	-- Dazed
 	-- Immunities
-	[46924] = Immune,	-- Bladestorm (Warrior)
-	[642]   = Immune,	-- Divine Shield (Paladin)
-	[45438] = Immune,	-- Ice Block (Mage)
-	[34692] = Immune,	-- The Beast Within (Hunter)
+	[46924] = "Immune",	-- Bladestorm (Warrior)
+	[642]   = "Immune",	-- Divine Shield (Paladin)
+	[45438] = "Immune",	-- Ice Block (Mage)
+	[34692] = "Immune",	-- The Beast Within (Hunter)
 	-- PvE
-	[28169] = PvE,		-- Mutating Injection (Grobbulus)
-	[28059] = PvE,		-- Positive Charge (Thaddius)
-	[28084] = PvE,		-- Negative Charge (Thaddius)
-	[27819] = PvE,		-- Detonate Mana (Kel'Thuzad)
-	[63024] = PvE,		-- Gravity Bomb (XT-002 Deconstructor)
-	[63018] = PvE,		-- Light Bomb (XT-002 Deconstructor)
-	[62589] = PvE,		-- Nature's Fury (Freya, via Ancient Conservator)
-	[63276] = PvE,		-- Mark of the Faceless (General Vezax)
+	[28169] = "PvE",	-- Mutating Injection (Grobbulus)
+	[28059] = "PvE",	-- Positive Charge (Thaddius)
+	[28084] = "PvE",	-- Negative Charge (Thaddius)
+	[27819] = "PvE",	-- Detonate Mana (Kel'Thuzad)
+	[63024] = "PvE",	-- Gravity Bomb (XT-002 Deconstructor)
+	[63018] = "PvE",	-- Light Bomb (XT-002 Deconstructor)
+	[62589] = "PvE",	-- Nature's Fury (Freya, via Ancient Conservator)
+	[63276] = "PvE",	-- Mark of the Faceless (General Vezax)
 }
 local abilities = {} -- localized names are saved here
 for k, v in pairs(spellIds) do
@@ -218,16 +211,16 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 3.31,
+	version = 3.32,
 	noCooldownCount = false,
-	tracking = {
-		CC      = true,
-		Silence = true,
-		Disarm  = true,
-		Root    = false,
-		Snare   = false,
-		Immune  = false,
-		PvE     = true,
+	tracking = { -- To Do: Priority
+		Immune  = false, --100
+		CC      = true,  -- 90
+		PvE     = true,  -- 80
+		Silence = true,  -- 70
+		Disarm  = true,  -- 60
+		Root    = false, -- 50
+		Snare   = false, -- 40
 	},
 	frames = {
 		player = {
@@ -318,11 +311,19 @@ LoseControl:SetScript("OnEvent", LoseControl.OnEvent)
 -- Handle default settings
 function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == L then
-		if _G.LoseControlDB then
+		if _G.LoseControlDB and _G.LoseControlDB.version then
 			if _G.LoseControlDB.version < DBdefaults.version then
 				if _G.LoseControlDB.version >= 3.22 then -- minor changes, so try to update without losing settings
-					_G.LoseControlDB.tracking[Immune] = false
-					_G.LoseControlDB.version = 3.31
+					_G.LoseControlDB.tracking = {
+						Immune  = false, --100
+						CC      = true,  -- 90
+						PvE     = true,  -- 80
+						Silence = true,  -- 70
+						Disarm  = true,  -- 60
+						Root    = false, -- 50
+						Snare   = false, -- 40
+					}
+					_G.LoseControlDB.version = 3.32
 				else -- major changes, must reset settings
 					_G.LoseControlDB = CopyTable(DBdefaults)
 					log(LOSECONTROL["LoseControl reset."])
@@ -340,7 +341,8 @@ LoseControl:RegisterEvent("ADDON_LOADED")
 
 -- Initialize a frame's position
 function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy arena frames that aren't created until you zone into an arena
-	local frame = LoseControlDB.frames[self.unitId]
+	self.frame = LoseControlDB.frames[self.unitId] -- store a local reference to the frame's settings
+	local frame = self.frame
 	self.anchor = _G[anchors[frame.anchor][self.unitId]] or UIParent
 
 	self:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
@@ -364,8 +366,7 @@ local UnitDebuff = UnitDebuff
 local UnitBuff = UnitBuff
 -- This is the main event
 function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
-	local frame = LoseControlDB.frames[unitId]
-	if not (unitId == self.unitId and frame.enabled and self.anchor:IsVisible()) then return end
+	if unitId ~= self.unitId or not self.frame.enabled or not self.anchor:IsVisible() then return end
 
 	local maxExpirationTime = 0
 	local _, name, icon, Icon, duration, Duration, expirationTime, wyvernsting
@@ -373,7 +374,10 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	for i = 1, 40 do
 		name, _, icon, _, _, duration, expirationTime = UnitDebuff(unitId, i)
 
-		if not name then break end -- no more debuffs, terminate the loop
+		if not name then
+			--log("UnitDebuff " .. unitId .. " " .. i)
+			break
+		end -- no more debuffs, terminate the loop
 		--log(i .. ") " .. name .. " | " .. rank .. " | " .. icon .. " | " .. count .. " | " .. debuffType .. " | " .. duration .. " | " .. expirationTime )
 
 		-- exceptions
@@ -405,11 +409,13 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	end
 
 	-- Track Immunities
-	if not Icon and LoseControlDB.tracking[Immune] then -- only bother checking for immunities if there were no debuffs found
+	if LoseControlDB.tracking.Immune and not Icon and unitId ~= "player" then -- only bother checking for immunities if there were no debuffs found
 		for i = 1, 40 do
 			name, _, icon, _, _, duration, expirationTime = UnitBuff(unitId, i)
-			if not name then break
-			elseif abilities[name] == Immune and expirationTime > maxExpirationTime then
+			if not name then
+				--log("UnitBuff " .. unitId .. " " .. i)
+				break
+			elseif abilities[name] == "Immune" and expirationTime > maxExpirationTime then
 				maxExpirationTime = expirationTime
 				Duration = duration
 				Icon = icon
@@ -432,14 +438,14 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			end
 			self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
 		end
-		if frame.anchor == "Blizzard" then
+		if self.frame.anchor == "Blizzard" then
 			SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits. TO DO: mask the cooldown frame somehow so the corners don't stick out of the portrait frame. Maybe apply a circular alpha mask in the OVERLAY draw layer.
 		else
 			self.texture:SetTexture(Icon)
 		end
 		self:Show()
 		self:SetCooldown( maxExpirationTime - Duration, Duration )
-		self:SetAlpha(frame.alpha) -- hack to apply transparency to the cooldown timer
+		self:SetAlpha(self.frame.alpha) -- hack to apply transparency to the cooldown timer
 	end
 end
 
@@ -455,7 +461,7 @@ local UnitDropDown -- declared here, initialized below in the options panel code
 local AnchorDropDown
 -- Handle mouse dragging
 function LoseControl:StopMoving()
-	local frame = LoseControlDB.frames[self.unitId]
+	local frame = self.frame --LoseControlDB.frames[self.unitId]
 	frame.point, frame.anchor, frame.relativePoint, frame.x, frame.y = self:GetPoint()
 	if not frame.anchor then
 		frame.anchor = "None"
@@ -558,7 +564,7 @@ function Unlock:OnClick()
 	else
 		_G[O.."UnlockText"]:SetText(LOSECONTROL["Unlock"])
 		for k, v in pairs(LC) do
-			local frame = LoseControlDB.frames[k]
+			--local frame = LoseControlDB.frames[k]
 			v:RegisterEvent("UNIT_AURA")
 			if k == "focus" then
 				v:RegisterEvent("PLAYER_FOCUS_CHANGED")
@@ -587,45 +593,45 @@ local Tracking = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 Tracking:SetText(LOSECONTROL["Tracking"])
 
 local TrackCCs = CreateFrame("CheckButton", O.."TrackCCs", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackCCsText"]:SetText(CC)
+_G[O.."TrackCCsText"]:SetText(LOSECONTROL["CC"])
 TrackCCs:SetScript("OnClick", function(self)
-	LoseControlDB.tracking[CC] = self:GetChecked()
+	LoseControlDB.tracking.CC = self:GetChecked()
 end)
 
 local TrackSilences = CreateFrame("CheckButton", O.."TrackSilences", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackSilencesText"]:SetText(Silence)
+_G[O.."TrackSilencesText"]:SetText(LOSECONTROL["Silence"])
 TrackSilences:SetScript("OnClick", function(self)
-	LoseControlDB.tracking[Silence] = self:GetChecked()
+	LoseControlDB.tracking.Silence = self:GetChecked()
 end)
 
 local TrackDisarms = CreateFrame("CheckButton", O.."TrackDisarms", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackDisarmsText"]:SetText(Disarm)
+_G[O.."TrackDisarmsText"]:SetText(LOSECONTROL["Disarm"])
 TrackDisarms:SetScript("OnClick", function(self)
-	LoseControlDB.tracking[Disarm] = self:GetChecked()
+	LoseControlDB.tracking.Disarm = self:GetChecked()
 end)
 
 local TrackRoots = CreateFrame("CheckButton", O.."TrackRoots", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackRootsText"]:SetText(Root)
+_G[O.."TrackRootsText"]:SetText(LOSECONTROL["Root"])
 TrackRoots:SetScript("OnClick", function(self)
-	LoseControlDB.tracking[Root] = self:GetChecked()
+	LoseControlDB.tracking.Root = self:GetChecked()
 end)
 
 local TrackSnares = CreateFrame("CheckButton", O.."TrackSnares", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackSnaresText"]:SetText(Snare)
+_G[O.."TrackSnaresText"]:SetText(LOSECONTROL["Snare"])
 TrackSnares:SetScript("OnClick", function(self)
-	LoseControlDB.tracking[Snare] = self:GetChecked()
+	LoseControlDB.tracking.Snare = self:GetChecked()
 end)
 
 local TrackImmune = CreateFrame("CheckButton", O.."TrackImmune", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackImmuneText"]:SetText(Immune)
+_G[O.."TrackImmuneText"]:SetText(LOSECONTROL["Immune"])
 TrackImmune:SetScript("OnClick", function(self)
-	LoseControlDB.tracking[Immune] = self:GetChecked()
+	LoseControlDB.tracking.Immune = self:GetChecked()
 end)
 
 local TrackPvE = CreateFrame("CheckButton", O.."TrackPvE", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackPvEText"]:SetText(PvE)
+_G[O.."TrackPvEText"]:SetText(LOSECONTROL["PvE"])
 TrackPvE:SetScript("OnClick", function(self)
-	LoseControlDB.tracking[PvE] = self:GetChecked()
+	LoseControlDB.tracking.PvE = self:GetChecked()
 end)
 
 -------------------------------------------------------------------------------
@@ -788,7 +794,7 @@ SizeSlider:SetPoint("TOPLEFT", AnchorDropDown, "BOTTOMLEFT", 0, -24)		AlphaSlide
 
 -------------------------------------------------------------------------------
 OptionsPanel.default = function() -- This method will run when the player clicks "defaults".
-	_G.LoseControlDB.version = nil
+	_G.LoseControlDB = nil
 	LoseControl:ADDON_LOADED(L)
 	for _, v in pairs(LC) do
 		v:PLAYER_ENTERING_WORLD()
@@ -800,13 +806,13 @@ OptionsPanel.refresh = function() -- This method will run when the Interface Opt
 	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
 	local frame = LoseControlDB.frames[unit]
 	DisableCooldownCount:SetChecked(LoseControlDB.noCooldownCount)
-	TrackCCs:SetChecked(tracking[CC])
-	TrackSilences:SetChecked(tracking[Silence])
-	TrackDisarms:SetChecked(tracking[Disarm])
-	TrackRoots:SetChecked(tracking[Root])
-	TrackSnares:SetChecked(tracking[Snare])
-	TrackImmune:SetChecked(tracking[Immune])
-	TrackPvE:SetChecked(tracking[PvE])
+	TrackCCs:SetChecked(tracking.CC)
+	TrackSilences:SetChecked(tracking.Silence)
+	TrackDisarms:SetChecked(tracking.Disarm)
+	TrackRoots:SetChecked(tracking.Root)
+	TrackSnares:SetChecked(tracking.Snare)
+	TrackImmune:SetChecked(tracking.Immune)
+	TrackPvE:SetChecked(tracking.PvE)
 	Enabled:SetChecked(frame.enabled)
 	Enabled:OnClick()
 	AnchorDropDown:initialize()
