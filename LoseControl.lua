@@ -9,7 +9,7 @@ And of course, Blizzard
 Thanks! :)
 ]]
 
-local L = "LoseControl"
+local addonName, L = ...;
 local UIParent = UIParent -- it's faster to keep local references to frequently used global vars
 
 local function log(msg) DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for convenience
@@ -55,6 +55,7 @@ local spellIds = {
 	[54644] = "Snare",	-- Froststorm Breath (Chimera)
 	[50245] = "Root",	-- Pin (Crab)
 	[50271] = "Snare",	-- Tendon Rip (Hyena)
+	[90337] = "CC",		-- Bad Manner (Monkey)
 	[54706] = "Root",	-- Venom Web Spray (Silithid)
 	[4167]  = "Root",	-- Web (Spider)
 	-- Mage
@@ -165,7 +166,7 @@ local spellIds = {
 	[47585] = "Immune",	-- Dispersion (Priest)
 	[642]   = "Immune",	-- Divine Shield (Paladin)
 	[45438] = "Immune",	-- Ice Block (Mage)
-	[34692] = "Immune",	-- The Beast Within (Hunter)
+	--[54216] = "Immune",	-- Master's Call (Hunter pet + target, root and snare immune only)
 	-- Spell Immunities
 	[48707] = "ImmuneSpell",	-- Anti-magic Shell (Death Knight)
 	[31224] = "ImmuneSpell",	-- Cloak of Shadows (Rogue)
@@ -196,7 +197,7 @@ for k, v in pairs(spellIds) do
 	if name then
 		abilities[name] = v
 	else -- Thanks to inph for this idea. Keeps things from breaking when Blizzard changes things.
-		log(L .. " unknown spellId: " .. k)
+		log(addonName .. " unknown spellId: " .. k)
 	end
 end
 
@@ -242,7 +243,7 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 4.01, -- This is the settings version, not necessarily the same as the LoseControl version
+	version = 4.1, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
 	tracking = { -- To Do: Priority
 		Immune		= false, --100
@@ -342,29 +343,15 @@ LoseControl:SetScript("OnEvent", LoseControl.OnEvent)
 
 -- Handle default settings
 function LoseControl:ADDON_LOADED(arg1)
-	if arg1 == L then
+	if arg1 == addonName then
 		if _G.LoseControlDB and _G.LoseControlDB.version then
 			if _G.LoseControlDB.version < DBdefaults.version then
-				if _G.LoseControlDB.version >= 3.22 then -- minor changes, so try to update without losing settings
-					_G.LoseControlDB.tracking = {
-						Immune		= false, --100
-						ImmuneSpell	= false, -- 90
-						CC		= true,  -- 80
-						PvE		= true,  -- 70
-						Silence		= true,  -- 60
-						Disarm		= true,  -- 50
-						Root		= false, -- 40
-						Snare		= false, -- 30
-					}
-					_G.LoseControlDB.version = 4.01
-				else -- major changes, must reset settings
-					_G.LoseControlDB = CopyTable(DBdefaults)
-					log(LOSECONTROL["LoseControl reset."])
-				end
+				_G.LoseControlDB = CopyTable(DBdefaults)
+				log(L["LoseControl reset."])
 			end
 		else -- never installed before
 			_G.LoseControlDB = CopyTable(DBdefaults)
-			log(LOSECONTROL["LoseControl reset."])
+			log(L["LoseControl reset."])
 		end
 		LoseControlDB = _G.LoseControlDB
 		LoseControl.noCooldownCount = LoseControlDB.noCooldownCount
@@ -401,6 +388,7 @@ local SOLAR_BEAM = GetSpellInfo(81261)
 local GROUNDING_TOTEM = GetSpellInfo(8178)
 local UnitDebuff = UnitDebuff
 local UnitBuff = UnitBuff
+local GetTime = GetTime
 
 -- This is the main event
 function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
@@ -435,7 +423,7 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			expirationTime = GetTime() + 10 -- hack, normal expirationTime = 0
 		end
 
-		if LoseControlDB.tracking[abilities[name]] and expirationTime > maxExpirationTime then
+		if expirationTime > maxExpirationTime and LoseControlDB.tracking[abilities[name]] then
 			maxExpirationTime = expirationTime
 			Duration = duration
 			Icon = icon
@@ -460,9 +448,10 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 				expirationTime = GetTime() + 45 -- hack, normal expirationTime = 0
 			end
 
-			if (	(Immune and abilities[name] == "Immune") or
+			if expirationTime > maxExpirationTime and (
+				(Immune and abilities[name] == "Immune") or
 				(ImmuneSpell and abilities[name] == "ImmuneSpell")
-			) and expirationTime > maxExpirationTime then
+			) then
 				maxExpirationTime = expirationTime
 				Duration = duration
 				Icon = icon
@@ -524,7 +513,7 @@ end
 
 -- Constructor method
 function LoseControl:new(unitId)
-	local o = CreateFrame("Cooldown", L .. unitId) --, UIParent)
+	local o = CreateFrame("Cooldown", addonName .. unitId) --, UIParent)
 	setmetatable(o, self)
 	self.__index = self
 
@@ -565,27 +554,27 @@ end
 
 -------------------------------------------------------------------------------
 -- Add main Interface Option Panel
-local O = L .. "OptionsPanel"
+local O = addonName .. "OptionsPanel"
 
 local OptionsPanel = CreateFrame("Frame", O)
-OptionsPanel.name = L
+OptionsPanel.name = addonName
 
 local title = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-title:SetText(L)
+title:SetText(addonName)
 
 local subText = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-local notes = GetAddOnMetadata(L, "Notes-" .. GetLocale())
+local notes = GetAddOnMetadata(addonName, "Notes-" .. GetLocale())
 if not notes then
-	notes = GetAddOnMetadata(L, "Notes")
+	notes = GetAddOnMetadata(addonName, "Notes")
 end
 subText:SetText(notes)
 
 -- "Unlock" checkbox - allow the frames to be moved
 local Unlock = CreateFrame("CheckButton", O.."Unlock", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."UnlockText"]:SetText(LOSECONTROL["Unlock"])
+_G[O.."UnlockText"]:SetText(L["Unlock"])
 function Unlock:OnClick()
 	if self:GetChecked() then
-		_G[O.."UnlockText"]:SetText(LOSECONTROL["Unlock"] .. LOSECONTROL[" (drag an icon to move)"])
+		_G[O.."UnlockText"]:SetText(L["Unlock"] .. L[" (drag an icon to move)"])
 		local keys = {} -- for random icon sillyness
 		for k in pairs(spellIds) do
 			tinsert(keys, k)
@@ -611,7 +600,7 @@ function Unlock:OnClick()
 			end
 		end
 	else
-		_G[O.."UnlockText"]:SetText(LOSECONTROL["Unlock"])
+		_G[O.."UnlockText"]:SetText(L["Unlock"])
 		for k, v in pairs(LC) do
 			--local frame = LoseControlDB.frames[k]
 			v:RegisterEvent("UNIT_AURA")
@@ -632,59 +621,59 @@ end
 Unlock:SetScript("OnClick", Unlock.OnClick)
 
 local DisableCooldownCount = CreateFrame("CheckButton", O.."DisableCooldownCount", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."DisableCooldownCountText"]:SetText(LOSECONTROL["Disable OmniCC/CooldownCount Support"])
+_G[O.."DisableCooldownCountText"]:SetText(L["Disable OmniCC/CooldownCount Support"])
 DisableCooldownCount:SetScript("OnClick", function(self)
 	LoseControlDB.noCooldownCount = self:GetChecked()
 	LoseControl.noCooldownCount = LoseControlDB.noCooldownCount
 end)
 
 local Tracking = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-Tracking:SetText(LOSECONTROL["Tracking"])
+Tracking:SetText(L["Tracking"])
 
 local TrackCCs = CreateFrame("CheckButton", O.."TrackCCs", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackCCsText"]:SetText(LOSECONTROL["CC"])
+_G[O.."TrackCCsText"]:SetText(L["CC"])
 TrackCCs:SetScript("OnClick", function(self)
 	LoseControlDB.tracking.CC = self:GetChecked()
 end)
 
 local TrackSilences = CreateFrame("CheckButton", O.."TrackSilences", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackSilencesText"]:SetText(LOSECONTROL["Silence"])
+_G[O.."TrackSilencesText"]:SetText(L["Silence"])
 TrackSilences:SetScript("OnClick", function(self)
 	LoseControlDB.tracking.Silence = self:GetChecked()
 end)
 
 local TrackDisarms = CreateFrame("CheckButton", O.."TrackDisarms", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackDisarmsText"]:SetText(LOSECONTROL["Disarm"])
+_G[O.."TrackDisarmsText"]:SetText(L["Disarm"])
 TrackDisarms:SetScript("OnClick", function(self)
 	LoseControlDB.tracking.Disarm = self:GetChecked()
 end)
 
 local TrackRoots = CreateFrame("CheckButton", O.."TrackRoots", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackRootsText"]:SetText(LOSECONTROL["Root"])
+_G[O.."TrackRootsText"]:SetText(L["Root"])
 TrackRoots:SetScript("OnClick", function(self)
 	LoseControlDB.tracking.Root = self:GetChecked()
 end)
 
 local TrackSnares = CreateFrame("CheckButton", O.."TrackSnares", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackSnaresText"]:SetText(LOSECONTROL["Snare"])
+_G[O.."TrackSnaresText"]:SetText(L["Snare"])
 TrackSnares:SetScript("OnClick", function(self)
 	LoseControlDB.tracking.Snare = self:GetChecked()
 end)
 
 local TrackImmune = CreateFrame("CheckButton", O.."TrackImmune", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackImmuneText"]:SetText(LOSECONTROL["Immune"])
+_G[O.."TrackImmuneText"]:SetText(L["Immune"])
 TrackImmune:SetScript("OnClick", function(self)
 	LoseControlDB.tracking.Immune = self:GetChecked()
 end)
 
 local TrackImmuneSpell = CreateFrame("CheckButton", O.."TrackImmuneSpell", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackImmuneSpellText"]:SetText(LOSECONTROL["Immune to Spells"])
+_G[O.."TrackImmuneSpellText"]:SetText(L["Immune to Spells"])
 TrackImmuneSpell:SetScript("OnClick", function(self)
 	LoseControlDB.tracking.ImmuneSpell = self:GetChecked()
 end)
 
 local TrackPvE = CreateFrame("CheckButton", O.."TrackPvE", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackPvEText"]:SetText(LOSECONTROL["PvE"])
+_G[O.."TrackPvEText"]:SetText(L["PvE"])
 TrackPvE:SetScript("OnClick", function(self)
 	LoseControlDB.tracking.PvE = self:GetChecked()
 end)
@@ -702,7 +691,7 @@ local function AddItem(owner, text, value)
 end
 
 local UnitDropDownLabel = OptionsPanel:CreateFontString(O.."UnitDropDownLabel", "ARTWORK", "GameFontNormal")
-UnitDropDownLabel:SetText(LOSECONTROL["Unit Configuration"])
+UnitDropDownLabel:SetText(L["Unit Configuration"])
 UnitDropDown = CreateFrame("Frame", O.."UnitDropDown", OptionsPanel, "UIDropDownMenuTemplate")
 function UnitDropDown:OnClick()
 	UIDropDownMenu_SetSelectedValue(UnitDropDown, self.value)
@@ -710,13 +699,13 @@ function UnitDropDown:OnClick()
 end
 UIDropDownMenu_Initialize(UnitDropDown, function() -- sets the initialize function and calls it
 	for _, v in ipairs({ "player", "target", "focus", "party1", "party2", "party3", "party4", "arena1", "arena2", "arena3", "arena4", "arena5" }) do -- indexed manually so they appear in order
-		AddItem(UnitDropDown, LOSECONTROL[v], v)
+		AddItem(UnitDropDown, L[v], v)
 	end
 end)
 UIDropDownMenu_SetSelectedValue(UnitDropDown, "player") -- set the initial drop down choice
 
 local AnchorDropDownLabel = OptionsPanel:CreateFontString(O.."AnchorDropDownLabel", "ARTWORK", "GameFontNormal")
-AnchorDropDownLabel:SetText(LOSECONTROL["Anchor"])
+AnchorDropDownLabel:SetText(L["Anchor"])
 AnchorDropDown = CreateFrame("Frame", O.."AnchorDropDown", OptionsPanel, "UIDropDownMenuTemplate")
 function AnchorDropDown:OnClick()
 	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
@@ -749,14 +738,14 @@ function AnchorDropDown:OnClick()
 end
 function AnchorDropDown:initialize() -- called from OptionsPanel.refresh() and every time the drop down menu is opened
 	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
-	AddItem(self, LOSECONTROL["None"], "None")
+	AddItem(self, L["None"], "None")
 	AddItem(self, "Blizzard", "Blizzard")
 	if _G[anchors["Perl"][unit]] then AddItem(self, "Perl", "Perl") end
 	if _G[anchors["XPerl"][unit]] then AddItem(self, "XPerl", "XPerl") end
 end
 
 local StrataDropDownLabel = OptionsPanel:CreateFontString(O.."StrataDropDownLabel", "ARTWORK", "GameFontNormal")
-StrataDropDownLabel:SetText(LOSECONTROL["Strata"])
+StrataDropDownLabel:SetText(L["Strata"])
 local StrataDropDown = CreateFrame("Frame", O.."StrataDropDown", OptionsPanel, "UIDropDownMenuTemplate")
 function StrataDropDown:OnClick()
 	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
@@ -784,19 +773,19 @@ local function CreateSlider(text, parent, low, high, step)
 	return slider
 end
 
-local SizeSlider = CreateSlider(LOSECONTROL["Icon Size"], OptionsPanel, 16, 512, 4)
+local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanel, 16, 512, 4)
 SizeSlider:SetScript("OnValueChanged", function(self, value)
 	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
-	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL["Icon Size"] .. " (" .. value .. "px)")
+	_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
 	LoseControlDB.frames[unit].size = value
 	LC[unit]:SetWidth(value)
 	LC[unit]:SetHeight(value)
 end)
 
-local AlphaSlider = CreateSlider(LOSECONTROL["Opacity"], OptionsPanel, 0, 100, 5) -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
+local AlphaSlider = CreateSlider(L["Opacity"], OptionsPanel, 0, 100, 5) -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
 AlphaSlider:SetScript("OnValueChanged", function(self, value)
 	local unit = UIDropDownMenu_GetSelectedValue(UnitDropDown)
-	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL["Opacity"] .. " (" .. value .. "%)")
+	_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
 	LoseControlDB.frames[unit].alpha = value / 100 -- the real alpha value
 	LC[unit]:SetAlpha(value / 100)
 end)
@@ -804,7 +793,7 @@ end)
 -------------------------------------------------------------------------------
 -- Defined last because it references earlier declared variables
 local Enabled = CreateFrame("CheckButton", O.."Enabled", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."EnabledText"]:SetText(LOSECONTROL["Enabled"])
+_G[O.."EnabledText"]:SetText(L["Enabled"])
 function Enabled:OnClick()
 	local enabled = self:GetChecked()
 	LoseControlDB.frames[UIDropDownMenu_GetSelectedValue(UnitDropDown)].enabled = enabled
@@ -851,7 +840,7 @@ SizeSlider:SetPoint("TOPLEFT", AnchorDropDown, "BOTTOMLEFT", 0, -24)		AlphaSlide
 -------------------------------------------------------------------------------
 OptionsPanel.default = function() -- This method will run when the player clicks "defaults".
 	_G.LoseControlDB = nil
-	LoseControl:ADDON_LOADED(L)
+	LoseControl:ADDON_LOADED(addonName)
 	for _, v in pairs(LC) do
 		v:PLAYER_ENTERING_WORLD()
 	end
@@ -885,7 +874,7 @@ InterfaceOptions_AddCategory(OptionsPanel)
 -------------------------------------------------------------------------------
 SLASH_LoseControl1 = "/lc"
 SLASH_LoseControl2 = "/losecontrol"
-SlashCmdList[L] = function(cmd)
+SlashCmdList[addonName] = function(cmd)
 	cmd = cmd:lower()
 	if cmd == "reset" then
 		OptionsPanel.default()
@@ -893,25 +882,25 @@ SlashCmdList[L] = function(cmd)
 	elseif cmd == "lock" then
 		Unlock:SetChecked(false)
 		Unlock:OnClick()
-		log(L .. " locked.")
+		log(addonName .. " locked.")
 	elseif cmd == "unlock" then
 		Unlock:SetChecked(true)
 		Unlock:OnClick()
-		log(L .. " unlocked.")
+		log(addonName .. " unlocked.")
 	elseif cmd:sub(1, 6) == "enable" then
 		local unit = cmd:sub(8, 14)
 		if LoseControlDB.frames[unit] then
 			LoseControlDB.frames[unit].enabled = true
-			log(L .. ": " .. unit .. " frame enabled.")
+			log(addonName .. ": " .. unit .. " frame enabled.")
 		end
 	elseif cmd:sub(1, 7) == "disable" then
 		local unit = cmd:sub(9, 15)
 		if LoseControlDB.frames[unit] then
 			LoseControlDB.frames[unit].enabled = false
-			log(L .. ": " .. unit .. " frame disabled.")
+			log(addonName .. ": " .. unit .. " frame disabled.")
 		end
 	elseif cmd:sub(1, 4) == "help" then
-		log(L .. " slash commands:")
+		log(addonName .. " slash commands:")
 		log("    reset")
 		log("    lock")
 		log("    unlock")
@@ -919,7 +908,7 @@ SlashCmdList[L] = function(cmd)
 		log("    disable <unit>")
 		log("<unit> can be: player, target, focus, party1 ... party4, arena1 ... arena5")
 	else
-		log(L .. ": Type \"/lc help\" for more options.")
+		log(addonName .. ": Type \"/lc help\" for more options.")
 		InterfaceOptionsFrame_OpenToCategory(OptionsPanel)
 	end
 end
