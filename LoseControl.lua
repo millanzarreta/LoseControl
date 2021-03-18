@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.03
+-- Version: 6.04
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -638,8 +638,12 @@ local spellIds = {
 	[259833] = "CC",				-- Heroic Leap
 	[259867] = "CC",				-- Storm Bolt
 	[272856] = "CC",				-- Hex Bomb
+	[266918] = "CC",				-- Fear
 	[262610] = "Root",				-- Weighted Net
 	[273665] = "Snare",				-- Seismic Disturbance
+	[262538] = "Snare",				-- Thunder Clap
+	[259850] = "Snare",				-- Reverberating Clap
+	[20822]  = "Snare",				-- Frostbolt
 	------------------------
 	-- BfA Island Expeditions
 	[8377] = "Root",				-- Earthgrab
@@ -706,14 +710,19 @@ local spellIds = {
 	[258371] = "CC",				-- Crystal Gaze
 	[266989] = "CC",				-- Swooping Charge
 	[258390] = "CC",				-- Petrifying Gaze
+	[275990] = "CC",				-- Conflagrating Exhaust
+	[277375] = "CC",				-- Sucker Punch
+	[278193] = "CC",				-- Crush
 	--[262197] = "Immune",			-- Tenacity of the Pack (unkillable but not immune to damage)
 	[264115] = "Immune",			-- Divine Shield
+	[267487] = "ImmunePhysical",	-- Icy Reflection
 	[275154] = "Silence",			-- Silencing Calm
 	[265723] = "Root",				-- Web
 	[274801] = "Root",				-- Net
 	[265584] = "Root",				-- Frost Nova
 	[265583] = "Root",				-- Grasping Claw
 	[278176] = "Root",				-- Entangling Roots
+	[275821] = "Root",				-- Earthen Hold
 	[277109] = "Snare",				-- Sticky Stomp
 	[266974] = "Snare",				-- Frostbolt
 	[261962] = "Snare",				-- Brutal Whirlwind
@@ -812,6 +821,7 @@ local spellIds = {
 	[261266] = "Immune",			-- Runic Ward (99% damage reduction)
 	[261264] = "Immune",			-- Soul Armor (99% damage reduction)
 	[271590] = "Immune",			-- Soul Armor (99% damage reduction)
+	[260923] = "Immune",			-- Soul Manipulation (99% damage reduction)
 	[264027] = "Other",				-- Warding Candles (50% damage reduction)
 	[264040] = "Snare",				-- Uprooted Thorns
 	[264712] = "Snare",				-- Rotten Expulsion
