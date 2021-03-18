@@ -35,6 +35,7 @@ local spellIds = {
 	[58179] = "Snare",	-- Infected Wounds
 	[61391] = "Snare",	-- Typhoon
 	-- Hunter
+	[60210] = "CC",		-- Freezing Arrow Effect
 	[3355]  = "CC",		-- Freezing Trap Effect
 	[24394] = "CC",		-- Intimidation
 	[1513]  = "CC",		-- Scare Beast (works against Druids in most forms and Shamans using Ghost Wolf)
@@ -158,6 +159,7 @@ local spellIds = {
 	[63018] = "PvE",	-- Light Bomb (XT-002 Deconstructor)
 	[62589] = "PvE",	-- Nature's Fury (Freya, via Ancient Conservator)
 	[63276] = "PvE",	-- Mark of the Faceless (General Vezax)
+	[66770] = "PvE",	-- Ferocious Butt (Icehowl)
 }
 local abilities = {} -- localized names are saved here
 for k, v in pairs(spellIds) do
@@ -211,7 +213,7 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 3.32,
+	version = 3.32, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
 	tracking = { -- To Do: Priority
 		Immune  = false, --100
@@ -543,7 +545,7 @@ function Unlock:OnClick()
 		end
 		for k, v in pairs(LC) do
 			local frame = LoseControlDB.frames[k]
-			if _G[anchors[frame.anchor][k]] or frame.anchor == "None" then -- only unlock frames whose anchor exists
+			if frame.enabled and (_G[anchors[frame.anchor][k]] or frame.anchor == "None") then -- only unlock frames whose anchor exists
 				v:UnregisterEvent("UNIT_AURA")
 				v:UnregisterEvent("PLAYER_FOCUS_CHANGED")
 				v:UnregisterEvent("PLAYER_TARGET_CHANGED")
