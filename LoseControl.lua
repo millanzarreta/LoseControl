@@ -55,7 +55,6 @@ local spellIds = {
 	[54644] = "Snare",	-- Froststorm Breath (Chimera)
 	[50245] = "Root",	-- Pin (Crab)
 	[50271] = "Snare",	-- Tendon Rip (Hyena)
-	[50518] = "CC",		-- Ravage (Ravager)
 	[54706] = "Root",	-- Venom Web Spray (Silithid)
 	[4167]  = "Root",	-- Web (Spider)
 	-- Mage
@@ -177,6 +176,7 @@ local spellIds = {
 	--[49039] = "ImmuneFearPoly",	-- Lichborne [charm, fear, sleep, hex, polymorph] (Death Knight)
 	--[51271] = "ImmuneMove",	-- Pillar of Frost (Death Knight)
 	-- PvE
+	[11428] = "PvE",	-- Knockdown (generic)
 	[28169] = "PvE",	-- Mutating Injection (Grobbulus)
 	[28059] = "PvE",	-- Positive Charge (Thaddius)
 	[28084] = "PvE",	-- Negative Charge (Thaddius)
@@ -393,6 +393,7 @@ end
 local WYVERN_STING = GetSpellInfo(19386)
 local PSYCHIC_HORROR = GetSpellInfo(64058)
 local UNSTABLE_AFFLICTION = GetSpellInfo(31117)
+local SOLAR_BEAM = GetSpellInfo(81261)
 local BERSERK = GetSpellInfo(50334)
 local GROUNDING_TOTEM = GetSpellInfo(8178)
 local UnitDebuff = UnitDebuff
@@ -425,6 +426,8 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 		elseif (name == PSYCHIC_HORROR and icon ~= "Interface\\Icons\\Spell_Shadow_PsychicHorrors") or -- hack to remove Psychic Horror disarm effect
 			(name == UNSTABLE_AFFLICTION and icon ~= "Interface\\Icons\\Spell_Holy_Silence") then
 			name = nil
+		elseif name == SOLAR_BEAM then
+			expirationTime = GetTime() + 10 -- hack, normal expirationTime = 0
 		end
 
 		if LoseControlDB.tracking[abilities[name]] and expirationTime > maxExpirationTime then
