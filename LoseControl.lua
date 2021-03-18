@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.01
+-- Version: 1.02
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -337,11 +337,12 @@ local spellIds = {
 	[23454]  = "CC",				-- Stun (The Unstoppable Force weapon)
 	[9179]   = "CC",				-- Stun (Tigule and Foror's Strawberry Ice Cream item)
 	[7744]   = "Other",				-- Will of the Forsaken	(undead racial)
+	[26635]  = "Other",				-- Berserking (troll racial)
 	[20594]  = "Other",				-- Stoneform (dwarf racial)
 	[30217]  = "CC",				-- Adamantite Grenade
 	[13327]  = "CC",				-- Reckless Charge (Goblin Rocket Helmet)
 	[20549]  = "CC",				-- War Stomp (tauren racial)
-	[23230]  = "Other",				-- Blood Fury (orc racial)
+	--[23230]  = "Other",				-- Blood Fury (orc racial)
 	[13181]  = "CC",				-- Gnomish Mind Control Cap (Gnomish Mind Control Cap helmet)
 	[26740]  = "CC",				-- Gnomish Mind Control Cap (Gnomish Mind Control Cap helmet)
 	[8345]   = "CC",				-- Control Machine (Gnomish Universal Remote trinket)
@@ -364,6 +365,7 @@ local spellIds = {
 	[12843]  = "Immune",			-- Mordresh's Shield
 	[25282]  = "Immune",			-- Shield of Rajaxx
 	[27619]  = "Immune",			-- Ice Block
+	[21892]  = "Immune",			-- Arcane Protection
 	[13237]  = "CC",				-- Goblin Mortar
 	[5134]   = "CC",				-- Flash Bomb
 	[4064]   = "CC",				-- Rough Copper Bomb
@@ -428,6 +430,8 @@ local spellIds = {
 	[27990]  = "CC",				-- Fear
 	[29168]  = "CC",				-- Fear
 	[30002]  = "CC",				-- Fear
+	[26042]  = "CC",				-- Psychic Scream
+	[15398]  = "CC",				-- Psychic Scream
 	[9915]   = "Root",				-- Frost Nova
 	[12748]  = "Root",				-- Frost Nova
 	[14907]  = "Root",				-- Frost Nova
@@ -467,6 +471,9 @@ local spellIds = {
 	[28310]  = "Snare",				-- Mind Flay
 	[29407]  = "Snare",				-- Mind Flay
 	[26044]  = "CC",				-- Mind Flay
+	[16094]  = "Snare",				-- Frost Breath
+	[16099]  = "Snare",				-- Frost Breath
+	[16340]  = "Snare",				-- Frost Breath
 	[17174]  = "Snare",				-- Concussive Shot
 	[27634]  = "Snare",				-- Concussive Shot
 	[20654]  = "Root",				-- Entangling Roots
@@ -583,6 +590,9 @@ local spellIds = {
 	[6615]   = "Other",				-- Free Action Potion
 	[11359]  = "Other",				-- Restorative Potion
 	[24364]  = "Other",				-- Living Free Action
+	[23505]  = "Other",				-- Berserking
+	[24378]  = "Other",				-- Berserking
+	[19135]  = "Other",				-- Avatar
 	[3169]   = "ImmunePhysical",	-- Limited Invulnerability Potion
 	[17624]  = "Immune",			-- Flask of Petrification
 	[13534]  = "Disarm",			-- Disarm (The Shatterer weapon)
@@ -676,7 +686,8 @@ local spellIds = {
 	------------------------
 	-- Classic World Bosses
 	-- -- Azuregos
-	[23182]  = "CC",				-- Mark of Frost
+	[23186]  = "CC",				-- Aura of Frost
+	[21099]  = "CC",				-- Frost Breath
 	[22067]  = "ImmuneSpell",		-- Reflection
 	[27564]  = "ImmuneSpell",		-- Reflection
 	[21098]  = "Snare",				-- Chill
@@ -905,7 +916,7 @@ local spellIds = {
 	[22856]  = "CC",				-- Ice Lock
 	[16727]  = "CC",				-- War Stomp
 	[22884]  = "CC",				-- Psychic Scream
-	[22735]  = "ImmuneSpell",		-- Spirit of Runn Tum (not immune, 50% chance reflect spells)
+	--[22735]  = "ImmuneSpell",		-- Spirit of Runn Tum (not immune, 50% chance reflect spells)
 	[22994]  = "Root",				-- Entangle
 	[22924]  = "Root",				-- Grasping Vines
 	[22914]  = "Snare",				-- Concussive Shot
@@ -1101,6 +1112,9 @@ function LoseControl:RegisterUnitEvents(enabled)
 		elseif unitId == "pet" then
 			self:UnregisterEvent("UNIT_PET")
 		end
+		if not self.unlockMode then
+			self:Hide()
+		end
 	end
 	if (LoseControlDB.priority.Interrupt > 0) then
 		local someFrameEnabled = false
@@ -1129,14 +1143,12 @@ function LoseControl:UpdateGetEnemiesBuffInformationOptionState()
 			local frame = LCframes[unitId]
 			if frame then
 				local inInstance, instanceType = IsInInstance()
-				local enabled = frame.frame.enabled and not (
-					inInstance and instanceType == "pvp" and (
-						( LoseControlDB.disablePartyInBG and strfind(unitId, "party") )
-					)
+				local enabled = frame.frame.enabled and (not strfind(unitId, "party") or (not (
+					inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
 				) and not (
-					IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party")
-				)
-				if enabled then
+					IsInRaid() and LoseControlDB.disablePartyInRaid and not (inInstance and instanceType == "pvp")
+				)))
+				if enabled and not frame.unlockMode then
 					frame:UNIT_AURA(unitId)
 				end
 			end
@@ -1158,6 +1170,39 @@ function LoseControl:UpdateInterruptsSpellIdByNameTable()
 			end
 			
 		end
+	end
+end
+
+local function SetInterruptIconsSize(iconFrame, iconSize)
+	local interruptIconSize = (iconSize * 0.88) / 3
+	local interruptIconOffset = (iconSize * 0.06)
+	if iconFrame.frame.anchor == "Blizzard" then
+		iconFrame.interruptIconOrderPos = {
+			[1] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
+			[2] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
+			[3] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
+			[4] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
+			[5] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2},
+			[6] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize*2},
+			[7] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize*2}
+		}
+	else
+		iconFrame.interruptIconOrderPos = {
+			[1] = {-interruptIconOffset, interruptIconOffset},
+			[2] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
+			[3] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset},
+			[4] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
+			[5] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
+			[6] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
+			[7] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2}
+		}
+	end
+	iconFrame.iconInterruptBackground:SetWidth(iconSize)
+	iconFrame.iconInterruptBackground:SetHeight(iconSize)
+	for _, v in pairs(iconFrame.iconInterruptList) do
+		v:SetWidth(interruptIconSize)
+		v:SetHeight(interruptIconSize)
+		v:SetPoint("BOTTOMRIGHT", iconFrame.interruptIconOrderPos[v.interruptIconOrder or 1][1], iconFrame.interruptIconOrderPos[v.interruptIconOrder or 1][2])
 	end
 end
 
@@ -1216,7 +1261,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.01"
+		self.VERSION = "1.02"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
@@ -1252,15 +1297,12 @@ function LoseControl:PLAYER_ENTERING_WORLD()
 	self.frame = LoseControlDB.frames[unitId] -- store a local reference to the frame's settings
 	local frame = self.frame
 	local inInstance, instanceType = IsInInstance()
-	self:RegisterUnitEvents(
-		frame.enabled and not (
-			inInstance and instanceType == "pvp" and (
-				( LoseControlDB.disablePartyInBG and strfind(unitId, "party") )
-			)
-		) and not (
-			IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party")
-		)
-	)
+	local enabled = frame.enabled and (not strfind(unitId, "party") or (not (
+		inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
+	) and not (
+		IsInRaid() and LoseControlDB.disablePartyInRaid and not (inInstance and instanceType == "pvp")
+	)))
+	self:RegisterUnitEvents(enabled)
 	self.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
 	self.unitGUID = UnitGUID(self.unitId)
 	self.parent:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
@@ -1277,39 +1319,14 @@ function LoseControl:PLAYER_ENTERING_WORLD()
 		frame.y or 0
 	)
 	
-	local interruptIconSize = (frame.size * 0.88) / 3
-	local interruptIconOffset = (frame.size * 0.06)
-	if self.frame.anchor == "Blizzard" then
-		self.interruptIconOrderPos = {
-			[1] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
-			[2] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
-			[3] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
-			[4] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
-			[5] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2},
-			[6] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize*2},
-			[7] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize*2}
-		}
-	else
-		self.interruptIconOrderPos = {
-			[1] = {-interruptIconOffset, interruptIconOffset},
-			[2] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
-			[3] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset},
-			[4] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
-			[5] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
-			[6] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
-			[7] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2}
-		}
-	end
-	self.iconInterruptBackground:SetWidth(frame.size)
-	self.iconInterruptBackground:SetHeight(frame.size)
-	for _, v in pairs(self.iconInterruptList) do
-		v:SetWidth(interruptIconSize)
-		v:SetHeight(interruptIconSize)
-		v:SetPoint("BOTTOMRIGHT", self.interruptIconOrderPos[v.interruptIconOrder or 1][1], self.interruptIconOrderPos[v.interruptIconOrder or 1][2])
-	end
+	SetInterruptIconsSize(self, frame.size)
 	
 	--self:SetAlpha(frame.alpha) -- doesn't seem to work; must manually set alpha after the cooldown is displayed, otherwise it doesn't apply.
 	self:Hide()
+	
+	if enabled and not self.unlockMode then
+		self:UNIT_AURA(self.unitId)
+	end
 end
 
 function LoseControl:GROUP_ROSTER_UPDATE()
@@ -1319,15 +1336,16 @@ function LoseControl:GROUP_ROSTER_UPDATE()
 		return
 	end
 	local inInstance, instanceType = IsInInstance()
-	self:RegisterUnitEvents(
-		frame.enabled and not (
-			inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
-		) and not (
-			IsInRaid() and LoseControlDB.disablePartyInRaid
-		)
+	local enabled = frame.enabled and not (
+		inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
+	) and not (
+		IsInRaid() and LoseControlDB.disablePartyInRaid and not (inInstance and instanceType == "pvp")
 	)
+	self:RegisterUnitEvents(enabled)
 	self.unitGUID = UnitGUID(unitId)
-	self:UNIT_AURA(unitId)
+	if enabled and not self.unlockMode then
+		self:UNIT_AURA(unitId)
+	end
 end
 
 function LoseControl:GROUP_JOINED()
@@ -1336,6 +1354,22 @@ end
 
 function LoseControl:GROUP_LEFT()
 	self:GROUP_ROSTER_UPDATE()
+end
+
+local function UpdateUnitAuraByUnitGUID(unitGUID)
+	local inInstance, instanceType = IsInInstance()
+	for k, v in pairs(LCframes) do
+		local enabled = v.frame.enabled and (not strfind(v.unitId, "party") or (not (
+			inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
+		) and not (
+			IsInRaid() and LoseControlDB.disablePartyInRaid and not (inInstance and instanceType == "pvp")
+		)))
+		if enabled and v.unlockMode then
+			if v.unitGUID == unitGUID then
+				v:UNIT_AURA(k)
+			end
+		end
+	end
 end
 
 -- This event check pvp interrupts
@@ -1375,20 +1409,12 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 						InterruptAuras[destGUID] = {}
 					end
 					tblinsert(InterruptAuras[destGUID], { ["spellId"] = spellId, ["duration"] = duration, ["expirationTime"] = expirationTime, ["priority"] = priority, ["icon"] = icon, ["spellSchool"] = spellSchool })
-					for k, v in pairs(LCframes) do
-						if v.unitGUID == destGUID then
-							v:UNIT_AURA(k)
-						end
-					end
+					UpdateUnitAuraByUnitGUID(destGUID)
 				end
 			end
 		elseif (((event == "UNIT_DIED") or (event == "UNIT_DESTROYED") or (event == "UNIT_DISSIPATES")) and (select(2, GetPlayerInfoByGUID(destGUID)) ~= "HUNTER")) then
 			InterruptAuras[destGUID] = nil
-			for k, v in pairs(LCframes) do
-				if v.unitGUID == destGUID then
-					v:UNIT_AURA(k)
-				end
-			end
+			UpdateUnitAuraByUnitGUID(destGUID)
 		end
 	end
 	if ((sourceGUID ~= nil) and (event == "SPELL_CAST_SUCCESS") and ((spellId == 12472) or (spellName == coldSnapSpellName))) then
@@ -1409,11 +1435,7 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 			end
 		end
 		if needUpdateUnitAura then
-			for k, v in pairs(LCframes) do
-				if v.unitGUID == sourceGUID then
-					v:UNIT_AURA(k)
-				end
-			end
+			UpdateUnitAuraByUnitGUID(sourceGUID)
 		end
 	end
 end
@@ -1456,18 +1478,20 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 		end
 		
 		local Priority = priority[spellIds[spellId]]
-		if Priority then
-			if Priority == maxPriority and expirationTime > maxExpirationTime then
-				maxExpirationTime = expirationTime
-				Duration = duration
-				Icon = icon
-				forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
-			elseif Priority > maxPriority then
-				maxPriority = Priority
-				maxExpirationTime = expirationTime
-				Duration = duration
-				Icon = icon
-				forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
+		if unitId ~= "player" or (spellIds[spellId] ~= "Immune" and spellIds[spellId] ~= "ImmuneSpell" and spellIds[spellId] ~= "ImmunePhysical" and spellIds[spellId] ~= "Other") then
+			if Priority then
+				if Priority == maxPriority and expirationTime > maxExpirationTime then
+					maxExpirationTime = expirationTime
+					Duration = duration
+					Icon = icon
+					forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
+				elseif Priority > maxPriority then
+					maxPriority = Priority
+					maxExpirationTime = expirationTime
+					Duration = duration
+					Icon = icon
+					forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
+				end
 			end
 		end
 	end
@@ -1712,7 +1736,9 @@ function LoseControl:PLAYER_TARGET_CHANGED()
 	if (self.unitId == "target") then
 		self.unitGUID = UnitGUID("target")
 	end
-	self:UNIT_AURA("target")
+	if not self.unlockMode then
+		self:UNIT_AURA("target")
+	end
 end
 
 function LoseControl:UNIT_PET(unitId)
@@ -1720,7 +1746,9 @@ function LoseControl:UNIT_PET(unitId)
 	if (self.unitId == "pet") then
 		self.unitGUID = UnitGUID("pet")
 	end
-	self:UNIT_AURA("pet")
+	if not self.unlockMode then
+		self:UNIT_AURA("pet")
+	end
 end
 
 -- Handle mouse dragging
@@ -1851,6 +1879,8 @@ function Unlock:OnClick()
 			tinsert(keys, k)
 		end
 		for k, v in pairs(LCframes) do
+			v.maxExpirationTime = 0
+			v.unlockMode = true
 			local frame = LoseControlDB.frames[k]
 			if frame.enabled and (_G[anchors[frame.anchor][k]] or frame.anchor == "None") then -- only unlock frames whose anchor exists
 				v:RegisterUnitEvents(false)
@@ -1873,6 +1903,7 @@ function Unlock:OnClick()
 	else
 		_G[O.."UnlockText"]:SetText(L["Unlock"])
 		for _, v in pairs(LCframes) do
+			v.unlockMode = false
 			v:EnableMouse(false)
 			v:RegisterForDrag()
 			v:SetMovable(false)
@@ -2081,39 +2112,7 @@ for _, v in ipairs({ "player", "pet", "target", "party" }) do
 				end
 			end			
 			icon.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
-			local interruptIconSize = (frame.size * 0.88) / 3
-			local interruptIconOffset = (frame.size * 0.06)
-			if icon.frame.anchor == "Blizzard" then
-				icon.interruptIconOrderPos = {
-					[1] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
-					[2] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
-					[3] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
-					[4] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
-					[5] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2},
-					[6] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize*2},
-					[7] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize*2}
-				}
-			else
-				icon.interruptIconOrderPos = {
-					[1] = {-interruptIconOffset, interruptIconOffset},
-					[2] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
-					[3] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset},
-					[4] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
-					[5] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
-					[6] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
-					[7] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2}
-				}
-			end
-			icon.iconInterruptBackground:SetWidth(frame.size)
-			icon.iconInterruptBackground:SetHeight(frame.size)
-			for _, v in pairs(icon.iconInterruptList) do
-				v:SetWidth(interruptIconSize)
-				v:SetHeight(interruptIconSize)
-				v:SetPoint("BOTTOMRIGHT", icon.interruptIconOrderPos[v.interruptIconOrder or 1][1], icon.interruptIconOrderPos[v.interruptIconOrder or 1][2])
-			end
-			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
-				icon.parent:SetParent(icon.anchor:GetParent())
-			end
+			SetInterruptIconsSize(icon, frame.size)
 
 			icon:ClearAllPoints() -- if we don't do this then the frame won't always move
 			icon:SetPoint(
@@ -2137,36 +2136,7 @@ for _, v in ipairs({ "player", "pet", "target", "party" }) do
 			LoseControlDB.frames[frame].size = value
 			LCframes[frame]:SetWidth(value)
 			LCframes[frame]:SetHeight(value)
-			local interruptIconSize = (value * 0.88) / 3
-			local interruptIconOffset = (value * 0.06)
-			if LCframes[frame].frame.anchor == "Blizzard" then
-				LCframes[frame].interruptIconOrderPos = {
-					[1] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
-					[2] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
-					[3] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
-					[4] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
-					[5] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2},
-					[6] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize*2},
-					[7] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize*2}
-				}
-			else
-				LCframes[frame].interruptIconOrderPos = {
-					[1] = {-interruptIconOffset, interruptIconOffset},
-					[2] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},
-					[3] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset},
-					[4] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},
-					[5] = {-interruptIconOffset-interruptIconSize, interruptIconOffset+interruptIconSize},
-					[6] = {-interruptIconOffset-interruptIconSize*2, interruptIconOffset+interruptIconSize},
-					[7] = {-interruptIconOffset, interruptIconOffset+interruptIconSize*2}
-				}
-			end
-			LCframes[frame].iconInterruptBackground:SetWidth(value)
-			LCframes[frame].iconInterruptBackground:SetHeight(value)
-			for _, v in pairs(LCframes[frame].iconInterruptList) do
-				v:SetWidth(interruptIconSize)
-				v:SetHeight(interruptIconSize)
-				v:SetPoint("BOTTOMRIGHT", LCframes[frame].interruptIconOrderPos[v.interruptIconOrder or 1][1], LCframes[frame].interruptIconOrderPos[v.interruptIconOrder or 1][2])
-			end
+			SetInterruptIconsSize(LCframes[frame], value)
 		end
 	end)
 
@@ -2261,14 +2231,15 @@ for _, v in ipairs({ "player", "pet", "target", "party" }) do
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].enabled = enabled
 			local inInstance, instanceType = IsInInstance()
-			local enable = enabled and not (
-				inInstance and instanceType == "pvp" and (
-					( LoseControlDB.disablePartyInBG and strfind(frame, "party") )
-				)
+			local enable = enabled and (not strfind(frame, "party") or (not (
+				inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
 			) and not (
-				IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(frame, "party")
-			)
+				IsInRaid() and LoseControlDB.disablePartyInRaid and not (inInstance and instanceType == "pvp")
+			)))
 			LCframes[frame]:RegisterUnitEvents(enable)
+			if enable and not LCframes[frame].unlockMode then
+				LCframes[frame]:UNIT_AURA(frame)
+			end
 		end
 	end)
 
@@ -2373,14 +2344,15 @@ function SlashCmd:enable(unitId)
 	if LCframes[unitId] then
 		LoseControlDB.frames[unitId].enabled = true
 		local inInstance, instanceType = IsInInstance()
-		local enabled = not (
-			inInstance and instanceType == "pvp" and (
-				( LoseControlDB.disablePartyInBG and strfind(unitId, "party") )
-			)
+		local enabled = not strfind(unitId, "party") or (not (
+			inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
 		) and not (
-			IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party")
-		)
+			IsInRaid() and LoseControlDB.disablePartyInRaid and not (inInstance and instanceType == "pvp")
+		))
 		LCframes[unitId]:RegisterUnitEvents(enabled)
+		if enabled and not LCframes[unitId].unlockMode then
+			LCframes[unitId]:UNIT_AURA(unitId)
+		end
 		print(addonName, unitId, "frame enabled.")
 	end
 end

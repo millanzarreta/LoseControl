@@ -1,7 +1,7 @@
-## Interface: 11302
+## Interface: 11303
 ## Title: LoseControl Classic
 ## Author: millanzarreta, Kouri
-## Version: 1.01
+## Version: 1.02
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter
