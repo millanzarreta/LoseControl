@@ -1,7 +1,7 @@
-## Interface: 80200
-## Title: LoseControl
+## Interface: 11302
+## Title: LoseControl Classic
 ## Author: Kouri, millanzarreta
-## Version: 6.09
+## Version: 1.00
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter
@@ -18,5 +18,8 @@
 ## X-Category: Buffs
 ## SavedVariablesPerCharacter: LoseControlDB
 
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibClassicDurations\LibClassicDurations.xml
 localization.lua
 LoseControl.lua
