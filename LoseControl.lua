@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 7.0
+-- Version: 7.01
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -106,6 +106,7 @@ local interruptsIds = {
 	[13491]  = 5,		-- Pummel (Iron Knuckles Item)
 	[19647]  = 6,		-- Spell Lock (felhunter) (Warlock)
 	[29443]  = 10,		-- Counterspell (Clutch of Foresight)
+	[31935]  = 3,		-- Avenger's Shield (only vs npc's) (Paladin)
 	[47528]  = 3,		-- Mind Freeze (Death Knight)
 	[57994]  = 3,		-- Wind Shear (Shaman)
 	[91807]  = 2,		-- Shambling Rush (Death Knight)
@@ -121,9 +122,9 @@ local interruptsIds = {
 	[212619] = 6,		-- Call Felhunter (Warlock)
 	[217824] = 4,		-- Shield of Virtue (Protec Paladin)
 	[220543] = 3,		-- Silence (only vs npc's) (Priest)
-	[31935]  = 3,		-- Avenger's Shield (only vs npc's) (Paladin)
 	[347008] = 4,		-- Axe Toss (Warlock)
 	[342414] = 5,		-- Cracked Mindscreecher (Priest Anima Power)
+	[328406] = 8,		-- Discharged Anima (Necrotic Wake Item)
 }
 
 local spellIds = {
@@ -142,7 +143,6 @@ local spellIds = {
 	[200166] = "CC",				-- Metamorfosis stun
 	[247121] = "Snare",				-- Metamorfosis snare
 	[196555] = "Immune",			-- Netherwalk
-	[188499] = "ImmunePhysical",	-- Blade Dance (dodge chance increased by 100%)
 	[213491] = "CC",				-- Demonic Trample Stun
 	[206649] = "Silence",			-- Eye of Leotheras (no silence, 5% dmg and duration reset for spell casted)
 	[232538] = "Snare",				-- Rain of Chaos
@@ -360,7 +360,7 @@ local spellIds = {
 	[157997] = "Root",				-- Ice Nova
 	[228600] = "Root",				-- Glacial Spike
 	[110909] = "Other",				-- Alter Time
-	[110909] = "Other",				-- Alter Time
+	[342246] = "Other",				-- Alter Time
 	[110959] = "Other",				-- Greater Invisibility
 	[110960] = "Other",				-- Greater Invisibility
 	[198144] = "Other",				-- Ice form (stun/knockback immune)
@@ -568,9 +568,11 @@ local spellIds = {
 	[104773] = "Other",				-- Unending Resolve
 	[113860] = "Other",				-- Dark Soul: Misery
 	[113858] = "Other",				-- Dark Soul: Instability
+	[333889] = "Other",				-- Fel Domination
 	[212295] = "ImmuneSpell",		-- Netherward (reflects spells)
 	[233582] = "Root",				-- Entrenched in Flame (pvp honor talent)
 	[337113] = "Snare",				-- Sacrolash's Dark Strike (Legendary)
+	[334275] = "Snare",				-- Curse of Exhaustion
 
 		----------------
 		-- Warlock Pets
@@ -729,6 +731,8 @@ local spellIds = {
 	[238322] = "CC",				-- Arcane Prison
 	[171369] = "CC",				-- Arcane Prison
 	[172692] = "CC",				-- Unbound Charge
+	[330914] = "Other",				-- Momentum Redistributor Boots
+	[339672] = "Snare",				-- Gravimetric Scrambler
 	[295395] = "Silence",			-- Oblivion Spear
 	[268966] = "Root",				-- Hooked Deep Sea Net
 	[268965] = "Snare",				-- Tidespray Linen Net
@@ -782,6 +786,7 @@ local spellIds = {
 	[292158] = "Other",				-- Astral Shift
 	[283433] = "Other",				-- Avatar
 	[342890] = "Other",				-- Unhindered Passing (Potion of Unhindered Passing)
+	[183823] = "Other",				-- Potion of Unhindered Passing
 	[345548] = "Snare",				-- Spare Meat Hook (Spare Meat Hook trinket)
 	[343399] = "Snare",				-- Heart of a Gargoyle (Pulsating Stoneheart trinket)
 	[292297] = "Snare",				-- Cone of Cold
@@ -857,10 +862,194 @@ local spellIds = {
 	[292693] = "Immune",			-- Nullification Field
 	[300524] = "CC",				-- Song of Azshara
 	[91933]  = "CC",				-- Intimidating Roar
-	[228318] = "Other",				-- Enrage
 	[276846] = "CC",				-- Silvered Weapons
 	[287478] = "CC",				-- Oppressive Power
 	[287371] = "CC",				-- Spirits of Madness
+	[228318] = "Other",				-- Enrage
+	[79872]  = "CC",				-- Shockwave
+	[341945] = "CC",				-- Defiling Horror
+	[311079] = "CC",				-- Deep Introspection
+	[327430] = "CC",				-- Touch of the Maw
+	[340500] = "CC",				-- Terrifying Slam
+	[319266] = "CC",				-- Shambling Rush
+	[321662] = "CC",				-- Bone Spike
+	[327145] = "CC",				-- Called to the Stone
+	[313451] = "CC",				-- Fuseless Special
+	[331161] = "CC",				-- Big Blue Fist
+	[332984] = "CC",				-- Paralytic Plague
+	[311722] = "CC",				-- Stunned
+	[322802] = "CC",				-- Psychic Blast
+	[341367] = "CC",				-- Psychic Blast
+	[325549] = "CC",				-- Dread Roar
+	[325241] = "CC",				-- Shield Slam
+	[333217] = "CC",				-- Vile Roots
+	[319575] = "CC",				-- Stunning Strike
+	[310998] = "CC",				-- Basket Trap Sprung
+	[311124] = "CC",				-- Nightmares
+	[312063] = "CC",				-- Faerie Punishment
+	[326316] = "CC",				-- Massive Blow
+	[340724] = "CC",				-- Whimsy Eruption
+	[340759] = "CC",				-- Manifest Dread
+	[345188] = "CC",				-- Shield Smash
+	[330727] = "CC",				-- Mounting Fear
+	[316935] = "CC",				-- Rush
+	[308077] = "CC",				-- Stomp
+	[329087] = "CC",				-- Hazy Brew
+	[305926] = "CC",				-- Trapped
+	[305988] = "CC",				-- Accuser's Rebuke
+	[319045] = "CC",				-- Named and Shamed
+	[307315] = "CC",				-- Recovering
+	[324683] = "CC",				-- Suckerpunch
+	[345169] = "CC",				-- Twinkledust
+	[331533] = "CC",				-- Feeling Froggy
+	[323075] = "CC",				-- Malefic Resonance
+	[340704] = "CC",				-- Externalize Rage
+	[324666] = "CC",				-- Duke's Descent
+	[324660] = "CC",				-- Madness
+	[335059] = "CC",				-- Light of Truth
+	[340770] = "CC",				-- Glacial Ray
+	[318685] = "CC",				-- Tripped
+	[318939] = "CC",				-- Vulpin Shenanigans
+	[341226] = "CC",				-- Charge
+	[342187] = "CC",				-- Beckon
+	[340593] = "CC",				-- Bewildering Slam
+	[340469] = "CC",				-- Radiant Breath
+	[272272] = "CC",				-- Trampling Charge
+	[343153] = "CC",				-- Twilight Barrage (all damage done reduced by 75%)
+	[218956] = "CC",				-- Pounce
+	[335190] = "CC",				-- Weaken Will
+	[331925] = "CC",				-- Horrorscape
+	[339352] = "CC",				-- Death Splinter
+	[342886] = "CC",				-- Twilight Dust
+	[342519] = "CC",				-- Psychic Yoke
+	[311837] = "CC",				-- Dazed
+	[332473] = "CC",				-- Sweeping Slashes
+	[320234] = "CC",				-- Shimmer Down
+	[340207] = "CC",				-- Anima Flash
+	[340228] = "CC",				-- Relentless Mauling
+	[309908] = "CC",				-- Anima Overwhelming
+	[335447] = "CC",				-- Hungering Eruption
+	[340134] = "CC",				-- Massive Shockwave
+	[313189] = "CC",				-- Doubt (chance to hit with attacks and abilities decreased by 100%)
+	[332569] = "CC",				-- Pinning Spear
+	[340468] = "CC",				-- Kollect Weapon (disarmed and damage done reduced by 100%)
+	[323936] = "CC",				-- Disarm (disarmed and damage done reduced by 100%)
+	[332643] = "CC",				-- Mass Temptation
+	[336893] = "CC",				-- Terrifying Chaos
+	[337552] = "CC",				-- Molten Crash
+	[332655] = "CC",				-- Cantrip of Flame
+	[332653] = "CC",				-- Cantrip of Frost
+	[330402] = "CC",				-- Blinding Ash
+	[319380] = "CC",				-- Crushing Strike
+	[338836] = "CC",				-- Agent of Chaos
+	[338950] = "CC",				-- Mark of Penance
+	[330678] = "CC",				-- Bellowing Roar
+	[314182] = "CC",				-- Sin Lash
+	[319229] = "CC",				-- Wrathful Invocation
+	[327621] = "CC",				-- Anima Trap
+	[327957] = "CC",				-- Condensed Anima Vial
+	[329396] = "CC",				-- Darkest Secrets
+	[307452] = "CC",				-- Pounce
+	[313065] = "CC",				-- Light Impalement
+	[328927] = "CC",				-- Final Strike (silenced and disarmed)
+	[336991] = "CC",				-- Blinding Trap
+	[312779] = "CC",				-- Feign Death
+	[322683] = "CC",				-- Ice Block
+	[240009] = "CC",				-- Howl from Beyond
+	[342820] = "CC",				-- Charge
+	[347146] = "CC",				-- Wave of Trepidation
+	[337121] = "CC",				-- Overpowering Dirge
+	[343119] = "CC",				-- Mournful Dirge
+	[343830] = "CC",				-- Dominating Grasp
+	[343172] = "CC",				-- Soulfreezing Rune
+	[345148] = "CC",				-- Echoes of Misery
+	[347154] = "CC",				-- Focused Loathing
+	[340031] = "CC",				-- Charge
+	[339581] = "CC",				-- Transmute Anima
+	[339828] = "CC",				-- Mawrat Maul
+	[345331] = "CC",				-- Silence of the Grave
+	[345520] = "CC",				-- Gauntlet Smash
+	[344975] = "CC",				-- Lost Hope
+	[346605] = "CC",				-- Shockwave
+	[346266] = "CC",				-- Severing Doom
+	[341747] = "CC",				-- Overwhelming Misery
+	[325706] = "Silence",			-- Call to Chaos
+	[337064] = "Silence",			-- Forgotten Voice
+	[345340] = "Silence",			-- Dead Quiet
+	[332442] = "Disarm",			-- Hurled Charge
+	[346992] = "Disarm",			-- Disarm
+	[333240] = "Immune",			-- Blade Guardian's Rune (not immune, 50% damage reduction)
+	[313440] = "Immune",			-- Indomitable Shield
+	[331762] = "Immune",			-- Necrotic Shield (not immune, 50% damage reduction)
+	[319557] = "Immune",			-- Barricaded (not immune, damage taken reduced by 50%)
+	[310364] = "Immune",			-- Inquisitor's Immunity
+	[321345] = "Immune",			-- Harvester's Might (not immune, damage taken reduced by 75%)
+	[339373] = "Immune",			-- Impenetrable Chitin (damage taken reduced by 95%)
+	[318860] = "Immune",			-- Ravenous Shield
+	[321441] = "Immune",			-- Crimson Ward
+	[344530] = "Immune",			-- Edict of the Eternal Ones
+	[348464] = "Immune",			-- Lingering Cloak of Ve'nari
+	[338038] = "Immune",			-- Misty Veil
+	[333856] = "Immune",			-- Soul Barrier
+	[343046] = "ImmuneSpell",		-- Magic Shell (magic damage taken reduced by 70%)
+	[320401] = "ImmuneSpell",		-- Lucky Dust
+	[328286] = "ImmunePhysical",	-- Nimble Dodge (increased dodge chance by 100%)
+	[63861]  = "Root",				-- Chains of Law
+	[311077] = "Root",				-- Deep Introspection
+	[311068] = "Root",				-- Deep Introspection
+	[311113] = "Root",				-- Gotta Dance
+	[340736] = "Root",				-- Rainbow Rush
+	[329710] = "Root",				-- Creeping Tendrils
+	[302124] = "Root",				-- Ol' Big Tusk Charge
+	[311767] = "Root",				-- Death From Above
+	[330456] = "Root",				-- Shadow Surge
+	[330106] = "Root",				-- Shadow Surge
+	[330593] = "Root",				-- Web
+	[308277] = "Root",				-- Entangling Spores
+	[328782] = "Root",				-- Webspinner Song
+	[331515] = "Root",				-- Time Out
+	[345002] = "Root",				-- Calcify
+	[330436] = "Root",				-- Entrap Soul
+	[346439] = "Root",				-- Culling Blades
+	[305752] = "Root",				-- Javelin of Justice
+	[335047] = "Other",				-- Goliath Bulwark (deflecting attacks from the front)
+	[338085] = "Other",				-- Necrosis (healing received reduced by 100%)
+	[321000] = "Other",				-- Unholy Bulwark (deflecting attacks from the front)
+	[329889] = "Other",				-- Planar Dissonance (damage dealt reduced by 50%, damage taken increased by 200%)
+	[51878]  = "Snare",				-- Ice Slash
+	[329158] = "Snare",				-- Frigid Blast
+	[321525] = "Snare",				-- Spectral Shackle
+	[320028] = "Snare",				-- Ground Pound
+	[330092] = "Snare",				-- Plaguefallen
+	[332293] = "Snare",				-- Hurled Charge
+	[317341] = "Snare",				-- Reluctant Soul
+	[327754] = "Snare",				-- Soulbreaker Trap
+	[324003] = "Snare",				-- Siphon
+	[324004] = "Snare",				-- Drained
+	[322686] = "Snare",				-- Chilled
+	[343421] = "Snare",				-- Cursed Heart
+	[334882] = "Snare",				-- Sticky Muck
+	[336252] = "Snare",				-- Sticky Spittle
+	[185152] = "Snare",				-- Flame Binding
+	[329432] = "Snare",				-- Cripple
+	[347163] = "Snare",				-- Iron Shackles
+	[334177] = "Snare",				-- Death's Demise
+	[308228] = "Snare",				-- Shackles
+	[342252] = "Snare",				-- Cursed Heart
+	[220242] = "Snare",				-- Eye of Dread
+	[343072] = "Snare",				-- Crushing Stomp
+	[336859] = "Snare",				-- Fel Armament
+	[324114] = "Snare",				-- Forbidden Knowledge
+	[340482] = "Snare",				-- Explosive Fungistorm
+	[344408] = "Snare",				-- Carrying a Rock
+	[339617] = "Snare",				-- Crushing Strength
+	[319728] = "Snare",				-- Drain Anima
+	[166906] = "Snare",				-- Pinning Shot
+	[335505] = "Snare",				-- Smash
+	[345010] = "Snare",				-- Wracking Pain
+	[346629] = "Snare",				-- Punishing Strike
+	[346255] = "Snare",				-- Iron Shackles
+	[329430] = "Snare",				-- Ghastly Wail
 	[8312]   = "Root",				-- Trap (Hunting Net trinket)
 	[17308]  = "CC",				-- Stun (Hurd Smasher fist weapon)
 	[23454]  = "CC",				-- Stun (The Unstoppable Force weapon)
@@ -1064,7 +1253,7 @@ local spellIds = {
 	[5990]   = "Other",				-- Nimble Reflexes
 	[6615]   = "Other",				-- Free Action Potion
 	[11359]  = "Other",				-- Restorative Potion
-	[24364]  = "Other",				-- Living Free Action
+	[24364]  = "Other",				-- Living Free Action Potion
 	[23505]  = "Other",				-- Berserking
 	[24378]  = "Other",				-- Berserking
 	[19135]  = "Other",				-- Avatar
@@ -1082,7 +1271,7 @@ local spellIds = {
 	------------------------
 	---- PVE SHADOWLANDS
 	------------------------
-	-- Castle Nathria
+	-- Castle Nathria Raid
 	-- -- Trash
 	[341867] = "CC",				-- Subdue
 	[329438] = "CC",				-- Doubt (chance to hit with attacks and abilities decreased by 100%)
@@ -1145,7 +1334,9 @@ local spellIds = {
 	-- -- De Other Side
 	[201441] = "Immune",			-- Thorium Plating
 	[201581] = "Immune",			-- Mega Miniaturization Turbo-Beam (Chance to be hit by attacks and spells reduced by 95%)
+	[344739] = "Immune",			-- Spectral
 	[202310] = "CC",				-- Hyper Zap-o-matic Ultimate Mark III
+	[228626] = "CC",				-- Haunted Urn
 	[330434] = "Root",				-- Buzz-Saw
 	[331847] = "CC",				-- W-00F
 	[339978] = "CC",				-- Pacifying Mists
@@ -1169,8 +1360,10 @@ local spellIds = {
 	[326876] = "CC",				-- Shredded Ankles
 	[326617] = "CC",				-- Turn to Stone
 	[326607] = "Immune",			-- Turn to Stone (not immune, damage taken reduced by 50%)
+	--[326450] = "Other",				-- Loyal Beasts	(increases all damage done by 125%)
 	-- -- Mists of Tirna Scithe
 	[323149] = "Immune",			-- Embrace Darkness (not immune, damage taken reduced by 50%)
+	[336499] = "Immune",			-- Guessing Game
 	[321005] = "CC",				-- Soul Shackle
 	[321010] = "CC",				-- Soul Shackle
 	[323059] = "CC",				-- Droman's Wrath
@@ -1184,13 +1377,17 @@ local spellIds = {
 	[337253] = "CC",				-- Parasitic Domination
 	[322487] = "CC",				-- Overgrowth
 	[340160] = "CC",				-- Radiant Breath
+	[323881] = "CC",				-- Envelopment of Mist
 	[324859] = "Root",				-- Bramblethorn Entanglement
 	[325027] = "Snare",				-- Bramble Burst
+	[341898] = "Snare",				-- Bramble Burst
 	[322486] = "Snare",				-- Overgrowth
 	-- -- The Necrotic Wake
 	[320646] = "CC",				-- Fetid Gas
 	[335141] = "ImmunePhysical",	-- Dark Shroud
+	[345832] = "CC",				-- Dark Grasp
 	[343504] = "CC",				-- Dark Grasp
+	[345608] = "CC",				-- Forgotten Forgehammer
 	[326629] = "Immune",			-- Noxious Fog
 	[322548] = "CC",				-- Meat Hook
 	[327041] = "CC",				-- Meat Hook
@@ -1201,11 +1398,14 @@ local spellIds = {
 	[345625] = "Silence",			-- Death Burst
 	[324293] = "CC",				-- Rasping Scream
 	[328051] = "Immune",			-- Discarded Shield (not immune, damage taken reduced by 50%)
+	[321576] = "Other",				-- Undying Aura (unkillable)
 	[333489] = "Other",				-- Necrotic Breath (healing received reduced by 50%)
 	[320573] = "Other",				-- Shadow Well (healing received reduced by 100%)
 	[324381] = "Snare",				-- Chill Scythe
 	-- -- Plaguefall
 	[321521] = "Immune",			-- Congealed Bile (not immune, damage taken reduced by 75%)
+	[336449] = "Immune",			-- Bulwark of Maldraxxus (not immune, damage taken reduced by 90%)
+	[328175] = "Immune",			-- Congealed Contagion (not immune, damage taken reduced by 75%)
 	[326242] = "Root",				-- Slime Wave
 	[331818] = "CC",				-- Shadow Ambush
 	[336306] = "CC",				-- Web Wrap
@@ -1216,9 +1416,11 @@ local spellIds = {
 	[328180] = "Root",				-- Gripping Infection
 	[328002] = "Snare",				-- Hurl Spores
 	[334926] = "Snare",				-- Wretched Phlegm
+	[335090] = "Snare",				-- Crushing Embrace
 	-- -- Sanguine Depths
 	[324092] = "Immune",			-- Shining Radiance (not immune, damage taken reduced by 65%)
 	[327107] = "Immune",			-- Shining Radiance (not immune, damage taken reduced by 75%)
+	[336749] = "CC",				-- Rend Souls
 	[326836] = "Silence",			-- Curse of Suppression
 	[335306] = "Root",				-- Barbed Shackles
 	-- -- Spires of Ascension
@@ -1227,6 +1429,8 @@ local spellIds = {
 	[323744] = "CC",				-- Pounce
 	[347598] = "CC",				-- Carriage Knockdown
 	[330388] = "CC",				-- Terrifying Screech
+	[339917] = "CC",				-- Spear of Destiny
+	[327808] = "Other",				-- Inspiring Presence (damage taken from AoE reduced by 75%)
 	[330453] = "Snare",				-- Stone Breath
 	[331906] = "Snare",				-- Fling Muck
 	-- -- Theater of Pain
@@ -1235,6 +1439,7 @@ local spellIds = {
 	[320287] = "CC",				-- Blood and Glory
 	[319539] = "CC",				-- Soulless
 	[333567] = "CC",				-- Possession
+	[331275] = "Other",				-- Unbreakable Guard (deflecting attacks and spells from the front)
 	[333710] = "Root",				-- Grasping Hands
 	[342691] = "Root",				-- Grasping Hands
 	[319567] = "Root",				-- Grasping Hands
@@ -1252,6 +1457,7 @@ local spellIds = {
 	[330810] = "Snare",				-- Bind Soul
 	------------------------
 	-- Torghast, Tower of the Damned
+	[348131] = "CC",				-- Soul Emanation
 	[314702] = "CC",				-- Twisted Hellchoker
 	[307612] = "CC",				-- Darkening Canopy
 	[329454] = "CC",				-- Ogundimu's Fist
@@ -1271,6 +1477,7 @@ local spellIds = {
 	[329398] = "CC",				-- Pandemonium
 	[345524] = "CC",				-- Mad Wizard's Confusion
 	[333767] = "CC",				-- Distracting Charges
+	[297722] = "Silence",			-- Subjugator's Manacles
 	[342375] = "Silence",			-- Tormenting Backlash
 	[342414] = "Silence",			-- Cracked Mindscreecher
 	[332547] = "Disarm",			-- Animate Armaments
@@ -2313,6 +2520,7 @@ local spellIds = {
 	[246209] = "CC",				-- Punishing Flame
 	[254502] = "CC",				-- Fearsome Leap
 	[254125] = "CC",				-- Cloud of Confusion
+	[241311] = "Snare",				-- Spirit Chain Volley
 	-- -- Garothi Worldbreaker
 	[246920] = "CC",				-- Haywire Decimation
 	-- -- Hounds of Sargeras
@@ -2687,6 +2895,7 @@ local spellIds = {
 	[29849]  = "Root",				-- Frost Nova
 	[30094]  = "Root",				-- Frost Nova
 	[28350]  = "Other",				-- Veil of Darkness (immune to direct healing)
+	[28440]  = "Other",				-- Veil of Shadow
 	[18328]  = "Snare",				-- Incapacitating Shout
 	[28310]  = "Snare",				-- Mind Flay
 	[30092]  = "Snare",				-- Blast Wave
@@ -2697,6 +2906,7 @@ local spellIds = {
 	[28991]  = "Root",				-- Web
 	-- -- Grand Widow Faerlina
 	[30225]  = "Silence",			-- Silence
+	[28732]  = "Other",				-- Widow's Embrace (prevents enraged and silenced nature spells)
 	-- -- Maexxna
 	[28622]  = "CC",				-- Web Wrap
 	[29484]  = "CC",				-- Web Spray
@@ -2788,7 +2998,6 @@ local spellIds = {
 	[7621]   = "CC",				-- Arugal's Curse
 	[7068]   = "Other",				-- Veil of Shadow
 	[23224]  = "Other",				-- Veil of Shadow
-	[28440]  = "Other",				-- Veil of Shadow
 	[7803]   = "CC",				-- Thundershock
 	[7074]   = "Silence",			-- Screams of the Past
 	[93956]  = "Other",				-- Cursed Veil	
@@ -3494,7 +3703,7 @@ local DBdefaults = {
 			}
 		},
 		raid1 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3505,7 +3714,7 @@ local DBdefaults = {
 			}
 		},
 		raid2 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3516,7 +3725,7 @@ local DBdefaults = {
 			}
 		},
 		raid3 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3527,7 +3736,7 @@ local DBdefaults = {
 			}
 		},
 		raid4 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3538,7 +3747,7 @@ local DBdefaults = {
 			}
 		},
 		raid5 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3549,7 +3758,7 @@ local DBdefaults = {
 			}
 		},
 		raid6 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3560,7 +3769,7 @@ local DBdefaults = {
 			}
 		},
 		raid7 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3571,7 +3780,7 @@ local DBdefaults = {
 			}
 		},
 		raid8 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3582,7 +3791,7 @@ local DBdefaults = {
 			}
 		},
 		raid9 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3593,7 +3802,7 @@ local DBdefaults = {
 			}
 		},
 		raid10 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3604,7 +3813,7 @@ local DBdefaults = {
 			}
 		},
 		raid11 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3615,7 +3824,7 @@ local DBdefaults = {
 			}
 		},
 		raid12 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3626,7 +3835,7 @@ local DBdefaults = {
 			}
 		},
 		raid13 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3637,7 +3846,7 @@ local DBdefaults = {
 			}
 		},
 		raid14 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3648,7 +3857,7 @@ local DBdefaults = {
 			}
 		},
 		raid15 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3659,7 +3868,7 @@ local DBdefaults = {
 			}
 		},
 		raid16 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3670,7 +3879,7 @@ local DBdefaults = {
 			}
 		},
 		raid17 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3681,7 +3890,7 @@ local DBdefaults = {
 			}
 		},
 		raid18 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3692,7 +3901,7 @@ local DBdefaults = {
 			}
 		},
 		raid19 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3703,7 +3912,7 @@ local DBdefaults = {
 			}
 		},
 		raid20 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3714,7 +3923,7 @@ local DBdefaults = {
 			}
 		},
 		raid21 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3725,7 +3934,7 @@ local DBdefaults = {
 			}
 		},
 		raid22 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3736,7 +3945,7 @@ local DBdefaults = {
 			}
 		},
 		raid23 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3747,7 +3956,7 @@ local DBdefaults = {
 			}
 		},
 		raid24 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3758,7 +3967,7 @@ local DBdefaults = {
 			}
 		},
 		raid25 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3769,7 +3978,7 @@ local DBdefaults = {
 			}
 		},
 		raid26 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3780,7 +3989,7 @@ local DBdefaults = {
 			}
 		},
 		raid27 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3791,7 +4000,7 @@ local DBdefaults = {
 			}
 		},
 		raid28 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3802,7 +4011,7 @@ local DBdefaults = {
 			}
 		},
 		raid29 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3813,7 +4022,7 @@ local DBdefaults = {
 			}
 		},
 		raid30 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3824,7 +4033,7 @@ local DBdefaults = {
 			}
 		},
 		raid31 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3835,7 +4044,7 @@ local DBdefaults = {
 			}
 		},
 		raid32 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3846,7 +4055,7 @@ local DBdefaults = {
 			}
 		},
 		raid33 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3857,7 +4066,7 @@ local DBdefaults = {
 			}
 		},
 		raid34 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3868,7 +4077,7 @@ local DBdefaults = {
 			}
 		},
 		raid35 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3879,7 +4088,7 @@ local DBdefaults = {
 			}
 		},
 		raid36 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3890,7 +4099,7 @@ local DBdefaults = {
 			}
 		},
 		raid37 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3901,7 +4110,7 @@ local DBdefaults = {
 			}
 		},
 		raid38 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3912,7 +4121,7 @@ local DBdefaults = {
 			}
 		},
 		raid39 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -3923,7 +4132,7 @@ local DBdefaults = {
 			}
 		},
 		raid40 = {
-			enabled = true,
+			enabled = false,
 			size = 20,
 			alpha = 1,
 			anchor = "BlizzardRaidFrames",
@@ -4371,23 +4580,37 @@ end
 
 -- Function to hook the raid frames and anchors the LoseControl raid frames to their corresponding blizzard raid frame
 function LoseControl:MainHookCompactRaidFrames()
-	for i = 1, 40 do
-		local compactRaidFrame = _G["CompactRaidFrame"..i]
-		if (compactRaidFrame ~= nil) then
-			HookCompactRaidFrame(compactRaidFrame)
+	if not LoseControl.CompactRaidFramesHooked then
+		local someRaidEnabledAndBlizzAnchored = false
+		for i = 1, 40 do
+			if LoseControlDB.frames["raid"..i].enabled and LoseControlDB.frames["raid"..i].anchor == "BlizzardRaidFrames" then
+				someRaidEnabledAndBlizzAnchored = true
+				break
+			end
 		end
-	end
-	for i = 1, 8 do
-		for j = 1, 5 do
-			local compactRaidFrame = _G["CompactRaidGroup"..i.."Member"..j]
-			if (compactRaidFrame ~= nil) then
-				HookCompactRaidFrame(compactRaidFrame)
+		if someRaidEnabledAndBlizzAnchored then
+			if not LoseControl.CompactRaidFramesHooked then
+				for i = 1, 40 do
+					local compactRaidFrame = _G["CompactRaidFrame"..i]
+					if (compactRaidFrame ~= nil) then
+						HookCompactRaidFrame(compactRaidFrame)
+					end
+				end
+				for i = 1, 8 do
+					for j = 1, 5 do
+						local compactRaidFrame = _G["CompactRaidGroup"..i.."Member"..j]
+						if (compactRaidFrame ~= nil) then
+							HookCompactRaidFrame(compactRaidFrame)
+						end
+					end
+				end
+				hooksecurefunc("CompactUnitFrame_OnLoad", function(self)
+					HookCompactRaidFrame(self)
+				end)
+				LoseControl.CompactRaidFramesHooked = true
 			end
 		end
 	end
-	hooksecurefunc("CompactUnitFrame_OnLoad", function(self)
-		HookCompactRaidFrame(self)
-	end)
 end
 
 -- Handle default settings
@@ -4436,7 +4659,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "7.0"
+		self.VERSION = "7.01"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
@@ -5856,6 +6079,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				icon.MasqueGroup:ReSkin()
 			end
 		end
+		if v == "raid" then
+			LoseControl:MainHookCompactRaidFrames()
+		end
 	end
 
 	local AnchorDropDown2
@@ -6699,6 +6925,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					PositionYEditBox:Disable()
 				end
 			end
+			if (v == "raid") then
+				LoseControl:MainHookCompactRaidFrames()
+			end
 		else
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
 			if DisableInArena then BlizzardOptionsPanel_CheckButton_Disable(DisableInArena) end
@@ -7158,6 +7387,9 @@ function SlashCmd:enable(unitId)
 		LoseControlDB.frames[unitId].enabled = true
 		local enabled = LCframes[unitId]:GetEnabled()
 		LCframes[unitId]:RegisterUnitEvents(enabled)
+		if strfind(unitId, "raid") then
+			LoseControl:MainHookCompactRaidFrames()
+		end
 		if enabled and not LCframes[unitId].unlockMode then
 			LCframes[unitId]:UNIT_AURA(unitId, 0)
 		end
