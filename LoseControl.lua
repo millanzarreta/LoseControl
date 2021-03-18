@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.08
+-- Version: 6.09
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -243,9 +243,30 @@ local spellIds = {
 		[35346]  = "Snare",				-- Warp Time (Warp Stalker)
 		[160067] = "Snare",				-- Web Spray (Spider)
 		[160065] = "Snare",				-- Tendon Rip (Silithid)
+		[263852] = "Snare",				-- Talon Rend (Bird of Prey)
+		[263841] = "Snare",				-- Petrifying Gaze (Basilisk)
+		[288962] = "Snare",				-- Blood Bolt (Blood Beast)
+		[50245]  = "Snare",				-- Pin (Crab)
+		[263446] = "Snare",				-- Acid Spit (Worm)
+		[263423] = "Snare",				-- Lock Jaw (Dog)
+		[50285]  = "Snare",				-- Dust Cloud (Tallstrider)
 		[54216]  = "Other",				-- Master's Call (root and snare immune only)
 		[53148]  = "Root",				-- Charge (tenacity ability)
-		[137798] = "ImmuneSpell",		-- Reflective Armor Plating (Direhorn)
+		[90339]  = "Immune",			-- Harden Carapace (damage taken reduced 50%) (Beetle)
+		[160063] = "Immune",			-- Solid Shell (damage taken reduced 50%) (Shale Spider)
+		[264022] = "Immune",			-- Niuzao's Fortitude (damage taken reduced 60%) (Oxen)
+		[263920] = "Immune",			-- Gruff (damage taken reduced 60%) (Goat)
+		[263867] = "Immune",			-- Obsidian Skin (damage taken reduced 50%) (Core Hound)
+		[279410] = "Immune",			-- Bulwark (damage taken reduced 50%) (Krolusk)
+		[263938] = "Immune",			-- Silverback (damage taken reduced 60%) (Gorilla)
+		[263869] = "Immune",			-- Bristle (damage taken reduced 50%) (Boar)
+		[263840] = "Immune",			-- Furious Bite (damage taken reduced 50%) (Wolf)
+		[263868] = "Immune",			-- Defense Matrix (damage taken reduced 50%) (Mechanical)
+		[263934] = "Immune",			-- Thick Fur (damage taken reduced 50%) (Bear)
+		[263865] = "Immune",			-- Scale Shield (damage taken reduced 50%) (Scalehide)
+		[279400] = "Immune",			-- Ancient Hide (damage taken reduced 60%) (Pterrordax)
+		[26064]  = "Immune",			-- Shell Shield (damage taken reduced 50%) (Turtle)
+		[160058] = "Immune",			-- Thick Hide (damage taken reduced 60%) (Clefthoof)
 
 	----------------
 	-- Mage
@@ -438,6 +459,7 @@ local spellIds = {
 	[204399] = "CC",				-- Earthfury (PvP Talent)
 	[192058] = "CC",				-- Lightning Surge totem (capacitor totem)
 	[210918] = "ImmunePhysical",	-- Ethereal Form
+	[305485] = "CC",				-- Lightning Lasso
 	[204437] = "CC",				-- Lightning Lasso
 	[197214] = "CC",				-- Sundering
 	[224126] = "Snare",				-- Frozen Bite (Doom Wolves, artifact trait)
@@ -459,8 +481,10 @@ local spellIds = {
 	[22703]  = "CC",				-- Infernal Awakening
 	[6789]   = "CC",				-- Mortal Coil
 	[30283]  = "CC",				-- Shadowfury
-	[31117]  = "Silence",			-- Unstable Affliction
+	[43523]  = "Silence",			-- Unstable Affliction
+	[65813]  = "Silence",			-- Unstable Affliction
 	[196364] = "Silence",			-- Unstable Affliction
+	[285155] = "Silence",			-- Unstable Affliction
 	[110913] = "Other",				-- Dark Bargain
 	[104773] = "Other",				-- Unending Resolve
 	[212295] = "ImmuneSpell",		-- Netherward (reflects spells)
@@ -570,12 +594,97 @@ local spellIds = {
 	[255228] = "CC",				-- Polymorphed (Organic Discombobulation Grenade and some NPCs)
 	[272188] = "CC",				-- Hammer Smash (quest)
 	[264860] = "CC",				-- Binding Talisman
+	[238322] = "CC",				-- Arcane Prison
+	[171369] = "CC",				-- Arcane Prison
+	[295395] = "Silence",			-- Oblivion Spear
 	[268966] = "Root",				-- Hooked Deep Sea Net
 	[268965] = "Snare",				-- Tidespray Linen Net
+	[295366] = "CC",				-- Purifying Blast (Azerite Essences)
+	[293031] = "Snare",				-- Suppressing Pulse (Azerite Essences)
+	[300009] = "Snare",				-- Suppressing Pulse (Azerite Essences)
+	[300010] = "Snare",				-- Suppressing Pulse (Azerite Essences)
+	[299109] = "CC",				-- Scrap Grenade
+	[302880] = "Silence",			-- Sharkbit (G99.99 Landshark)
+	[299577] = "CC",				-- Scroll of Bursting Power
+	[296273] = "CC",				-- Mirror Charm
+	[304705] = "CC",				-- Razorshell
+	[304706] = "CC",				-- Razorshell
+	[299802] = "CC",				-- Eel Trap
+	[299803] = "CC",				-- Eel Trap
+	[299768] = "CC",				-- Shiv and Shank
+	[299769] = "CC",				-- Undercut
+	[299772] = "CC",				-- Tsunami Slam
+	[299805] = "Root",				-- Undertow
+	
 	-- PvE
 	--[123456] = "PvE",				-- This is just an example, not a real spell
 	------------------------
 	---- PVE BFA
+	------------------------
+	-- The Eternal Palace Raid
+	-- -- Trash
+	[303747] = "CC",				-- Ice Tomb
+	[303396] = "Root",				-- Barbed Net
+	[304189] = "Snare",				-- Frostbolt
+	[303316] = "Snare",				-- Hindering Resonance
+	-- -- Abyssal Commander Sivara
+	[295807] = "CC",				-- Frozen
+	[295850] = "CC",				-- Delirious
+	[295704] = "CC",				-- Frost Bolt
+	[295705] = "CC",				-- Toxic Bolt
+	[300882] = "Root",				-- Inversion Sickness
+	[300883] = "Root",				-- Inversion Sickness
+	-- -- Blackwater Behemoth
+	-- -- Radiance of Azshara
+	[295916] = "Immune",			-- Ancient Tempest (damage taken reduced 99%)
+	[296746] = "CC",				-- Arcane Bomb
+	[304027] = "CC",				-- Arcane Bomb
+	[296389] = "Immune",			-- Swirling Winds (damage taken reduced 99%)
+	-- -- Lady Ashvane
+	[297333] = "CC",				-- Briny Bubble
+	[302992] = "CC",				-- Briny Bubble
+	-- -- Orgozoa
+	[305347] = "Immune",			-- Massive Incubator (damage taken reduced 90%)
+	[295822] = "CC",				-- Conductive Pulse
+	[305603] = "CC",				-- Electro Shock
+	[304280] = "Immune",			-- Chaotic Growth (damage taken reduced 50%)
+	[296914] = "Immune",			-- Chaotic Growth (damage taken reduced 50%)
+	-- -- The Queen's Court
+	[296704] = "Immune",			-- Separation of Power (damage taken reduced 99%)
+	[296716] = "Immune",			-- Separation of Power (damage taken reduced 99%)
+	[304410] = "Silence",			-- Repeat Performance
+	[301832] = "CC",				-- Fanatical Zeal
+	-- -- Za'qul, Harbinger of Ny'alotha
+	[300133] = "CC",				-- Snapped
+	[294545] = "CC",				-- Portal of Madness
+	[292963] = "CC",				-- Dread
+	[302503] = "CC",				-- Dread
+	[303619] = "CC",				-- Dread
+	[295327] = "CC",				-- Shattered Psyche
+	[303832] = "CC",				-- Tentacle Slam
+	[301117] = "Immune",			-- Dark Shield
+	[296084] = "CC",				-- Mind Fracture
+	[299705] = "CC",				-- Dark Passage
+	[299591] = "Immune",			-- Shroud of Fear
+	[303543] = "CC",				-- Dread Scream
+	[296018] = "CC",				-- Manic Dread
+	[302504] = "CC",				-- Manic Dread
+	-- -- Queen Azshara
+	[304759] = "CC",				-- Queen's Disgust
+	[304763] = "CC",				-- Queen's Disgust
+	[304760] = "Disarm",			-- Queen's Disgust
+	[304770] = "Snare",				-- Queen's Disgust
+	[304768] = "Snare",				-- Queen's Disgust
+	[304757] = "Snare",				-- Queen's Disgust
+	[298018] = "CC",				-- Frozen
+	[299094] = "CC",				-- Beckon
+	[302141] = "CC",				-- Beckon
+	[303797] = "CC",				-- Beckon
+	[303799] = "CC",				-- Beckon
+	[300001] = "CC",				-- Devotion
+	[303825] = "CC",				-- Crushing Depths
+	[300620] = "Immune",			-- Crystalline Shield
+	[303706] = "CC",				-- Song of Azshara
 	------------------------
 	-- Crucible of Storms Raid
 	-- -- Trash
@@ -885,6 +994,8 @@ local spellIds = {
 	[277040] = "Immune",			-- Soul of Mist (damage taken reduced 90%)
 	[265445] = "Immune",			-- Shell Shield (damage taken reduced 75%)
 	[267487] = "ImmunePhysical",	-- Icy Reflection
+	[163671] = "Immune",			-- Ethereal
+	[294375] = "CC",				-- Spiritflame
 	[275154] = "Silence",			-- Silencing Calm
 	[265723] = "Root",				-- Web
 	[274801] = "Root",				-- Net
@@ -909,6 +1020,7 @@ local spellIds = {
 	[258748] = "Snare",				-- Arctic Torrent
 	[266286] = "Snare",				-- Tendon Rip
 	[270606] = "Snare",				-- Frostbolt
+	[294363] = "Snare",				-- Spirit Chains
 	[266288] = "Snare",				-- Gnash
 	[262465] = "Snare",				-- Bug Zapper
 	[267195] = "Snare",				-- Slow
@@ -925,6 +1037,37 @@ local spellIds = {
 	[261095] = "Snare",				-- Vermin Parade
 	------------------------
 	-- BfA Mythics
+	-- -- Operation: Mechagon
+	[297283] = "CC",				-- Cave In
+	[294995] = "CC",				-- Cave In
+	[298259] = "CC",				-- Gooped
+	[298124] = "CC",				-- Gooped
+	[298718] = "CC",				-- Mega Taze
+	[302681] = "CC",				-- Mega Taze
+	[304452] = "CC",				-- Mega Taze
+	[296150] = "CC",				-- Vent Blast
+	[299994] = "CC",				-- Vent Blast
+	[283640] = "CC",				-- Rattled
+	[282943] = "CC",				-- Piston Smasher
+	[285460] = "CC",				-- Discom-BOMB-ulator
+	[299572] = "CC",				-- Shrink (damage and healing done reduced by 99%)
+	[299707] = "CC",				-- Trample
+	[296571] = "Immune",			-- Power Shield (damage taken reduced 99%)
+	[293986] = "Silence",			-- Sonic Pulse
+	[296150] = "CC",				-- Vent Blast
+	[299994] = "CC",				-- Vent Blast
+	[303264] = "CC",				-- Anti-Trespassing Field
+	[296279] = "CC",				-- Anti-Trespassing Teleport
+	[300514] = "Immune",			-- Stoneskin (damage taken reduced 75%)
+	[304074] = "Immune",			-- Stoneskin (damage taken reduced 75%)
+	[295168] = "CC",				-- Capacitor Discharge
+	[295170] = "CC",				-- Capacitor Discharge
+	[295182] = "CC",				-- Capacitor Discharge
+	[295183] = "CC",				-- Capacitor Discharge
+	[300436] = "Root",				-- Grasping Hex
+	[299475] = "Snare",				-- B.O.R.K
+	[296560] = "Snare",				-- Clinging Static
+	[285388] = "Snare",				-- Vent Jets
 	-- -- Atal'Dazar
 	[255371] = "CC",				-- Terrifying Visage
 	[255041] = "CC",				-- Terrifying Screech
