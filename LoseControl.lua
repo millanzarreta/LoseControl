@@ -118,6 +118,7 @@ local spellIds = {
 	[8034]  = "Snare",	-- Frostbrand Attack
 	-- Warlock
 	[93986] = "CC",		-- Aura of Foreboding
+	[89766] = "CC",		-- Axe Toss (Felguard)
 	[710]   = "CC",		-- Banish
 	[6789]  = "CC",		-- Death Coil
 	[54786] = "CC",		-- Demon Leap
@@ -134,7 +135,7 @@ local spellIds = {
 	[7922]  = "CC",		-- Charge Stun
 	[12809] = "CC",		-- Concussion Blow
 	[6544]  = "CC",		-- Heroic Leap
-	[20253] = "CC",		-- Intercept (also Warlock Felguard ability)
+	[20253] = "CC",		-- Intercept
 	[5246]  = "CC",		-- Intimidating Shout
 	[46968] = "CC",		-- Shockwave
 	[85388] = "CC",		-- Throwdown
