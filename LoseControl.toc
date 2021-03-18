@@ -1,7 +1,7 @@
-## Interface: 30200
+## Interface: 30300
 ## Title: LoseControl
 ## Author: Kouri
-## Version: 3.22
+## Version: 3.30
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer der CC-Effekte auf Ihren Buchstaben an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter
@@ -16,10 +16,6 @@
 ## X-Website2: http://www.wowinterface.com/downloads/info11642-LoseControl.html
 ## X-Category: Buffs
 ## SavedVariablesPerCharacter: LoseControlDB
-## X-Curse-Packaged-Version: v3.22
-## X-Curse-Project-Name: LoseControl
-## X-Curse-Project-ID: losecontrol
-## X-Curse-Repository-ID: wow/losecontrol/mainline
 
 localization.lua
 LoseControl.lua

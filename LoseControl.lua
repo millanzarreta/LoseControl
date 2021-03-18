@@ -19,6 +19,7 @@ local Silence = LOSECONTROL["Silence"]
 local Disarm  = LOSECONTROL["Disarm"]
 local Root    = LOSECONTROL["Root"]
 local Snare   = LOSECONTROL["Snare"]
+local Immune  = LOSECONTROL["Immune"]
 local PvE     = LOSECONTROL["PvE"]
 
 local spellIds = {
@@ -110,7 +111,6 @@ local spellIds = {
 	[3409]  = Snare,	-- Crippling Poison
 	[26679] = Snare,	-- Deadly Throw
 	-- Shaman
-	[51880] = CC,		-- Improved Fire Nova Totem -- going away in 3.3?
 	[39796] = CC,		-- Stoneclaw Stun
 	[51514] = CC,		-- Hex (although effectively a silence+disarm effect, it is conventionally thought of as a CC, plus you can trinket out of it)
 	[64695] = Root,		-- Earthgrab (Storm, Earth and Fire)
@@ -151,6 +151,11 @@ local spellIds = {
 	[55536] = Root,		-- Frostweave Net
 	[13099] = Root,		-- Net-o-Matic
 	[29703] = Snare,	-- Dazed
+	-- Immunities
+	[46924] = Immune,	-- Bladestorm (Warrior)
+	[642]   = Immune,	-- Divine Shield (Paladin)
+	[45438] = Immune,	-- Ice Block (Mage)
+	[34692] = Immune,	-- The Beast Within (Hunter)
 	-- PvE
 	[28169] = PvE,		-- Mutating Injection (Grobbulus)
 	[28059] = PvE,		-- Positive Charge (Thaddius)
@@ -177,8 +182,8 @@ local anchors = {
 	None = {}, -- empty but necessary
 	Blizzard = {
 		player = "PlayerPortrait",
-		target = "TargetPortrait",
-		focus  = "FocusPortrait",
+		target = "TargetFramePortrait",
+		focus  = "FocusFramePortrait",
 		party1 = "PartyMemberFrame1Portrait",
 		party2 = "PartyMemberFrame2Portrait",
 		party3 = "PartyMemberFrame3Portrait",
@@ -213,7 +218,7 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 3.22,
+	version = 3.30,
 	noCooldownCount = false,
 	tracking = {
 		CC      = true,
@@ -221,6 +226,7 @@ local DBdefaults = {
 		Disarm  = true,
 		Root    = false,
 		Snare   = false,
+		Immune  = true,
 		PvE     = true,
 	},
 	frames = {
@@ -302,7 +308,7 @@ local LoseControlDB -- local reference to the addon settings. this gets initiali
 
 -------------------------------------------------------------------------------
 -- Create the main class
-local LoseControl = CreateFrame("Cooldown", nil, UIParent) -- Inherit from Cooldown frame, which exposes the SetCooldown method
+local LoseControl = CreateFrame("Cooldown", nil, UIParent) -- Exposes the SetCooldown method
 
 function LoseControl:OnEvent(event, ...) -- functions created in "object:method"-style have an implicit first parameter of "self", which points to object
 	self[event](self, ...) -- route event parameters to LoseControl:event methods
@@ -313,8 +319,13 @@ LoseControl:SetScript("OnEvent", LoseControl.OnEvent)
 function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == L then
 		if not _G.LoseControlDB or not _G.LoseControlDB.version or _G.LoseControlDB.version < DBdefaults.version then
-			_G.LoseControlDB = CopyTable(DBdefaults)
-			log(LOSECONTROL["LoseControl reset."])
+			if _G.LoseControlDB.version == 3.22 then -- minor changes, so try to update without losing settings
+				_G.LoseControlDB.tracking[Immune] = true
+				_G.LoseControlDB.version = 3.30
+			else
+				_G.LoseControlDB = CopyTable(DBdefaults)
+				log(LOSECONTROL["LoseControl reset."])
+			end
 		end
 		LoseControlDB = _G.LoseControlDB
 		LoseControl.noCooldownCount = LoseControlDB.noCooldownCount
@@ -327,8 +338,8 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	local frame = LoseControlDB.frames[self.unitId]
 	self.anchor = _G[anchors[frame.anchor][self.unitId]] or UIParent
 
-	self:SetParent(self.anchor:GetParent()) -- This is good because if Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's?
-	self:SetFrameStrata(frame.strata or "LOW")
+	self:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
+	--self:SetFrameStrata(frame.strata or "LOW")
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:SetWidth(frame.size)
 	self:SetHeight(frame.size)
@@ -353,12 +364,12 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 	local Duration, Icon, wyvernsting
 
 	for i = 1, 40 do
-		local name, _, icon, _, debuffType, duration, expirationTime = UnitDebuff(unitId, i)
+		local name, _, icon, _, _, duration, expirationTime = UnitDebuff(unitId, i)
 
 		if not name then break end -- no more debuffs, terminate the loop
 		--log(i .. ") " .. name .. " | " .. rank .. " | " .. icon .. " | " .. count .. " | " .. debuffType .. " | " .. duration .. " | " .. expirationTime )
 
-		-- hack for Wyvern Sting
+		-- exceptions
 		if name == WYVERN_STING then
 			wyvernsting = 1
 			if not self.wyvernsting then
@@ -370,12 +381,11 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			if self.wyvernsting == 2 then
 				name = nil -- hack to skip the next if condition since LUA doesn't have a "continue" statement
 			end
+		elseif name == PSYCHIC_HORROR and icon == "Interface\\Icons\\Ability_Warrior_Disarm" then -- hack to remove Psychic Horror disarm effect
+			name = nil
 		end
 
-		if LoseControlDB.tracking[abilities[name]]
-			and expirationTime > maxExpirationTime
-			and not (name == PSYCHIC_HORROR and icon == "Interface\\Icons\\Ability_Warrior_Disarm") -- hack to remove Psychic Horror disarm effect.
-		then
+		if LoseControlDB.tracking[abilities[name]] and expirationTime > maxExpirationTime then
 			maxExpirationTime = expirationTime
 			Duration = duration
 			Icon = icon
@@ -387,20 +397,33 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 		self.wyvernsting = nil
 	end
 
-	if maxExpirationTime == 0 then -- no debuffs found
+	-- Track Immunities
+	if maxExpirationTime == 0 and LoseControlDB.tracking[Immune] then -- only bother checking for immunities if there were no debuffs found
+		for i = 1, 40 do
+			local name, _, icon, _, _, duration, expirationTime = UnitBuff(unitId, i)
+			if not name then break
+			elseif abilities[name] and expirationTime > maxExpirationTime then
+				maxExpirationTime = expirationTime
+				Duration = duration
+				Icon = icon
+			end
+		end
+	end
+
+	if maxExpirationTime == 0 then -- no (de)buffs found
 		self.maxExpirationTime = 0
 		if self.anchor ~= UIParent and self.drawlayer then
 			self.anchor:SetDrawLayer(self.drawlayer) -- restore the original draw layer
 		end
 		self:Hide()
-	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different debuff, so initialize the cooldown
+	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
 		self.maxExpirationTime = maxExpirationTime
 		if self.anchor ~= UIParent then
 			self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()) -- must be dynamic, frame level changes all the time
 			if not self.drawlayer then
 				self.drawlayer = self.anchor:GetDrawLayer() -- back up the current draw layer
 			end
-			self.anchor:SetDrawLayer("BACKGROUND") -- Put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
+			self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
 		end
 		if frame.anchor == "Blizzard" then
 			SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits. TO DO: mask the cooldown frame somehow so the corners don't stick out of the portrait frame. Maybe apply a circular alpha mask in the OVERLAY draw layer.
@@ -429,17 +452,17 @@ function LoseControl:StopMoving()
 	frame.point, frame.anchor, frame.relativePoint, frame.x, frame.y = self:GetPoint()
 	if not frame.anchor then
 		frame.anchor = "None"
+		if UIDropDownMenu_GetSelectedValue(UnitDropDown) == self.unitId then
+			UIDropDownMenu_SetSelectedValue(AnchorDropDown, "None") -- update the drop down to show that the frame has been detached from the anchor
+		end
 	end
 	self.anchor = _G[anchors[frame.anchor][self.unitId]] or UIParent
-	if UIDropDownMenu_GetSelectedValue(UnitDropDown) == self.unitId then
-		UIDropDownMenu_SetSelectedValue(AnchorDropDown, "None") -- update the drop down to show that the frame has been detached from the anchor
-	end
 	self:StopMovingOrSizing()
 end
 
 -- Constructor method
 function LoseControl:new(unitId)
-	local o = CreateFrame("Cooldown", L .. unitId)
+	local o = CreateFrame("Cooldown", L .. unitId) --, UIParent)
 	setmetatable(o, self)
 	self.__index = self
 
@@ -454,8 +477,8 @@ function LoseControl:new(unitId)
 	o.overlay:SetTexture("Interface\\AddOns\\LoseControl\\gloss");
 	o.overlay:SetPoint("TOPLEFT", -1, 1);
 	o.overlay:SetPoint("BOTTOMRIGHT", 1, -1);
-	o.overlay:SetVertexColor(0.25, 0.25, 0.25);
-	o:Hide()]]
+	o.overlay:SetVertexColor(0.25, 0.25, 0.25);]]
+	o:Hide()
 
 	-- Handle events
 	o:SetScript("OnEvent", self.OnEvent)
@@ -498,7 +521,7 @@ subText:SetText(notes)
 -- "Unlock" checkbox - allow the frames to be moved
 local Unlock = CreateFrame("CheckButton", O.."Unlock", OptionsPanel, "OptionsCheckButtonTemplate")
 _G[O.."UnlockText"]:SetText(LOSECONTROL["Unlock"])
-Unlock:SetScript("OnClick", function(self)
+function Unlock:OnClick()
 	if self:GetChecked() then
 		_G[O.."UnlockText"]:SetText(LOSECONTROL["Unlock"] .. LOSECONTROL[" (drag an icon to move)"])
 		local keys = {} -- for random icon sillyness
@@ -516,6 +539,10 @@ Unlock:SetScript("OnClick", function(self)
 				v:EnableMouse(true)
 				v.texture:SetTexture(select(3, GetSpellInfo(keys[random(#keys)])))
 				v:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
+				--v:SetFrameStrata(frame.strata or "MEDIUM")
+				if v.anchor:GetParent() then
+					v:SetFrameLevel(v.anchor:GetParent():GetFrameLevel())
+				end
 				v:Show()
 				v:SetCooldown( GetTime(), 30 )
 				v:SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
@@ -534,12 +561,13 @@ Unlock:SetScript("OnClick", function(self)
 			v:SetMovable(false)
 			v:RegisterForDrag()
 			v:EnableMouse(false)
-			v:SetParent(v.anchor:GetParent())
-			v:SetFrameStrata(frame.strata or "LOW")
+			v:SetParent(v.anchor:GetParent()) -- or UIParent)
+			--v:SetFrameStrata(frame.strata or "LOW")
 			v:Hide()
 		end
 	end
-end)
+end
+Unlock:SetScript("OnClick", Unlock.OnClick)
 
 local DisableCooldownCount = CreateFrame("CheckButton", O.."DisableCooldownCount", OptionsPanel, "OptionsCheckButtonTemplate")
 _G[O.."DisableCooldownCountText"]:SetText(LOSECONTROL["Disable OmniCC/CooldownCount Support"])
@@ -579,6 +607,12 @@ local TrackSnares = CreateFrame("CheckButton", O.."TrackSnares", OptionsPanel, "
 _G[O.."TrackSnaresText"]:SetText(Snare)
 TrackSnares:SetScript("OnClick", function(self)
 	LoseControlDB.tracking[Snare] = self:GetChecked()
+end)
+
+local TrackImmune = CreateFrame("CheckButton", O.."TrackImmune", OptionsPanel, "OptionsCheckButtonTemplate")
+_G[O.."TrackImmuneText"]:SetText(Immune)
+TrackImmune:SetScript("OnClick", function(self)
+	LoseControlDB.tracking[Immune] = self:GetChecked()
 end)
 
 local TrackPvE = CreateFrame("CheckButton", O.."TrackPvE", OptionsPanel, "OptionsCheckButtonTemplate")
@@ -726,21 +760,22 @@ title:SetPoint("TOPLEFT", 16, -16)
 subText:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
 
 Unlock:SetPoint("TOPLEFT", subText, "BOTTOMLEFT", 0, -16)
-DisableCooldownCount:SetPoint("TOPLEFT", Unlock, "BOTTOMLEFT", 0, -8)
+DisableCooldownCount:SetPoint("TOPLEFT", Unlock, "BOTTOMLEFT", 0, -2)
 
-Tracking:SetPoint("TOPLEFT", DisableCooldownCount, "BOTTOMLEFT", 0, -16)
-TrackCCs:SetPoint("TOPLEFT", Tracking, "BOTTOMLEFT", 0, -8)
+Tracking:SetPoint("TOPLEFT", DisableCooldownCount, "BOTTOMLEFT", 0, -12)
+TrackCCs:SetPoint("TOPLEFT", Tracking, "BOTTOMLEFT", 0, -4)
 TrackSilences:SetPoint("TOPLEFT", TrackCCs, "TOPRIGHT", 100, 0)
 TrackDisarms:SetPoint("TOPLEFT", TrackSilences, "TOPRIGHT", 100, 0)
-TrackRoots:SetPoint("TOPLEFT", TrackCCs, "BOTTOMLEFT", 0, -8)
-TrackSnares:SetPoint("TOPLEFT", TrackSilences, "BOTTOMLEFT", 0, -8)
-TrackPvE:SetPoint("TOPLEFT", TrackDisarms, "BOTTOMLEFT", 0, -8)
+TrackRoots:SetPoint("TOPLEFT", TrackCCs, "BOTTOMLEFT", 0, -2)
+TrackSnares:SetPoint("TOPLEFT", TrackSilences, "BOTTOMLEFT", 0, -2)
+TrackImmune:SetPoint("TOPLEFT", TrackDisarms, "BOTTOMLEFT", 0, -2)
+TrackPvE:SetPoint("TOPLEFT", TrackRoots, "BOTTOMLEFT", 0, -2)
 
-UnitDropDownLabel:SetPoint("TOPLEFT", TrackRoots, "BOTTOMLEFT", 0, -16)
+UnitDropDownLabel:SetPoint("TOPLEFT", TrackPvE, "BOTTOMLEFT", 0, -12)
 UnitDropDown:SetPoint("TOPLEFT", UnitDropDownLabel, "BOTTOMLEFT", 0, -8)	Enabled:SetPoint("TOPLEFT", UnitDropDownLabel, "BOTTOMLEFT", 200, -8)
 
-AnchorDropDownLabel:SetPoint("TOPLEFT", UnitDropDown, "BOTTOMLEFT", 0, -16)	StrataDropDownLabel:SetPoint("TOPLEFT", UnitDropDown, "BOTTOMLEFT", 200, -16)
-AnchorDropDown:SetPoint("TOPLEFT", AnchorDropDownLabel, "BOTTOMLEFT", 0, -8)	StrataDropDown:SetPoint("TOPLEFT", StrataDropDownLabel, "BOTTOMLEFT", 0, -8)
+AnchorDropDownLabel:SetPoint("TOPLEFT", UnitDropDown, "BOTTOMLEFT", 0, -12)	--StrataDropDownLabel:SetPoint("TOPLEFT", UnitDropDown, "BOTTOMLEFT", 200, -12)
+AnchorDropDown:SetPoint("TOPLEFT", AnchorDropDownLabel, "BOTTOMLEFT", 0, -8)	--StrataDropDown:SetPoint("TOPLEFT", StrataDropDownLabel, "BOTTOMLEFT", 0, -8)
 
 SizeSlider:SetPoint("TOPLEFT", AnchorDropDown, "BOTTOMLEFT", 0, -24)		AlphaSlider:SetPoint("TOPLEFT", AnchorDropDown, "BOTTOMLEFT", 200, -24)
 
@@ -763,6 +798,7 @@ OptionsPanel.refresh = function() -- This method will run when the Interface Opt
 	TrackDisarms:SetChecked(tracking[Disarm])
 	TrackRoots:SetChecked(tracking[Root])
 	TrackSnares:SetChecked(tracking[Snare])
+	TrackImmune:SetChecked(tracking[Immune])
 	TrackPvE:SetChecked(tracking[PvE])
 	Enabled:SetChecked(frame.enabled)
 	Enabled:OnClick()
@@ -777,6 +813,43 @@ end
 InterfaceOptions_AddCategory(OptionsPanel)
 
 -------------------------------------------------------------------------------
-SlashCmdList[L] = function() InterfaceOptionsFrame_OpenToCategory(OptionsPanel) end
 SLASH_LoseControl1 = "/lc"
 SLASH_LoseControl2 = "/losecontrol"
+SlashCmdList[L] = function(cmd)
+	cmd = cmd:lower()
+	if cmd == "reset" then
+		OptionsPanel.default()
+		OptionsPanel.refresh()
+	elseif cmd == "lock" then
+		Unlock:SetChecked(false)
+		Unlock:OnClick()
+		log(L .. " locked.")
+	elseif cmd == "unlock" then
+		Unlock:SetChecked(true)
+		Unlock:OnClick()
+		log(L .. " unlocked.")
+	elseif cmd:sub(1, 6) == "enable" then
+		local unit = cmd:sub(8, 14)
+		if LoseControlDB.frames[unit] then
+			LoseControlDB.frames[unit].enabled = true
+			log(L .. ": " .. unit .. " frame enabled.")
+		end
+	elseif cmd:sub(1, 7) == "disable" then
+		local unit = cmd:sub(9, 15)
+		if LoseControlDB.frames[unit] then
+			LoseControlDB.frames[unit].enabled = false
+			log(L .. ": " .. unit .. " frame disabled.")
+		end
+	elseif cmd:sub(1, 4) == "help" then
+		log(L .. " slash commands:")
+		log("    reset")
+		log("    lock")
+		log("    unlock")
+		log("    enable <unit>")
+		log("    disable <unit>")
+		log("<unit> can be: player, target, focus, party1 ... party4, arena1 ... arena5")
+	else
+		log(L .. ": Type \"/lc help\" for more options.")
+		InterfaceOptionsFrame_OpenToCategory(OptionsPanel)
+	end
+end
