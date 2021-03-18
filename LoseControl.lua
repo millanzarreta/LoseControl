@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.01
+-- Version: 6.02
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -338,6 +338,8 @@ local spellIds = {
 	[228050] = "Immune",			-- Divine Shield (Guardian of the Forgotten Queen)
 	[205273] = "Snare",				-- Wake of Ashes (artifact trait) (snare)
 	[205290] = "CC",				-- Wake of Ashes (artifact trait) (stun)
+	[255937] = "Snare",				-- Wake of Ashes (talent) (snare)
+	[255941] = "CC",				-- Wake of Ashes (talent) (stun)
 	[199448] = "Immune",			-- Blessing of Sacrifice (Ultimate Sacrifice pvp talent) (not immune, 100% damage transfered to paladin)
 
 	----------------
@@ -375,6 +377,7 @@ local spellIds = {
 	[6770]   = "CC",				-- Sap
 	[196958] = "CC",				-- Strike from the Shadows (stun effect)
 	[1330]   = "Silence",			-- Garrote - Silence
+	[280322] = "Silence",			-- Garrote - Silence
 	[3409]   = "Snare",				-- Crippling Poison
 	[26679]  = "Snare",				-- Deadly Throw
 	[185763] = "Snare",				-- Pistol Shot
@@ -527,6 +530,7 @@ local spellIds = {
 	[255723] = "CC",				-- Bull Rush (highmountain tauren racial)
 	[214459] = "Silence",			-- Choking Flames (trinket)
 	[19821]  = "Silence",			-- Arcane Bomb
+	[131510] = "Immune",			-- Uncontrolled Banish
 	[8346]   = "Root",				-- Mobility Malfunction (trinket)
 	[39965]  = "Root",				-- Frost Grenade
 	[55536]  = "Root",				-- Frostweave Net
@@ -557,6 +561,8 @@ local spellIds = {
 	[258236] = "CC",				-- Sleeping Quill Dart
 	[269186] = "CC",				-- Holographic Horror Projector
 	[255228] = "CC",				-- Polymorphed (Organic Discombobulation Grenade)
+	[272188] = "CC",				-- Hammer Smash (quest)
+	[264860] = "CC",				-- Binding Talisman
 	[268966] = "Root",				-- Hooked Deep Sea Net
 	[268965] = "Snare",				-- Tidespray Linen Net
 	-- PvE
@@ -571,10 +577,10 @@ local spellIds = {
 	[278890] = "CC",				-- Violent Hemorrhage
 	[278967] = "CC",				-- Winged Charge
 	[260275] = "CC",				-- Rumbling Stomp
+	[262375] = "CC",				-- Bellowing Roar
 	[263321] = "Snare",				-- Undulating Mass
 	-- -- Taloc
 	[271965] = "Immune",			-- Powered Down (damage taken reduced 99%)
-	-- -- MOTHER
 	-- -- Fetid Devourer
 	[277800] = "CC",				-- Swoop
 	-- -- Zek'voz, Herald of N'zoth
@@ -590,12 +596,45 @@ local spellIds = {
 	[274271] = "CC",				-- Deathwish
 	-- -- Mythrax the Unraveler
 	[272407] = "CC",				-- Oblivion Sphere
+	[284944] = "CC",				-- Oblivion Sphere
 	[274230] = "Immune",			-- Oblivion Veil (damage taken reduced 99%)
 	[276900] = "Immune",			-- Critical Mass (damage taken reduced 80%)
 	-- -- G'huun
 	[269691] = "CC",				-- Mind Thrall
+	[273401] = "CC",				-- Mind Thrall
+	[263504] = "CC",				-- Reorigination Blast
 	[267700] = "CC",				-- Gaze of G'huun
+	[255767] = "CC",				-- Grasp of G'huun
+	[263217] = "Immune",			-- Blood Shield (not immune, but heals 5% of maximum health every 0.5 sec)
+	[275129] = "Immune",			-- Corpulent Mass (damage taken reduced by 99%)
 	[268174] = "Root",				-- Tendrils of Corruption
+	[263235] = "Root",				-- Blood Feast
+	[263321] = "Snare",				-- Undulating Mass
+	[270287] = "Snare",				-- Blighted Ground
+	------------------------
+	-- BfA World Bosses
+	-- -- T'zane
+	[261552] = "CC",				-- Terror Wail
+	-- -- Hailstone Construct
+	[274895] = "CC",				-- Freezing Tempest
+	-- -- Warbringer Yenajz
+	[274904] = "CC",				-- Reality Tear
+	-- -- The Lion's Roar and Doom's Howl
+	[271778] = "Snare",				-- Reckless Charge
+	------------------------
+	-- Battle for Stromgarde
+	[97933]  = "CC",				-- Intimidating Shout
+	[273867] = "CC",				-- Intimidating Shout
+	[262007] = "CC",				-- Polymorph
+	[261488] = "CC",				-- Charge
+	[264942] = "CC",				-- Scatter Shot
+	[258186] = "CC", 				-- Crushing Cleave
+	[270411] = "CC",				-- Earthshatter
+	[259833] = "CC",				-- Heroic Leap
+	[259867] = "CC",				-- Storm Bolt
+	[272856] = "CC",				-- Hex Bomb
+	[262610] = "Root",				-- Weighted Net
+	[273665] = "Snare",				-- Seismic Disturbance
 	------------------------
 	-- BfA Island Expeditions
 	[8377] = "Root",				-- Earthgrab
@@ -604,20 +643,85 @@ local spellIds = {
 	[270399] = "Root",				-- Unleashed Roots
 	[270196] = "Root",				-- Chains of Light
 	[267024] = "Root",				-- Stranglevines
+	[236467] = "Root",				-- Pearlescent Clam
+	[267025] = "Root",				-- Animal Trap
+	[276807] = "Root",				-- Crude Net
+	[276806] = "Root",				-- Stoutthistle
+	[267029] = "CC",				-- Glowing Seed
+	[276808] = "CC",				-- Heavy Boulder
+	[267028] = "CC",				-- Bright Lantern
+	[276809] = "CC",				-- Crude Spear
+	[276804] = "CC",				-- Crude Boomerang
+	[267030] = "CC",				-- Heavy Crate
+	[276805] = "CC",				-- Gloomspore Shroom
 	[245638] = "CC",				-- Thick Shell
 	[267026] = "CC",				-- Giant Flower
 	[243576] = "CC",				-- Sticky Starfish
+	[278818] = "CC",				-- Amber Entrapment
+	[268345] = "CC",				-- Azerite Suppression
+	[278813] = "CC",				-- Brain Freeze
+	[272982] = "CC",				-- Bubble Trap
+	[278823] = "CC",				-- Choking Mist
+	[268343] = "CC",				-- Crystalline Stasis
+	[268341] = "CC",				-- Cyclone
+	[273392] = "CC",				-- Drakewing Bonds
+	[278817] = "CC",				-- Drowning Waters
+	[268337] = "CC",				-- Flash Freeze
+	[278914] = "CC",				-- Ghostly Rune Prison
+	[278822] = "CC",				-- Heavy Net
+	[273612] = "CC",				-- Mental Fog
+	[278820] = "CC",				-- Netted
+	[278816] = "CC",				-- Paralyzing Pool
+	[278811] = "CC",				-- Poisoned Water
+	[278821] = "CC",				-- Sand Trap
+	[274055] = "CC",				-- Sap
+	[273914] = "CC",				-- Shadowy Conflagration
+	[279986] = "CC",				-- Shrink Ray
+	[278814] = "CC",				-- Sticky Ooze
+	[259236] = "CC",				-- Stone Rune Prison
 	[274794] = "CC",				-- Hex
 	[275651] = "CC",				-- Charge
 	[262470] = "CC",				-- Blast-O-Matic Frag Bomb
-	[274055] = "CC",				-- Sap
-	[279986] = "CC",				-- Shrink Ray
-	[278820] = "CC",				-- Netted
-	[268345] = "CC",				-- Azerite Suppression
 	[262906] = "CC",				-- Arcane Charge
 	[270460] = "CC",				-- Stone Eruption
 	[262500] = "CC",				-- Crushing Charge
+	[268203] = "CC",				-- Death Lens
+	[244880] = "CC",				-- Charge
+	[275087] = "CC",				-- Charge
+	[262342] = "CC",				-- Hex
+	[257748] = "CC",				-- Blind
+	[262147] = "CC",				-- Wild Charge
+	[262000] = "CC",				-- Wyvern Sting
+	[258822] = "CC",				-- Blinding Peck
+	[271227] = "CC",				-- Wildfire
+	[244888] = "CC",				-- Bonk
+	[273664] = "CC",				-- Crush
+	[256600] = "CC",				-- Point Blank Blast
+	[270457] = "CC",				-- Slam
+	[258371] = "CC",				-- Crystal Gaze
+	[266989] = "CC",				-- Swooping Charge
+	[258390] = "CC",				-- Petrifying Gaze
+	--[262197] = "Immune",			-- Tenacity of the Pack (unkillable but not immune to damage)
+	[264115] = "Immune",			-- Divine Shield
+	[275154] = "Silence",			-- Silencing Calm
 	[265723] = "Root",				-- Web
+	[274801] = "Root",				-- Net
+	[265584] = "Root",				-- Frost Nova
+	[265583] = "Root",				-- Grasping Claw
+	[278176] = "Root",				-- Entangling Roots
+	[277109] = "Snare",				-- Sticky Stomp
+	[266974] = "Snare",				-- Frostbolt
+	[261962] = "Snare",				-- Brutal Whirlwind
+	[258748] = "Snare",				-- Arctic Torrent
+	[266286] = "Snare",				-- Tendon Rip
+	[270606] = "Snare",				-- Frostbolt
+	[266288] = "Snare",				-- Gnash
+	[262465] = "Snare",				-- Bug Zapper
+	[267195] = "Snare",				-- Slow
+	[275038] = "Snare",				-- Icy Claw
+	[274968] = "Snare",				-- Howl
+	[256661] = "Snare",				-- Staggering Roar
+	------------------------
 	-- BfA Mythics
 	-- -- Atal'Dazar
 	[255371] = "CC",				-- Terrifying Visage
@@ -625,6 +729,7 @@ local spellIds = {
 	[252781] = "CC",				-- Unstable Hex
 	[279118] = "CC",				-- Unstable Hex
 	[252692] = "CC",				-- Waylaying Jab
+	[255567] = "CC",				-- Frenzied Charge
 	[258653] = "Immune",			-- Bulwark of Juju (90% damage reduction)
 	[253721] = "Immune",			-- Bulwark of Juju (90% damage reduction)
 	-- -- Kings' Rest
@@ -636,9 +741,9 @@ local spellIds = {
 	[270003] = "CC",				-- Suppression Slam
 	[270492] = "CC",				-- Hex
 	[276031] = "CC",				-- Pit of Despair
+	[267626] = "CC",				-- Dessication (damage done reduced by 50%)
 	[270931] = "Snare",				-- Darkshot
 	[270499] = "Snare",				-- Frost Shock
-	[267626] = "Snare",				-- Dessication
 	-- -- The MOTHERLODE!!
 	[257337] = "CC",				-- Shocking Claw
 	[257371] = "CC",				-- Tear Gas
@@ -651,6 +756,7 @@ local spellIds = {
 	[278673] = "CC",				-- Red Card
 	[278644] = "CC",				-- Slide Tackle
 	[257481] = "CC",				-- Fracking Totem
+	[269278] = "CC",				-- Panic!
 	[260189] = "Immune",			-- Configuration: Drill (damage taken reduced 99%)
 	[268704] = "Snare",				-- Furious Quake
 	-- -- Shrine of the Storm
@@ -662,6 +768,7 @@ local spellIds = {
 	[267956] = "CC",				-- Zap
 	[269104] = "CC",				-- Explosive Void
 	[268391] = "CC",				-- Mental Assault
+	[269289] = "CC",				-- Disciple of the Vol'zith
 	[264526] = "Root",				-- Grasp from the Depths
 	[276767] = "ImmuneSpell",		-- Consuming Void
 	[268375] = "ImmunePhysical",	-- Detect Thoughts
@@ -669,6 +776,7 @@ local spellIds = {
 	[268212] = "Immune",			-- Minor Reinforcing Ward (damage taken reduced 75%)
 	[268186] = "Immune",			-- Reinforcing Ward (damage taken reduced 75%)
 	[267904] = "Immune",			-- Reinforcing Ward (damage taken reduced 75%)
+	[267901] = "Snare",				-- Blessing of Ironsides
 	[274631] = "Snare",				-- Lesser Blessing of Ironsides
 	[267899] = "Snare",				-- Hindering Cleave
 	[268896] = "Snare",				-- Mind Rend
@@ -681,6 +789,7 @@ local spellIds = {
 	[256333] = "CC",				-- Dust Cloud (0% chance to hit)
 	[260792] = "CC",				-- Dust Cloud (0% chance to hit)
 	[269670] = "Immune",			-- Empowerment (90% damage reduction)
+	[261635] = "Immune",			-- Stoneshield Potion
 	[273274] = "Snare",				-- Polarized Field
 	[275566] = "Snare",				-- Numb Hands
 	-- -- Waycrest Manor
@@ -688,6 +797,7 @@ local spellIds = {
 	[263891] = "CC",				-- Grasping Thorns
 	[260900] = "CC",				-- Soul Manipulation
 	[260926] = "CC",				-- Soul Manipulation
+	[265352] = "CC",				-- Toad Blight
 	[264390] = "Silence",			-- Spellbind
 	[278468] = "CC",				-- Freezing Trap
 	[267907] = "CC",				-- Soul Thorns
@@ -710,8 +820,11 @@ local spellIds = {
 	[257793] = "CC",				-- Smoke Powder
 	[257119] = "CC",				-- Sand Trap
 	[256474] = "CC",				-- Heartstopper Venom
+	[258317] = "ImmuneSpell",		-- Riot Shield (-75% spell damage and redirect spells to the caster)
+	[258153] = "Immune",			-- Watery Dome (75% damage redictopm)
 	[265271] = "Snare",				-- Sewer Slime
 	[257777] = "Snare",				-- Crippling Shiv
+	[259188] = "Snare",				-- Heavily Armed
 	-- -- Freehold
 	[274516] = "CC",				-- Slippery Suds
 	[257949] = "CC",				-- Slippery
@@ -735,6 +848,7 @@ local spellIds = {
 	[274942] = "CC",				-- Banana Rampage
 	[272571] = "Silence",			-- Choking Waters
 	[275826] = "Immune",			-- Bolstering Shout (damage taken reduced 75%)
+	[270624] = "Root",				-- Crushing Embrace
 	[272834] = "Snare",				-- Viscous Slobber
 	-- -- The Underrot
 	[265377] = "Root",				-- Hooked Snare
@@ -743,6 +857,7 @@ local spellIds = {
 	[278961] = "CC",				-- Decaying Mind
 	[269185] = "Immune",			-- Blood Barrier
 	[269406] = "CC",				-- Purge Corruption
+	[258347] = "Silence",			-- Sonic Screech
 	------------------------
 	---- PVE LEGION
 	------------------------
@@ -1297,7 +1412,13 @@ function LoseControl:DisableLossOfControlUI()
 				self.cooldown:SetSwipeColor(0, 0, 0);
 				self.cooldown:SetHideCountdownNumbers(false);
 				if ( charges and maxCharges and maxCharges > 1 and charges < maxCharges ) then
-					StartChargeCooldown(self, chargeStart, chargeDuration, chargeModRate);
+					if chargeStart == 0 then
+						ClearChargeCooldown(self);
+					else
+						if self.chargeCooldown then
+							CooldownFrame_Set(self.chargeCooldown, chargeStart, chargeDuration, true, true, chargeModRate);
+						end
+					end
 				else
 					ClearChargeCooldown(self);
 				end
