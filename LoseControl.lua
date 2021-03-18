@@ -207,6 +207,7 @@ local anchors = {
 	None = {}, -- empty but necessary
 	Blizzard = {
 		player = "PlayerPortrait",
+		pet    = "PetPortrait",
 		target = "TargetFramePortrait",
 		focus  = "FocusFramePortrait",
 		party1 = "PartyMemberFrame1Portrait",
@@ -221,6 +222,7 @@ local anchors = {
 	},
 	Perl = {
 		player = "Perl_Player_Portrait",
+		pet    = "Perl_Player_Pet_Portrait",
 		target = "Perl_Target_Portrait",
 		focus  = "Perl_Focus_Portrait",
 		party1 = "Perl_Party_MemberFrame1_Portrait",
@@ -230,6 +232,7 @@ local anchors = {
 	},
 	XPerl = {
 		player = "XPerl_PlayerportraitFrameportrait",
+		pet    = "XPerl_Player_PetportraitFrameportrait",
 		target = "XPerl_TargetportraitFrameportrait",
 		focus  = "XPerl_FocusportraitFrameportrait",
 		party1 = "XPerl_party1portraitFrameportrait",
@@ -237,8 +240,19 @@ local anchors = {
 		party3 = "XPerl_party3portraitFrameportrait",
 		party4 = "XPerl_party4portraitFrameportrait",
 	},
+	LUI = {
+		player = "oUF_LUI_player",
+		pet    = "oUF_LUI_pet",
+		target = "oUF_LUI_target",
+		focus  = "oUF_LUI_focus",
+		party1 = "oUF_LUI_partyUnitButton1",
+		party2 = "oUF_LUI_partyUnitButton2",
+		party3 = "oUF_LUI_partyUnitButton3",
+		party4 = "oUF_LUI_partyUnitButton4",
+	},
 	--SUF = {
 	--	player = SUFUnitplayer.portraitModel.portrait,
+	--	pet    = SUFUnitpet.portraitModel.portrait,
 	--	target = SUFUnittarget.portraitModel.portrait,
 	--	focus  = SUFUnitfocus.portraitModel.portrait,
 		--party1 = SUFUnitparty1.portraitModel.portrait,
@@ -251,7 +265,7 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 4.1, -- This is the settings version, not necessarily the same as the LoseControl version
+	version = 4.3, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
 	tracking = { -- To Do: Priority
 		Immune		= false, --100
@@ -269,6 +283,12 @@ local DBdefaults = {
 			size = 36,
 			alpha = 1,
 			anchor = "None",
+		},
+		pet = {
+			enabled = true,
+			size = 36,
+			alpha = 1,
+			anchor = "Blizzard",
 		},
 		target = {
 			enabled = true,
@@ -354,8 +374,18 @@ function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == addonName then
 		if _G.LoseControlDB and _G.LoseControlDB.version then
 			if _G.LoseControlDB.version < DBdefaults.version then
-				_G.LoseControlDB = CopyTable(DBdefaults)
-				log(L["LoseControl reset."])
+				if _G.LoseControlDB.version == 4.1 then -- upgrade gracefully
+					_G.LoseControlDB.version = 4.3
+					_G.LoseControlDB.frames.pet = {
+						enabled = true,
+						size = 36,
+						alpha = 1,
+						anchor = "Blizzard",
+					}
+				else
+					_G.LoseControlDB = CopyTable(DBdefaults)
+					log(L["LoseControl reset."])
+				end
 			end
 		else -- never installed before
 			_G.LoseControlDB = CopyTable(DBdefaults)
@@ -478,10 +508,12 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 		self.maxExpirationTime = maxExpirationTime
 		if self.anchor ~= UIParent then
 			self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()) -- must be dynamic, frame level changes all the time
-			if not self.drawlayer then
-				self.drawlayer = self.anchor:GetDrawLayer() -- back up the current draw layer
+			if not self.drawlayer and self.anchor.GetDrawLayer then
+ 				self.drawlayer = self.anchor:GetDrawLayer() -- back up the current draw layer
+ 			end
+			if self.drawlayer and self.anchor.SetDrawLayer then
+				self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
 			end
-			self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
 		end
 		if self.frame.anchor == "Blizzard" then
 			SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits. TO DO: mask the cooldown frame somehow so the corners don't stick out of the portrait frame. Maybe apply a circular alpha mask in the OVERLAY draw layer.
@@ -707,7 +739,7 @@ function UnitDropDown:OnClick()
 	OptionsPanel.refresh() -- easy way to update all the other controls
 end
 UIDropDownMenu_Initialize(UnitDropDown, function() -- sets the initialize function and calls it
-	for _, v in ipairs({ "player", "target", "focus", "party1", "party2", "party3", "party4", "arena1", "arena2", "arena3", "arena4", "arena5" }) do -- indexed manually so they appear in order
+	for _, v in ipairs({ "player", "pet", "target", "focus", "party1", "party2", "party3", "party4", "arena1", "arena2", "arena3", "arena4", "arena5" }) do -- indexed manually so they appear in order
 		AddItem(UnitDropDown, L[v], v)
 	end
 end)
@@ -751,6 +783,7 @@ function AnchorDropDown:initialize() -- called from OptionsPanel.refresh() and e
 	AddItem(self, "Blizzard", "Blizzard")
 	if _G[anchors["Perl"][unit]] then AddItem(self, "Perl", "Perl") end
 	if _G[anchors["XPerl"][unit]] then AddItem(self, "XPerl", "XPerl") end
+	if _G[anchors["LUI"][unit]] then AddItem(self, "LUI", "LUI") end
 end
 
 local StrataDropDownLabel = OptionsPanel:CreateFontString(O.."StrataDropDownLabel", "ARTWORK", "GameFontNormal")
@@ -915,7 +948,7 @@ SlashCmdList[addonName] = function(cmd)
 		log("    unlock")
 		log("    enable <unit>")
 		log("    disable <unit>")
-		log("<unit> can be: player, target, focus, party1 ... party4, arena1 ... arena5")
+		log("<unit> can be: player, pet, target, focus, party1 ... party4, arena1 ... arena5")
 	else
 		log(addonName .. ": Type \"/lc help\" for more options.")
 		InterfaceOptionsFrame_OpenToCategory(OptionsPanel)
