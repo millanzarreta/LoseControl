@@ -13,6 +13,7 @@ local addonName, L = ...
 local UIParent = UIParent -- it's faster to keep local references to frequently used global vars
 local UnitAura = UnitAura
 local GetTime = GetTime
+local SetPortraitToTexture = SetPortraitToTexture
 local function log(msg) DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for convenience
 local debug = false -- type "/lc debug on" if you want to see UnitAura info logged to the console
 
@@ -62,7 +63,7 @@ local spellIds = {
 	[113056] = "CC",		-- Intimidating Roar [Cowering in fear] (Warrior)
 	[126458] = "Disarm",		-- Grapple Weapon (Monk)
 	[110693] = "Root",		-- Frost Nova (Mage)
-	[110610] = "Snare",		-- Ice Trap (Hunter)
+	--[110610] = "Snare",		-- Ice Trap (Hunter)
 	[110617] = "Immune",		-- Deterrence (Hunter)
 	[110715] = "Immune",		-- Dispersion (Priest)
 	[110700] = "Immune",		-- Divine Shield (Paladin)
@@ -102,7 +103,7 @@ local spellIds = {
 	[4167]   = "Root",		-- Web (Spider)
 	[50433]  = "Snare",		-- Ankle Crack (Crocolisk)
 	[54644]  = "Snare",		-- Frost Breath (Chimaera)
-	[19574]  = "Immune",		-- Bestial Wrath
+	--[19574]  = "Immune",		-- Bestial Wrath (removed immunity in patch 5.1)
 	[54216]  = "Other",		-- Master's Call (root and snare immune only)
 	-- Mage
 	[118271] = "CC",		-- Combustion Impact
@@ -214,6 +215,7 @@ local spellIds = {
 	[118345] = "CC",		-- Pulverize
 	-- Warlock
 	[710]    = "CC",		-- Banish
+	[134973] = "CC",		-- Cataclysm
 	[54786]  = "CC",		-- Demonic Leap (Metamorphosis)
 	[5782]   = "CC",		-- Fear
 	[118699] = "CC",		-- Fear
@@ -268,6 +270,15 @@ local spellIds = {
 	-- PvE
 	--[123456]  = "PvE",		-- not real, just an example
 }
+
+--[[
+local name, _, icon
+for k in pairs(spellIds) do
+	name, _, icon = GetSpellInfo(k)
+	if not name then log("no name: " .. k) end
+	if not icon then log("no icon: " .. k) end
+end
+]]
 
 -------------------------------------------------------------------------------
 -- Global references for attaching icons to various unit frames
@@ -337,8 +348,9 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 5.0, -- This is the settings version, not necessarily the same as the LoseControl version
+	version = 5.1, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
+	disablePartyInBG = false,
 	priority = {		-- higher numbers have more priority; 0 = disabled
 		PvE		= 90,
 		Immune		= 80,
@@ -353,9 +365,9 @@ local DBdefaults = {
 	frames = {
 		player = {
 			enabled = true,
-			size = 36,
+			size = 56,
 			alpha = 1,
-			anchor = "None",
+			anchor = "Blizzard",
 		},
 		pet = {
 			enabled = true,
@@ -432,10 +444,6 @@ local DBdefaults = {
 	},
 }
 local LoseControlDB -- local reference to the addon settings. this gets initialized when the ADDON_LOADED event fires
-local LCframes = {} -- table that will hold all of our frame objects
-for k in pairs(DBdefaults.frames) do
-	LCframes[k] = {}
-end
 
 -------------------------------------------------------------------------------
 -- Create the main class
@@ -445,6 +453,26 @@ function LoseControl:OnEvent(event, ...) -- functions created in "object:method"
 	self[event](self, ...) -- route event parameters to LoseControl:event methods
 end
 LoseControl:SetScript("OnEvent", LoseControl.OnEvent)
+
+-- Utility function to handle registering for unit events
+function LoseControl:RegisterUnitEvents(enabled)
+	local unitId = self.unitId
+	if enabled then
+		self:RegisterUnitEvent("UNIT_AURA", unitId)
+		if unitId == "target" then
+			self:RegisterEvent("PLAYER_TARGET_CHANGED")
+		elseif unitId == "focus" then
+			self:RegisterEvent("PLAYER_FOCUS_CHANGED")
+		end
+	else
+		self:UnregisterEvent("UNIT_AURA")
+		if unitId == "target" then
+			self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+		elseif unitId == "focus" then
+			self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
+		end
+	end
+end
 
 -- Handle default settings
 function LoseControl:ADDON_LOADED(arg1)
@@ -459,17 +487,21 @@ function LoseControl:ADDON_LOADED(arg1)
 			log(L["LoseControl reset."])
 		end
 		LoseControlDB = _G.LoseControlDB
-		LoseControl.noCooldownCount = LoseControlDB.noCooldownCount
+		self.noCooldownCount = LoseControlDB.noCooldownCount
 	end
 end
 LoseControl:RegisterEvent("ADDON_LOADED")
 
--- Initialize a frame's position
+-- Initialize a frame's position and register for events
 function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy arena frames that aren't created until you zone into an arena
-	self.frame = LoseControlDB.frames[self.unitId] -- store a local reference to the frame's settings
+	local unitId = self.unitId
+	self.frame = LoseControlDB.frames[unitId] -- store a local reference to the frame's settings
 	local frame = self.frame
-	self.anchor = _G[anchors[frame.anchor][self.unitId]] or UIParent
 
+	local inInstance, instanceType = IsInInstance()
+	self:RegisterUnitEvents( frame.enabled and not (LoseControlDB.disablePartyInBG and string.find(unitId, "party") and inInstance and instanceType == "pvp") )
+
+	self.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
 	self:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
 	--self:SetFrameStrata(frame.strata or "LOW")
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
@@ -486,32 +518,58 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	self:Hide()
 end
 
--- Check for (de)buffs and update the frame icon and cooldown
-function LoseControl:Update()
-	if self.frame.enabled and self.anchor:IsVisible() then
+-- This is the main event. Check for (de)buffs and update the frame icon and cooldown.
+function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
+	if not self.anchor:IsVisible() then return end
 
-		local unitId = self.unitId
-		local maxPriority = 1
-		local maxExpirationTime = 0
-		local priority = LoseControlDB.priority
-		local _, name, icon, Icon, duration, Duration, expirationTime, spellId, Priority
+	local priority = LoseControlDB.priority
+	local maxPriority = 1
+	local maxExpirationTime = 0
+	local Icon, Duration
 
-		-- Check debuffs
+	-- Check debuffs
+	for i = 1, 40 do
+		local name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i, "HARMFUL")
+		if not spellId then break end -- no more debuffs, terminate the loop
+		if debug then log(unitId .. " debuff " .. i .. ") " .. name .. " | " .. expirationTime .. " | " .. spellId) end
+
+		-- exceptions
+		if spellId == 88611 and unitId ~= "player" then -- Smoke Bomb
+			expirationTime = GetTime() + 1 -- normal expirationTime = 0
+		elseif spellId == 81261  -- Solar Beam
+		    or spellId == 127797 -- Ursol's Vortex
+		then
+			expirationTime = GetTime() + 1 -- normal expirationTime = 0
+		end
+
+		local Priority = priority[spellIds[spellId]]
+		if Priority then
+			if Priority == maxPriority and expirationTime > maxExpirationTime then
+				maxExpirationTime = expirationTime
+				Duration = duration
+				Icon = icon
+			elseif Priority > maxPriority then
+				maxPriority = Priority
+				maxExpirationTime = expirationTime
+				Duration = duration
+				Icon = icon
+			end
+		end
+	end
+
+	-- Check buffs
+	if unitId ~= "player" and (priority.Immune > 0 or priority.ImmuneSpell > 0 or priority.Other > 0) then
 		for i = 1, 40 do
-			name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i, "HARMFUL")
-			if not spellId then break end -- no more debuffs, terminate the loop
-			if debug then log(unitId .. " debuff " .. i .. ") " .. name .. " | " .. expirationTime .. " | " .. spellId) end
+			local name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
+			if not spellId then break end
+			if debug then log(unitId .. " buff " .. i .. ") " .. name .. " | " .. expirationTime .. " | " .. spellId) end
 
 			-- exceptions
-			if spellId == 88611 and unitId ~= "player" then -- Smoke Bomb
-				expirationTime = GetTime() + 1 -- normal expirationTime = 0
-			elseif spellId == 81261  -- Solar Beam
-			    or spellId == 127797 -- Ursol's Vortex
-			then
-				expirationTime = GetTime() + 1 -- normal expirationTime = 0
+			if spellId == 8178 then -- Grounding Totem Effect
+				expirationTime = GetTime() + 15 -- hack, normal expirationTime = 0
 			end
 
-			Priority = priority[spellIds[spellId]]
+			local Priority = priority[spellIds[spellId]]
 			if Priority then
 				if Priority == maxPriority and expirationTime > maxExpirationTime then
 					maxExpirationTime = expirationTime
@@ -525,89 +583,50 @@ function LoseControl:Update()
 				end
 			end
 		end
+	end
 
-		-- Check buffs
-		if unitId ~= "player" and (priority.Immune > 0 or priority.ImmuneSpell > 0 or priority.Other > 0) then
-			for i = 1, 40 do
-				name, _, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
-				if not spellId then break end
-				if debug then log(unitId .. " buff " .. i .. ") " .. name .. " | " .. expirationTime .. " | " .. spellId) end
-
-				-- exceptions
-				if spellId == 8178 then -- Grounding Totem Effect
-					expirationTime = GetTime() + 15 -- hack, normal expirationTime = 0
-				end
-
-				Priority = priority[spellIds[spellId]]
-				if Priority then
-					if Priority == maxPriority and expirationTime > maxExpirationTime then
-						maxExpirationTime = expirationTime
-						Duration = duration
-						Icon = icon
-					elseif Priority > maxPriority then
-						maxPriority = Priority
-						maxExpirationTime = expirationTime
-						Duration = duration
-						Icon = icon
-					end
-				end
+	if maxExpirationTime == 0 then -- no (de)buffs found
+		self.maxExpirationTime = 0
+		if self.anchor ~= UIParent and self.drawlayer then
+			self.anchor:SetDrawLayer(self.drawlayer) -- restore the original draw layer
+		end
+		self:Hide()
+	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
+		self.maxExpirationTime = maxExpirationTime
+		if self.anchor ~= UIParent then
+			self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()) -- must be dynamic, frame level changes all the time
+			if not self.drawlayer and self.anchor.GetDrawLayer then
+				self.drawlayer = self.anchor:GetDrawLayer() -- back up the current draw layer
+			end
+			if self.drawlayer and self.anchor.SetDrawLayer then
+				self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
 			end
 		end
-
-		if maxExpirationTime == 0 then -- no (de)buffs found
-			self.maxExpirationTime = 0
-			if self.anchor ~= UIParent and self.drawlayer then
-				self.anchor:SetDrawLayer(self.drawlayer) -- restore the original draw layer
-			end
-			self:Hide()
-		elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
-			self.maxExpirationTime = maxExpirationTime
-			if self.anchor ~= UIParent then
-				self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()) -- must be dynamic, frame level changes all the time
-				if not self.drawlayer and self.anchor.GetDrawLayer then
-					self.drawlayer = self.anchor:GetDrawLayer() -- back up the current draw layer
-				end
-				if self.drawlayer and self.anchor.SetDrawLayer then
-					self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
-				end
-			end
-			if self.frame.anchor == "Blizzard" then
-				SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits. TO DO: mask the cooldown frame somehow so the corners don't stick out of the portrait frame. Maybe apply a circular alpha mask in the OVERLAY draw layer.
-			else
-				self.texture:SetTexture(Icon)
-			end
-			self:Show()
-			if Duration > 0 then
-				self:SetCooldown( maxExpirationTime - Duration, Duration )
-			end
-			--UIFrameFadeOut(self, Duration, self.frame.alpha, 0)
-			self:SetAlpha(self.frame.alpha) -- hack to apply transparency to the cooldown timer
+		if self.frame.anchor == "Blizzard" then
+			SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits. TO DO: mask the cooldown frame somehow so the corners don't stick out of the portrait frame. Maybe apply a circular alpha mask in the OVERLAY draw layer.
+		else
+			self.texture:SetTexture(Icon)
 		end
+		self:Show()
+		if Duration > 0 then
+			self:SetCooldown( maxExpirationTime - Duration, Duration )
+		end
+		--UIFrameFadeOut(self, Duration, self.frame.alpha, 0)
+		self:SetAlpha(self.frame.alpha) -- hack to apply transparency to the cooldown timer
 	end
 end
-
--- This is the main event
-function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
-	if LCframes[unitId] then
-		LCframes[unitId]:Update() -- dispatch the update to the proper frame.
-	end
-end
-LoseControl:RegisterEvent("UNIT_AURA")
 
 function LoseControl:PLAYER_FOCUS_CHANGED()
-	LCframes.focus:Update()
+	self:UNIT_AURA("focus")
 end
-LoseControl:RegisterEvent("PLAYER_FOCUS_CHANGED")
 
 function LoseControl:PLAYER_TARGET_CHANGED()
-	LCframes.target:Update()
+	self:UNIT_AURA("target")
 end
-LoseControl:RegisterEvent("PLAYER_TARGET_CHANGED")
-
 
 -- Handle mouse dragging
 function LoseControl:StopMoving()
-	local frame = self.frame --LoseControlDB.frames[self.unitId]
+	local frame = LoseControlDB.frames[self.unitId]
 	frame.point, frame.anchor, frame.relativePoint, frame.x, frame.y = self:GetPoint()
 	if not frame.anchor then
 		frame.anchor = "None"
@@ -628,7 +647,9 @@ function LoseControl:new(unitId)
 	o.texture:SetAllPoints(o) -- anchor the texture to the frame
 	o:SetReverse(true) -- makes the cooldown shade from light to dark instead of dark to light
 
-	--o.region = o:CreateTitleRegion() -- Create a title region for dragging the frame. Only works if the frame is mouse enabled.
+	o.text = o:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	o.text:SetText(L[unitId])
+	o.text:SetPoint("BOTTOM", o, "BOTTOM")
 
 	-- Rufio's code to make the frame border pretty. Maybe use this somehow to mask cooldown corners in Blizzard frames.
 	--o.overlay = o:CreateTexture(nil, "OVERLAY") -- displays the alpha mask for making rounded corners
@@ -646,12 +667,14 @@ function LoseControl:new(unitId)
 	o:SetScript("OnEvent", self.OnEvent)
 	o:SetScript("OnDragStart", self.StartMoving) -- this function is already built into the Frame class
 	o:SetScript("OnDragStop", self.StopMoving) -- this is a custom function
+
 	o:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 	return o
 end
 
 -- Create new object instance for each frame
+local LCframes = {}
 for k in pairs(DBdefaults.frames) do
 	LCframes[k] = LoseControl:new(k)
 end
@@ -683,38 +706,36 @@ function Unlock:OnClick()
 		for k in pairs(spellIds) do
 			tinsert(keys, k)
 		end
-		LoseControl:UnregisterEvent("UNIT_AURA")
-		LoseControl:UnregisterEvent("PLAYER_FOCUS_CHANGED")
-		LoseControl:UnregisterEvent("PLAYER_TARGET_CHANGED")
 		for k, v in pairs(LCframes) do
 			local frame = LoseControlDB.frames[k]
 			if frame.enabled and (_G[anchors[frame.anchor][k]] or frame.anchor == "None") then -- only unlock frames whose anchor exists
-				v:SetMovable(true)
-				v:RegisterForDrag("LeftButton")
-				v:EnableMouse(true)
+				v:RegisterUnitEvents(false)
 				v.texture:SetTexture(select(3, GetSpellInfo(keys[random(#keys)])))
 				v:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
 				--v:SetFrameStrata(frame.strata or "MEDIUM")
 				if v.anchor:GetParent() then
 					v:SetFrameLevel(v.anchor:GetParent():GetFrameLevel())
 				end
+				v.text:Show()
 				v:Show()
 				v:SetCooldown( GetTime(), 30 )
 				v:SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
+				v:SetMovable(true)
+				v:RegisterForDrag("LeftButton")
+				v:EnableMouse(true)
 			end
 		end
 	else
 		_G[O.."UnlockText"]:SetText(L["Unlock"])
-		LoseControl:RegisterEvent("UNIT_AURA")
-		LoseControl:RegisterEvent("PLAYER_FOCUS_CHANGED")
-		LoseControl:RegisterEvent("PLAYER_TARGET_CHANGED")
 		for k, v in pairs(LCframes) do
-			v:SetMovable(false)
-			v:RegisterForDrag()
+			v:Hide()
+			v.text:Hide()
 			v:EnableMouse(false)
+			v:RegisterForDrag()
+			v:SetMovable(false)
 			v:SetParent(v.anchor:GetParent()) -- or UIParent)
 			--v:SetFrameStrata(LoseControlDB.frames[k].strata or "LOW")
-			v:Hide()
+			v:RegisterUnitEvents(true)
 		end
 	end
 end
@@ -855,7 +876,7 @@ end
 -------------------------------------------------------------------------------
 -- Create sub-option frames
 for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
-	local OptionsPanelFrame = CreateFrame("Frame", O .. v)
+	local OptionsPanelFrame = CreateFrame("Frame", O..v)
 	OptionsPanelFrame.parent = addonName
 	OptionsPanelFrame.name = L[v]
 
@@ -890,14 +911,29 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 		end
 	end)
 
-	local Enabled = CreateFrame("CheckButton", O .. v .."Enabled", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+	local DisableInBG
+	if v == "party" then
+		DisableInBG = CreateFrame("CheckButton", O..v.."DisableInBG", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisableInBGText"]:SetText(L["DisableInBG"])
+		DisableInBG:SetScript("OnClick", function(self)
+			LoseControlDB.disablePartyInBG = self:GetChecked()
+			LCframes.party1:PLAYER_ENTERING_WORLD()
+			LCframes.party2:PLAYER_ENTERING_WORLD()
+			LCframes.party3:PLAYER_ENTERING_WORLD()
+			LCframes.party4:PLAYER_ENTERING_WORLD()
+		end)
+	end
+
+	local Enabled = CreateFrame("CheckButton", O..v.."Enabled", OptionsPanelFrame, "OptionsCheckButtonTemplate")
 	_G[O..v.."EnabledText"]:SetText(L["Enabled"])
-	Enabled:SetScript("OnClick", function(self)
+	function Enabled:OnClick()
 		local enabled = self:GetChecked()
 		if enabled then
+			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
 			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
 		else
+			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
 			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
 		end
@@ -909,10 +945,13 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].enabled = enabled
+			LCframes[frame]:RegisterUnitEvents(enabled)
 		end
-	end)
+	end
+	Enabled:SetScript("OnClick", Enabled.OnClick)
 
 	Enabled:SetPoint("TOPLEFT", 16, -32)
+	if DisableInBG then DisableInBG:SetPoint("TOPLEFT", Enabled, 200, 0) end
 	SizeSlider:SetPoint("TOPLEFT", Enabled, "BOTTOMLEFT", 0, -32)
 	AlphaSlider:SetPoint("TOPLEFT", SizeSlider, "BOTTOMLEFT", 0, -32)
 	--AnchorDropDownLabel:SetPoint("TOPLEFT", UnitDropDown, "BOTTOMLEFT", 0, -12)
@@ -921,15 +960,20 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 	OptionsPanelFrame.default = OptionsPanel.default
 	OptionsPanelFrame.refresh = function()
 		local frame = v
-		if frame == "party" then frame = "party1"
-		elseif frame == "arena" then frame = "arena1"
+		if frame == "party" then
+			DisableInBG:SetChecked(LoseControlDB.disablePartyInBG)
+			frame = "party1"
+		elseif frame == "arena" then
+			frame = "arena1"
 		end
 		frame = LoseControlDB.frames[frame]
 		Enabled:SetChecked(frame.enabled)
 		if frame.enabled then
+			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
 			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
 		else
+			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
 			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
 		end
@@ -963,10 +1007,10 @@ function SlashCmd:debug(value)
 		log(addonName .. ": debugging disabled")
 	end
 end
-function SlashCmd:reset(unit)
-	if LoseControlDB.frames[unit] then
-		LoseControlDB.frames[unit] = CopyTable(DBdefaults.frames[unit])
-		LCframes[unit]:PLAYER_ENTERING_WORLD()
+function SlashCmd:reset(unitId)
+	if LoseControlDB.frames[unitId] then
+		LoseControlDB.frames[unitId] = CopyTable(DBdefaults.frames[unitId])
+		LCframes[unitId]:PLAYER_ENTERING_WORLD()
 	else
 		OptionsPanel.default()
 	end
@@ -983,16 +1027,18 @@ function SlashCmd:unlock()
 	Unlock:OnClick()
 	log(addonName .. " unlocked.")
 end
-function SlashCmd:enable(unit)
-	if LoseControlDB.frames[unit] then
-		LoseControlDB.frames[unit].enabled = true
-		log(addonName .. ": " .. unit .. " frame enabled.")
+function SlashCmd:enable(unitId)
+	if LCframes[unitId] then
+		LoseControlDB.frames[unitId].enabled = true
+		LCframes[unitId]:RegisterUnitEvents(true)
+		log(addonName .. ": " .. unitId .. " frame enabled.")
 	end
 end
-function SlashCmd:disable(unit)
-	if LoseControlDB.frames[unit] then
-		LoseControlDB.frames[unit].enabled = false
-		log(addonName .. ": " .. unit .. " frame disabled.")
+function SlashCmd:disable(unitId)
+	if LCframes[unitId] then
+		LoseControlDB.frames[unitId].enabled = false
+		LCframes[unitId]:RegisterUnitEvents(false)
+		log(addonName .. ": " .. unitId .. " frame disabled.")
 	end
 end
 
