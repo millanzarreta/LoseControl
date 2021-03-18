@@ -14,12 +14,12 @@ local L = "LoseControl"
 local function log(msg)	DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for convenience
 
 -------------------------------------------------------------------------------
-local CC      = LOSECONTROL_CC
-local Silence = LOSECONTROL_SILENCE
-local Disarm  = LOSECONTROL_DISARM
-local Root    = LOSECONTROL_ROOT
-local Snare   = LOSECONTROL_SNARE
-local PvE     = LOSECONTROL_PVE
+local CC      = LOSECONTROL["CC"]
+local Silence = LOSECONTROL["Silence"]
+local Disarm  = LOSECONTROL["Disarm"]
+local Root    = LOSECONTROL["Root"]
+local Snare   = LOSECONTROL["Snare"]
+local PvE     = LOSECONTROL["PvE"]
 
 local spellIds = {
 	-- Death Knight
@@ -27,7 +27,7 @@ local spellIds = {
 	[51209] = CC,		-- Hungering Cold
 	[47476] = Silence,	-- Strangulate
 	[45524] = Snare,	-- Chains of Ice
-	[55784] = Snare,	-- Desecration
+	[55666] = Snare,	-- Desecration (no duration, lasts as long as you stand in it)
 	[58617] = Snare,	-- Glyph of Heart Strike
 	[50436] = Snare,	-- Icy Clutch (Chilblains)
 	-- Druid
@@ -52,7 +52,7 @@ local spellIds = {
 	[19185] = Root,		-- Entrapment
 	[35101] = Snare,	-- Concussive Barrage
 	[5116]  = Snare,	-- Concussive Shot
-	--[13810] = Snare,	-- Frost Trap Aura (no duration, lasts as long as you stand in it)
+	[13810] = Snare,	-- Frost Trap Aura (no duration, lasts as long as you stand in it)
 	[61394] = Snare,	-- Glyph of Freezing Trap
 	[2974]  = Snare,	-- Wing Clip
 	-- Hunter Pets
@@ -115,7 +115,7 @@ local spellIds = {
 	[51514] = CC,		-- Hex (although effectively a silence+disarm effect, it is conventionally thought of as a CC, plus you can trinket out of it)
 	[64695] = Root,		-- Earthgrab (Storm, Earth and Fire)
 	[63685] = Root,		-- Freeze (Frozen Power)
-	--[3600]  = Snare,	-- Earthbind (no duration, lasts as long as you stand in it)
+	[3600]  = Snare,	-- Earthbind (5 second duration per pulse, but will keep re-applying the debuff as long as you stand within the pulse radius)
 	[8056]  = Snare,	-- Frost Shock
 	[8034]  = Snare,	-- Frostbrand Attack
 	-- Warlock
@@ -162,7 +162,7 @@ local abilities = {} -- localized names are saved here
 for k, v in pairs(spellIds) do
 	if GetSpellInfo(k) then
 		abilities[GetSpellInfo(k)] = v
-	else -- Thanks to inph for this idea. Helps weed out bad spells when Blizzard changes things.
+	else -- Thanks to inph for this idea. Keeps things from breaking when Blizzard changes things.
 		log(L .. " unknown spellId: " .. k)
 	end
 end
@@ -170,78 +170,112 @@ end
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 1.4,
+	version = 1.41,
 	icons = {
 		["player"] = {
 			enabled = true,
 			size = 36,
 			alpha = 1,
-			point = "CENTER",
-			frame = "UIParent",
-			relativePoint = "CENTER",
-			x = 0,
-			y = 0,
+			Blizzard = "CharacterFramePortrait",
 		},
 		["target"] = {
 			enabled = true,
-			size = 64,
+			size = 56,
 			alpha = 1,
-			point = "CENTER",
-			frame = "TargetPortrait",
-			relativePoint = "CENTER",
-			x = 0,
-			y = 0,
+			anchor = "Blizzard",
+			Blizzard = "TargetPortrait",
 		},
 		["focus"] = {
 			enabled = true,
-			size = 52,
+			size = 44,
 			alpha = 1,
-			point = "CENTER",
-			frame = "FocusPortrait",
-			relativePoint = "CENTER",
-			x = 0,
-			y = 0,
+			anchor = "Blizzard",
+			Blizzard = "FocusPortrait",
 		},
 		["party1"] = {
 			enabled = true,
-			size = 44,
+			size = 36,
 			alpha = 1,
-			point = "CENTER",
-			frame = "PartyMemberFrame1Portrait",
-			relativePoint = "CENTER",
-			x = 0,
-			y = 0,
+			anchor = "Blizzard",
+			Blizzard = "PartyMemberFrame1Portrait",
 		},
 		["party2"] = {
 			enabled = true,
-			size = 44,
+			size = 36,
 			alpha = 1,
-			point = "CENTER",
-			frame = "PartyMemberFrame2Portrait",
-			relativePoint = "CENTER",
-			x = 0,
-			y = 0,
+			anchor = "Blizzard",
+			Blizzard = "PartyMemberFrame2Portrait",
 		},
 		["party3"] = {
 			enabled = true,
-			size = 44,
+			size = 36,
 			alpha = 1,
-			point = "CENTER",
-			frame = "PartyMemberFrame3Portrait",
-			relativePoint = "CENTER",
-			x = 0,
-			y = 0,
+			anchor = "Blizzard",
+			Blizzard = "PartyMemberFrame3Portrait",
 		},
 		["party4"] = {
 			enabled = true,
-			size = 44,
+			size = 36,
+			alpha = 1,
+			anchor = "Blizzard",
+			Blizzard = "PartyMemberFrame4Portrait",
+		},
+		--[[ Arena frames aren't created until you enter the arena? Probably have to create dynamically.
+		["arena1"] = {
+			enabled = true,
+			size = 32,
 			alpha = 1,
 			point = "CENTER",
-			frame = "PartyMemberFrame4Portrait",
+			anchor = "Blizzard",
 			relativePoint = "CENTER",
 			x = 0,
 			y = 0,
+			Blizzard = "ArenaEnemyFrame1ClassPortrait",
 		},
+		["arena2"] = {
+			enabled = true,
+			size = 32,
+			alpha = 1,
+			point = "CENTER",
+			anchor = "Blizzard",
+			relativePoint = "CENTER",
+			x = 0,
+			y = 0,
+			Blizzard = "ArenaEnemyFrame2ClassPortrait",
+		},
+		["arena3"] = {
+			enabled = true,
+			size = 32,
+			alpha = 1,
+			point = "CENTER",
+			anchor = "Blizzard",
+			relativePoint = "CENTER",
+			x = 0,
+			y = 0,
+			Blizzard = "ArenaEnemyFrame3ClassPortrait",
+		},
+		["arena4"] = {
+			enabled = true,
+			size = 32,
+			alpha = 1,
+			point = "CENTER",
+			anchor = "Blizzard",
+			relativePoint = "CENTER",
+			x = 0,
+			y = 0,
+			Blizzard = "ArenaEnemyFrame4ClassPortrait",
+		},
+		["arena5"] = {
+			enabled = true,
+			size = 32,
+			alpha = 1,
+			point = "CENTER",
+			anchor = "Blizzard",
+			relativePoint = "CENTER",
+			x = 0,
+			y = 0,
+			Blizzard = "ArenaEnemyFrame5ClassPortrait",
+		},]]
 	},
 	noCooldownCount = false,
 	tracking = {
@@ -271,7 +305,7 @@ function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == L then
 		if not _G.LoseControlDB or not _G.LoseControlDB.version or _G.LoseControlDB.version < DBdefaults.version then
 			_G.LoseControlDB = CopyTable(DBdefaults)
-			log(LOSECONTROL_RESET)
+			log(LOSECONTROL["LoseControl reset."])
 		end
 		LoseControlDB = _G.LoseControlDB
 		LoseControl.noCooldownCount = LoseControlDB.noCooldownCount
@@ -282,16 +316,28 @@ LoseControl:RegisterEvent("ADDON_LOADED")
 -- This function gets reused to update the frame when the defaults are set
 function LoseControl:VARIABLES_LOADED() -- fired after all addons and savedvariables are loaded
 	local icon = LoseControlDB.icons[self.unitId] -- saves typing below :P
+	local anchor = icon.anchor
+	if anchor == "Blizzard" then
+		anchor = _G[icon.Blizzard] -- attach to preset frame
+		-- TO DO: mask the cooldown frame somehow so the corners don't stick out of the portrait frame
+	end
+	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:SetWidth(icon.size)
 	self:SetHeight(icon.size)
-	self:ClearAllPoints() -- if we don't do this then the frame won't always move
-	self:SetPoint(icon.point, icon.frame, icon.relativePoint, icon.x, icon.y)
-	self:SetAlpha(icon.alpha)
+	self:SetPoint(
+		icon.point or "CENTER",
+		anchor or UIParent,
+		icon.relativePoint or "CENTER",
+		icon.x or 0,
+		icon.y or 0
+	)
+	--self:SetAlpha(icon.alpha) -- doesn't seem to work; must manually set alpha after the cooldown is displayed, otherwise it doesn't apply.
 end
 
 -- This is the main event
 function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
-	if unitId ~= self.unitId or not LoseControlDB.icons[unitId].enabled then return end -- only process the frame's unit if they are enabled
+	local frame = LoseControlDB.icons[unitId]
+	if unitId ~= self.unitId or not frame.enabled then return end
 
 	local maxExpirationTime = 0
 	local Duration, Icon
@@ -307,6 +353,7 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 			--and duration >= LoseControlDB.minDuration
 			--and duration <= LoseControlDB.maxDuration
 			--and not (debuffType == "Poison" and duration == 6) -- hack for Wyvern Sting -- broken in 3.1 because duration was changed to 6 secs down from 10
+			and not (name == GetSpellInfo(64058) and icon == "Interface\\Icons\\Ability_Warrior_Disarm") -- hack to remove Psychic Horror disarm effect.
 		then
 			maxExpirationTime = expirationTime
 			Duration = duration
@@ -316,20 +363,43 @@ function LoseControl:UNIT_AURA(unitId) -- fired when a (de)buff is gained/lost
 
 	if maxExpirationTime == 0 then -- no debuffs found
 		self.maxExpirationTime = 0
+		if frame.anchor == "Blizzard" then
+			SetPortraitTexture(_G[frame.Blizzard], unitId) -- Redraw the portrait texture from the unitId
+		end
 		self:Hide()
 	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different debuff, so initialize the cooldown
 		self.maxExpirationTime = maxExpirationTime
-		self.texture:SetTexture(Icon)
+		if frame.anchor == "Blizzard" then
+			if not _G[frame.Blizzard]:IsVisible() then return end
+			self:SetFrameLevel(_G[frame.Blizzard]:GetParent():GetFrameLevel()) -- must be dynamic; frame level changes all the time
+			SetPortraitToTexture(frame.Blizzard, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits.
+		else
+			self.texture:SetTexture(Icon)
+		end
 		self:Show()
 		self:SetCooldown( maxExpirationTime - Duration, Duration )
-		self:SetAlpha(LoseControlDB.icons[unitId].alpha) -- hack to apply transparency to the cooldown timer
+		self:SetAlpha(frame.alpha) -- hack to apply transparency to the cooldown timer
 	end
 end
+
+function LoseControl:PLAYER_FOCUS_CHANGED()
+	self:UNIT_AURA("focus")
+end
+
+function LoseControl:PLAYER_TARGET_CHANGED()
+	self:UNIT_AURA("target")
+end
+
+--[[ Not convinced this is even necessary. Party members rarely change in combat.
+function LoseControl:PARTY_MEMBERS_CHANGED()
+	self:UNIT_AURA(self.unitId)
+end
+]]
 
 -- Handle mouse dragging
 function LoseControl:StopMoving()
 	local icon = LoseControlDB.icons[self.unitId]
-	icon.point, icon.frame, icon.relativePoint, icon.x, icon.y = self:GetPoint()
+	icon.point, icon.anchor, icon.relativePoint, icon.x, icon.y = self:GetPoint()
 	self:StopMovingOrSizing()
 end
 
@@ -343,7 +413,7 @@ function LoseControl:new(unitId)
 	o.unitId = unitId -- ties the object to a unit
 	o.texture = o:CreateTexture(nil, "BACKGROUND") -- displays the debuff
 	o.texture:SetAllPoints(o) -- anchor the texture to the frame
-	o:SetFrameStrata("MEDIUM") -- so the icon appears on top of party member portraits
+	o:SetFrameStrata("LOW") -- same strata as portraits
 	o:SetReverse(true) -- makes the cooldown shade from light to dark instead of dark to light
 
 	-- Handle events
@@ -352,6 +422,12 @@ function LoseControl:new(unitId)
 	o:SetScript("OnDragStop", self.StopMoving) -- this is a custom function
 	o:RegisterEvent("VARIABLES_LOADED")
 	o:RegisterEvent("UNIT_AURA")
+	if unitId == "focus" then
+		o:RegisterEvent("PLAYER_FOCUS_CHANGED")
+	elseif unitId == "target" then
+		o:RegisterEvent("PLAYER_TARGET_CHANGED")
+	end
+	--o:RegisterEvent("PARTY_MEMBERS_CHANGED")
 
 	return o
 end
@@ -381,10 +457,10 @@ subText:SetText(notes)
 
 -- "Unlock" checkbox - allow the frames to be moved
 local Unlock = CreateFrame("CheckButton", O.."Unlock", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."UnlockText"]:SetText(LOSECONTROL_UNLOCK)
+_G[O.."UnlockText"]:SetText(LOSECONTROL["Unlock"])
 Unlock:SetScript("OnClick", function(self)
 	if self:GetChecked() then
-		_G[O.."UnlockText"]:SetText(LOSECONTROL_UNLOCK .. LOSECONTROL_UNLOCK2)
+		_G[O.."UnlockText"]:SetText(LOSECONTROL["Unlock"] .. LOSECONTROL[" (drag an icon to move)"])
 		local keys = {} -- for random icon sillyness
 		for k in pairs(spellIds) do
 			tinsert(keys, k)
@@ -393,38 +469,47 @@ Unlock:SetScript("OnClick", function(self)
 			BlizzardOptionsPanel_Slider_Enable(v.SizeSlider)
 			BlizzardOptionsPanel_Slider_Enable(v.AlphaSlider)
 			v:UnregisterEvent("UNIT_AURA")
+			v:UnregisterEvent("PLAYER_FOCUS_CHANGED")
+			v:UnregisterEvent("PLAYER_TARGET_CHANGED")
 			v:SetMovable(true)
 			v:RegisterForDrag("LeftButton")
 			v:EnableMouse(true)
-			v.texture:SetTexture(select(3, GetSpellInfo(keys[random(#keys)]))) --"Interface\\Icons\\Spell_Holy_SealOfMight")
+			v.texture:SetTexture(select(3, GetSpellInfo(keys[random(#keys)])))
+			v:SetFrameStrata("MEDIUM") -- bring the strata up above the portraits for easier dragging
 			v:Show()
 			v:SetCooldown( GetTime(), 30 )
 			v:SetAlpha(LoseControlDB.icons[k].alpha) -- hack to apply the alpha to the cooldown timer
 		end
 	else
-		_G[O.."UnlockText"]:SetText(LOSECONTROL_UNLOCK)
+		_G[O.."UnlockText"]:SetText(LOSECONTROL["Unlock"])
 		for k, v in pairs(LC) do
 			BlizzardOptionsPanel_Slider_Disable(v.SizeSlider)
 			BlizzardOptionsPanel_Slider_Disable(v.AlphaSlider)
 			v:RegisterEvent("UNIT_AURA")
+			if k == "focus" then
+				v:RegisterEvent("PLAYER_FOCUS_CHANGED")
+			elseif k == "target" then
+				v:RegisterEvent("PLAYER_TARGET_CHANGED")
+			end
 			v:SetMovable(false)
 			v:RegisterForDrag()
 			v:EnableMouse(false)
 			v.texture:SetTexture(nil)
+			v:SetFrameStrata("LOW")
 			v:Hide()
 		end
 	end
 end)
 
 local DisableCooldownCount = CreateFrame("CheckButton", O.."DisableCooldownCount", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."DisableCooldownCountText"]:SetText(LOSECONTROL_COOLDOWNCOUNT)
+_G[O.."DisableCooldownCountText"]:SetText(LOSECONTROL["Disable OmniCC/CooldownCount Support"])
 DisableCooldownCount:SetScript("OnClick", function(self)
 	LoseControlDB.noCooldownCount = self:GetChecked()
 	LoseControl.noCooldownCount = LoseControlDB.noCooldownCount
 end)
 
 local Tracking = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-Tracking:SetText(LOSECONTROL_TRACKING)
+Tracking:SetText(LOSECONTROL["Tracking"])
 
 local TrackCCs = CreateFrame("CheckButton", O.."TrackCCs", OptionsPanel, "OptionsCheckButtonTemplate")
 _G[O.."TrackCCsText"]:SetText(CC)
@@ -463,15 +548,15 @@ TrackPvE:SetScript("OnClick", function(self)
 end)
 
 --[[
-local minDurationSlider = CreateSlider(LOSECONTROL_MINDURATION, OptionsPanel, 0, 30, .5)
+local minDurationSlider = CreateSlider(LOSECONTROL["Minimum duration"], OptionsPanel, 0, 30, .5)
 minDurationSlider:SetScript("OnValueChanged", function(self, value)
-	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL_MINDURATION .. " (" .. value .. "s)")
+	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL["Minimum duration"] .. " (" .. value .. "s)")
 	LoseControlDB.minDuration = value
 end)
 
-local maxDurationSlider = CreateSlider(LOSECONTROL_MAXDURATION, OptionsPanel, 0, 60, 1)
+local maxDurationSlider = CreateSlider(LOSECONTROL["Maximum duration"], OptionsPanel, 0, 60, 1)
 maxDurationSlider:SetScript("OnValueChanged", function(self, value)
-	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL_MAXDURATION .. " (" .. value .. "s)")
+	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL["Maximum duration"] .. " (" .. value .. "s)")
 	LoseControlDB.maxDuration = value
 end)
 ]]
@@ -534,31 +619,30 @@ end
 
 -------------------------------------------------------------------------------
 -- Create options frame for each icon
-for _, v in ipairs({ "player", "target", "focus", "party1", "party2", "party3", "party4" }) do -- indexed manually so they appear in order
+for _, v in ipairs({ "player", "target", "focus", "party1", "party2", "party3", "party4", --[["arena1", "arena2", "arena3", "arena4", "arena5"]] }) do -- indexed manually so they appear in order
 	local OptionsPanelFrame = CreateFrame("Frame", O .. v)
 	OptionsPanelFrame.parent = L
-	OptionsPanelFrame.name = LOSECONTROL_ICON[v]
+	OptionsPanelFrame.name = LOSECONTROL.Icon[v]
 
 	local Enabled = CreateFrame("CheckButton", O .. v .."Enabled", OptionsPanelFrame, "OptionsCheckButtonTemplate")
-	_G[O..v.."EnabledText"]:SetText(LOSECONTROL_ENABLED)
+	_G[O..v.."EnabledText"]:SetText(LOSECONTROL["Enabled"])
 	Enabled:SetScript("OnClick", function(self)
 		LoseControlDB.icons[v].enabled = self:GetChecked()
 	end)
 
-	local SizeSlider = CreateSlider(LOSECONTROL_SIZE, OptionsPanelFrame, 16, 512, 4)
+	local SizeSlider = CreateSlider(LOSECONTROL["Icon Size"], OptionsPanelFrame, 16, 512, 4)
 	SizeSlider:SetScript("OnValueChanged", function(self, value)
-		_G[self:GetName() .. "Text"]:SetText(LOSECONTROL_SIZE .. " (" .. value .. "px)")
+		_G[self:GetName() .. "Text"]:SetText(LOSECONTROL["Icon Size"] .. " (" .. value .. "px)")
 		LoseControlDB.icons[v].size = value
 		LC[v]:SetWidth(value)
 		LC[v]:SetHeight(value)
 	end)
 
-	local AlphaSlider = CreateSlider(LOSECONTROL_ALPHA, OptionsPanelFrame, 0, 100, 5) -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
+	local AlphaSlider = CreateSlider(LOSECONTROL["Opacity"], OptionsPanelFrame, 0, 100, 5) -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
 	AlphaSlider:SetScript("OnValueChanged", function(self, value)
-		_G[self:GetName() .. "Text"]:SetText(LOSECONTROL_ALPHA .. " (" .. value .. "%)")
+		_G[self:GetName() .. "Text"]:SetText(LOSECONTROL["Opacity"] .. " (" .. value .. "%)")
 		LoseControlDB.icons[v].alpha = value / 100 -- the real alpha value
 		LC[v]:SetAlpha(value / 100)
-		-- show the frame
 	end)
 
 	LC[v].Enabled = Enabled

@@ -1,7 +1,7 @@
 ## Interface: 30100
 ## Title: LoseControl
 ## Author: Kouri
-## Version: 1.4
+## Version: 1.41
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer der CC-Effekte auf Ihren Buchstaben an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter
@@ -17,11 +17,5 @@
 ## X-Category: Buffs
 ## SavedVariablesPerCharacter: LoseControlDB
 
-localization.cn.lua
-localization.de.lua
-localization.en.lua
-localization.es.lua
-localization.fr.lua
-localization.kr.lua
-localization.ru.lua
+localization.lua
 LoseControl.lua
