@@ -1,4 +1,4 @@
-local _, L = ...;
+local _, L = ...
 local locale = GetLocale()
 
 if locale == "deDE" then -- translated by Morbis

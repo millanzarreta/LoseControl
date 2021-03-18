@@ -9,7 +9,7 @@ And of course, Blizzard
 Thanks! :)
 ]]
 
-local addonName, L = ...;
+local addonName, L = ...
 local UIParent = UIParent -- it's faster to keep local references to frequently used global vars
 
 local function log(msg) DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for convenience
@@ -237,6 +237,14 @@ local anchors = {
 		party3 = "XPerl_party3portraitFrameportrait",
 		party4 = "XPerl_party4portraitFrameportrait",
 	},
+	--SUF = {
+	--	player = SUFUnitplayer.portraitModel.portrait,
+	--	target = SUFUnittarget.portraitModel.portrait,
+	--	focus  = SUFUnitfocus.portraitModel.portrait,
+		--party1 = SUFUnitparty1.portraitModel.portrait,
+		--party2 = SUFUnitparty2.portraitModel.portrait,
+		--party3 = SUFUnitparty3.portraitModel.portrait,
+		--party4 = SUFUnitparty4.portraitModel.portrait,
 	-- more to come here?
 }
 
@@ -378,6 +386,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		frame.y or 0
 	)
 	--self:SetAlpha(frame.alpha) -- doesn't seem to work; must manually set alpha after the cooldown is displayed, otherwise it doesn't apply.
+	self:Hide()
 end
 
 local WYVERN_STING = GetSpellInfo(19386)
