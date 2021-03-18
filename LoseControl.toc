@@ -1,4 +1,4 @@
-## Interface: 70100
+## Interface: 70200
 ## Title: LoseControl
 ## Author: Kouri, modified by millanzarreta, Hid@Emeriss and Wardz
 ## Version: 5.41
