@@ -15,7 +15,7 @@ local abilities = LoseControlAbilities -- set by the localization files
 
 -- Default settings
 local DBdefaults = {
-	Version = 1,
+	Version = 1.23,
 	Size = 36,
 	Alpha = 1,
 	position = {
@@ -23,7 +23,8 @@ local DBdefaults = {
 		relativePoint = "CENTER",
 		x = 0,
 		y = 0
-	}
+	},
+	noCooldownCount = false
 }
 
 LoseControlDB = CopyTable(DBdefaults) -- this gets overwritten later when the SavedVariables load
@@ -51,6 +52,7 @@ function f:VARIABLES_LOADED() -- fired after all addons and savedvariables are l
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:SetPoint(LoseControlDB.position.point, UIParent, LoseControlDB.position.relativePoint, LoseControlDB.position.x, LoseControlDB.position.y)
 	self:SetAlpha(LoseControlDB.Alpha)
+	self.noCooldownCount = LoseControlDB.noCooldownCount
 end
 
 -- This is the main event
@@ -157,9 +159,9 @@ Unlock:SetScript("OnClick", function(self)
 		f:SetMovable(true)
 		f:RegisterForDrag("LeftButton")
 		f:EnableMouse(true)
-		f.texture:SetTexture("Interface\\Icons\\spell_nature_polymorph")
+		f.texture:SetTexture("Interface\\Icons\\Spell_Holy_SealOfMight")
 		f:Show();
-		f:SetCooldown( GetTime(), 60 )
+		f:SetCooldown( GetTime(), 30 )
 		f:SetAlpha(LoseControlDB.Alpha) -- hack to apply the alpha to the cooldown timer
 	else
 		BlizzardOptionsPanel_Slider_Disable(SizeSlider)
@@ -173,12 +175,20 @@ Unlock:SetScript("OnClick", function(self)
 	end
 end)
 
+local DisableCooldownCount = CreateFrame("CheckButton", "LoseControlOptionsPanelDisableCooldownCount", LoseControlOptionsPanel, "OptionsCheckButtonTemplate")
+LoseControlOptionsPanelDisableCooldownCountText:SetText("Disable CooldownCount Support")
+DisableCooldownCount:SetScript("OnClick", function(self)
+	LoseControlDB.noCooldownCount = self:GetChecked()
+	f.noCooldownCount = LoseControlDB.noCooldownCount
+end)
+
 -- Arrange them all neatly
 title:SetPoint("TOPLEFT", 16, -16)
 subText:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
 Unlock:SetPoint("TOPLEFT", subText, "BOTTOMLEFT", 0, -16)
 SizeSlider:SetPoint("TOPLEFT", Unlock, "BOTTOMLEFT", 0, -16)
 AlphaSlider:SetPoint("TOPLEFT", SizeSlider, "BOTTOMLEFT", 0, -16)
+DisableCooldownCount:SetPoint("TOPLEFT", AlphaSlider, "BOTTOMLEFT", 0, -24)
 
 LoseControlOptionsPanel.default = function() -- This method will run when the player clicks "defaults".
 	LoseControlDB.Version = 0
@@ -188,6 +198,7 @@ end
 LoseControlOptionsPanel.refresh = function() -- This method will run when the Interface Options frame calls its OnShow function and after defaults have been applied via the panel.default method described above.
 	SizeSlider:SetValue(LoseControlDB.Size)
 	AlphaSlider:SetValue(LoseControlDB.Alpha * 100)
+	DisableCooldownCount:SetChecked(LoseControlDB.noCooldownCount)
 end
 
 InterfaceOptions_AddCategory(LoseControlOptionsPanel)
