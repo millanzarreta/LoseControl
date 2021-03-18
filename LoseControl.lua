@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.07
+-- Version: 6.08
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -579,18 +579,20 @@ local spellIds = {
 	------------------------
 	-- Crucible of Storms Raid
 	-- -- Trash
+	[293957] = "CC",				-- Maddening Gaze
+	[295312] = "Immune",			-- Shadow Siphon
+	[286754] = "CC",				-- Storm of Annihilation (damage done decreased by 50%)
 	-- -- The Restless Cabal
-	[282540] = "CC",				-- Agent of Demise
 	[282589] = "CC",				-- Cerebral Assault
 	[285154] = "CC",				-- Cerebral Assault
 	[282517] = "CC",				-- Terrifying Echo
 	[287876] = "CC",				-- Enveloping Darkness (healing and damage done reduced by 99%)
-	[282432] = "Snare",				-- Crushing Doubt
+	[282743] = "CC",				-- Storm of Annihilation (damage done decreased by 50%)
 	-- -- Uu'nat
-	[285345] = "CC",				-- Maddening Eyes of N'Zoth
 	[285562] = "CC",				-- Unknowable Terror
-	[285685] = "CC",				-- Gift of N'Zoth: Lunacy
 	[287693] = "Immune",			-- Sightless Bond (damage taken reduced by 99%)
+	[286310] = "Immune",			-- Void Shield (damage taken reduced by 99%)
+	[284601] = "CC",				-- Storm of Annihilation (damage done decreased by 50%)
 	------------------------
 	-- Battle of Dazar'alor Raid
 	-- -- Trash
@@ -860,6 +862,7 @@ local spellIds = {
 	[275192] = "CC",				-- Blinding Sand
 	[286907] = "CC",				-- Volatile Eruption
 	[244988] = "CC",				-- Throw Boulder
+	[244893] = "CC",				-- Throw Boulder
 	[250505] = "CC",				-- Hysteria
 	[285266] = "CC",				-- Asphyxiate
 	[285270] = "CC",				-- Leg Sweep
@@ -872,7 +875,9 @@ local spellIds = {
 	[276992] = "CC",				-- Big Foot Kick
 	[277111] = "CC",				-- Serum of Torment
 	[270248] = "CC",				-- Conflagrate
+	[266151] = "CC",				-- Fire Bomb
 	[265615] = "CC",				-- Icy Charge
+	[186637] = "CC",				-- Grrlmmggr...
 	[274758] = "CC",				-- Shrink (damage done reduced by 50%)
 	[277118] = "CC",				-- Curse of Impotence (damage done reduced by 75%)
 	--[262197] = "Immune",			-- Tenacity of the Pack (unkillable but not immune to damage)
@@ -893,6 +898,8 @@ local spellIds = {
 	[275821] = "Root",				-- Earthen Hold
 	[197720] = "Root",				-- Elder Charge
 	[288473] = "Root",				-- Enslave
+	[275052] = "Root",				-- Shocking Reins
+	[277496] = "Root",				-- Spear Leap
 	[85691]  = "Snare",				-- Piercing Howl
 	[270285] = "Snare",				-- Blast Wave
 	[277870] = "Snare",				-- Icy Venom
@@ -912,6 +919,10 @@ local spellIds = {
 	[256851] = "Snare",				-- Vile Spew
 	[179021] = "Snare",				-- Slime
 	[273124] = "Snare",				-- Lethargic Poison
+	[205187] = "Snare",				-- Cripple
+	[266158] = "Snare",				-- Frost Bomb
+	[263344] = "Snare",				-- Subjugate
+	[261095] = "Snare",				-- Vermin Parade
 	------------------------
 	-- BfA Mythics
 	-- -- Atal'Dazar
