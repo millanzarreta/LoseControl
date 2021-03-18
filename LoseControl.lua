@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.04
+-- Version: 6.05
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -137,10 +137,11 @@ local spellIds = {
 	[207167] = "CC",				-- Blinding Sleet
 	[207165] = "CC",				-- Abomination's Might
 	[207171] = "Root",				-- Winter is Coming
+	[287254] = "CC",				-- Dead of Winter (pvp talent)
 	[210141] = "CC",				-- Zombie Explosion (Reanimation PvP Talent)
 	[206961] = "CC",				-- Tremble Before Me
 	[248406] = "CC",				-- Cold Heart (legendary)
-	[233395] = "Root",				-- Frozen Center (pvp talent)
+	[233395] = "Root",				-- Deathchill (pvp talent)
 	[204085] = "Root",				-- Deathchill (pvp talent)
 	[273977] = "Snare",				-- Grip of the Dead
 	[206930] = "Snare",				-- Heart Strike
@@ -575,6 +576,78 @@ local spellIds = {
 	------------------------
 	---- PVE BFA
 	------------------------
+	-- Crucible of Storms Raid
+	-- -- Trash
+	-- -- The Restless Cabal
+	[282540] = "CC",				-- Agent of Demise
+	[282589] = "CC",				-- Cerebral Assault
+	[285154] = "CC",				-- Cerebral Assault
+	[282517] = "CC",				-- Terrifying Echo
+	[287876] = "CC",				-- Enveloping Darkness (healing and damage done reduced by 99%)
+	[282432] = "Snare",				-- Crushing Doubt
+	-- -- Uu'nat
+	[285345] = "CC",				-- Maddening Eyes of N'Zoth
+	[285562] = "CC",				-- Unknowable Terror
+	[285685] = "CC",				-- Gift of N'Zoth: Lunacy
+	[287693] = "Immune",			-- Sightless Bond (damage taken reduced by 99%)
+	------------------------
+	-- Battle of Dazar'alor Raid
+	-- -- Trash
+	-- -- Champion of the Light
+	[288294] = "Immune",			-- Divine Protection (damage taken reduced 99%)
+	[283651] = "CC",				-- Blinding Faith
+	-- -- Grong
+	[289406] = "CC",				-- Bestial Throw
+	[289412] = "CC",				-- Bestial Impact
+	[285998] = "CC",				-- Ferocious Roar
+	-- -- Jadefire Masters
+	-- -- Opulence
+	[278193] = "CC",				-- Crush
+	[283609] = "CC",				-- Crush
+	[283610] = "CC",				-- Crush
+	-- -- Conclave of the Chosen
+	[282079] = "Immune",			-- Loa's Pact (damage taken reduced 90%)
+	[282135] = "CC",				-- Crawling Hex
+	[290573] = "CC",				-- Crawling Hex
+	[285879] = "CC",				-- Mind Wipe
+	[265495] = "CC",				-- Static Orb
+	[286838] = "CC",				-- Static Orb
+	-- -- King Rastakhan
+	[284995] = "CC",				-- Zombie Dust
+	[284377] = "Immune",			-- Unliving
+	-- -- High Tinker Mekkatorque
+	[287167] = "CC",				-- Discombobulation
+	[284214] = "CC",				-- Trample
+	[289138] = "CC",				-- Trample
+	[289644] = "Immune",			-- Spark Shield (damage taken reduced 99%)
+	[282408] = "CC",				-- Spark Pulse (stun)
+	[289232] = "CC",				-- Spark Pulse (hit chance reduced 100%)
+	[289226] = "CC",				-- Spark Pulse (pacify)
+	[286480] = "CC",				-- Anti-Tampering Shock
+	[286516] = "CC",				-- Anti-Tampering Shock
+	-- -- Stormwall Blockade
+	[284121] = "Silence",			-- Thunderous Boom
+	[286495] = "CC",				-- Tempting Song
+	[284369] = "Snare",				-- Sea Storm
+	-- -- Lady Jaina Proudmoore
+	[287490] = "CC",				-- Frozen Solid
+	[289963] = "CC",				-- Frozen Solid
+	[285704] = "CC",				-- Frozen Solid
+	[285708] = "CC",				-- Frozen Solid
+	[287199] = "Root",				-- Ring of Ice
+	[287626] = "Root",				-- Grasp of Frost
+	[288412] = "Root",				-- Hand of Frost
+	[288434] = "Root",				-- Hand of Frost
+	[289219] = "Root",				-- Frost Nova
+	[289855] = "CC",				-- Frozen Siege
+	[275809] = "CC",				-- Flash Freeze
+	[271527] = "Immune",			-- Ice Block
+	[287322] = "Immune",			-- Ice Block
+	[282841] = "Immune",			-- Arctic Armor
+	[287282] = "Immune",			-- Arctic Armor (damage taken reduced 90%)
+	[287418] = "Immune",			-- Arctic Armor (damage taken reduced 90%)
+	[288219] = "Immune",			-- Refractive Ice (damage taken reduced 99%)
+	------------------------
 	-- Uldir Raid
 	-- -- Trash
 	[277498] = "CC",				-- Mind Slave
@@ -608,6 +681,7 @@ local spellIds = {
 	[269691] = "CC",				-- Mind Thrall
 	[273401] = "CC",				-- Mind Thrall
 	[263504] = "CC",				-- Reorigination Blast
+	[273251] = "CC",				-- Reorigination Blast
 	[267700] = "CC",				-- Gaze of G'huun
 	[255767] = "CC",				-- Grasp of G'huun
 	[263217] = "Immune",			-- Blood Shield (not immune, but heals 5% of maximum health every 0.5 sec)
@@ -626,6 +700,20 @@ local spellIds = {
 	[274904] = "CC",				-- Reality Tear
 	-- -- The Lion's Roar and Doom's Howl
 	[271778] = "Snare",				-- Reckless Charge
+	-- -- Ivus the Decayed
+	[287554] = "Immune",			-- Petrify
+	[282615] = "Immune",			-- Petrify
+	------------------------
+	-- Battle for Darkshore
+	[283921] = "CC",				-- Lancer's Charge
+	[288344] = "CC",				-- Massive Stomp
+	[288339] = "CC",				-- Massive Stomp
+	[286397] = "CC",				-- Massive Stomp
+	[282676] = "CC",				-- Massive Stomp
+	[283880] = "CC",				-- DRILL KILL
+	[284949] = "CC",				-- Warden's Prison
+	[284221] = "Snare",				-- Crippling Gash
+	[284737] = "Snare",				-- Toxic Strike
 	------------------------
 	-- Battle for Stromgarde
 	[97933]  = "CC",				-- Intimidating Shout
@@ -688,6 +776,10 @@ local spellIds = {
 	[279986] = "CC",				-- Shrink Ray
 	[278814] = "CC",				-- Sticky Ooze
 	[259236] = "CC",				-- Stone Rune Prison
+	[290626] = "CC",				-- Debilitating Howl
+	[290625] = "CC",				-- Creeping Decay
+	[290624] = "CC",				-- Necrotic Paralysis
+	[290623] = "CC",				-- Stone Prison
 	[274794] = "CC",				-- Hex
 	[275651] = "CC",				-- Charge
 	[262470] = "CC",				-- Blast-O-Matic Frag Bomb
@@ -713,6 +805,7 @@ local spellIds = {
 	[275990] = "CC",				-- Conflagrating Exhaust
 	[277375] = "CC",				-- Sucker Punch
 	[278193] = "CC",				-- Crush
+	[275671] = "CC",				-- Tremendous Roar
 	--[262197] = "Immune",			-- Tenacity of the Pack (unkillable but not immune to damage)
 	[264115] = "Immune",			-- Divine Shield
 	[267487] = "ImmunePhysical",	-- Icy Reflection
@@ -1531,21 +1624,19 @@ end
 function LoseControl:GROUP_ROSTER_UPDATE()
 	local unitId = self.unitId
 	local frame = self.frame
-	if (frame == nil) or (unitId == nil) or not(string.find(unitId, "party")) then
+	local unitGUID = self.unitGUID
+	if (frame == nil) or (unitId == nil) or (unitGUID == nil) or not(string.find(unitId, "party")) then
 		return
 	end
 	local inInstance, instanceType = IsInInstance()
 	self:RegisterUnitEvents(
 		frame.enabled and not (
-			inInstance and instanceType == "pvp" and (
-				( LoseControlDB.disablePartyInBG and string.find(unitId, "party") ) or
-				( LoseControlDB.disableArenaInBG and string.find(unitId, "arena") )
-			)
+			inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
 		) and not (
-			IsInRaid() and instanceType~="arena" and LoseControlDB.disablePartyInRaid and string.find(unitId, "party")
+			IsInRaid() and instanceType~="arena" and LoseControlDB.disablePartyInRaid
 		)
 	)
-	self.unitGUID = UnitGUID(self.unitId)
+	self.unitGUID = unitGUID
 end
 
 function LoseControl:GROUP_JOINED()
@@ -1554,6 +1645,26 @@ end
 
 function LoseControl:GROUP_LEFT()
 	self:GROUP_ROSTER_UPDATE()
+end
+
+function LoseControl:ARENA_OPPONENT_UPDATE()
+	local unitId = self.unitId
+	local frame = self.frame
+	local unitGUID = self.unitGUID
+	if (frame == nil) or (unitId == nil) or (unitGUID == nil) or not(string.find(unitId, "arena")) then
+		return
+	end
+	local inInstance, instanceType = IsInInstance()
+	self:RegisterUnitEvents(
+		frame.enabled and not (
+			inInstance and instanceType == "pvp" and LoseControlDB.disableArenaInBG
+		)
+	)
+	self.unitGUID = unitGUID
+end
+
+function LoseControl:ARENA_PREP_OPPONENT_SPECIALIZATIONS()
+	self:ARENA_OPPONENT_UPDATE()
 end
 
 -- This event check pvp interrupts
@@ -1862,6 +1973,8 @@ function LoseControl:new(unitId)
 	o:RegisterEvent("GROUP_ROSTER_UPDATE")
 	o:RegisterEvent("GROUP_JOINED")
 	o:RegisterEvent("GROUP_LEFT")
+	o:RegisterEvent("ARENA_OPPONENT_UPDATE")
+	o:RegisterEvent("ARENA_PREP_OPPONENT_SPECIALIZATIONS")
 
 	return o
 end
