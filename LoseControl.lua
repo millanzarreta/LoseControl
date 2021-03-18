@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.11
+-- Version: 7.0
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -75,6 +75,7 @@ local pairs = pairs
 local next = next
 local type = type
 local select = select
+local tonumber = tonumber
 local strfind = string.find
 local tblinsert = table.insert
 local mathfloor = math.floor
@@ -107,7 +108,7 @@ local interruptsIds = {
 	[29443]  = 10,		-- Counterspell (Clutch of Foresight)
 	[47528]  = 3,		-- Mind Freeze (Death Knight)
 	[57994]  = 3,		-- Wind Shear (Shaman)
-	[91802]  = 2,		-- Shambling Rush (Death Knight)
+	[91807]  = 2,		-- Shambling Rush (Death Knight)
 	[96231]  = 4,		-- Rebuke (Paladin)
 	[93985]  = 4,		-- Skull Bash (Druid Feral)
 	[97547]  = 5,		-- Solar Beam (Druid Balance)
@@ -115,11 +116,14 @@ local interruptsIds = {
 	[116705] = 4,		-- Spear Hand Strike (Monk)
 	[132409] = 6,		-- Spell Lock (command demon) (Warlock)
 	[147362] = 3,		-- Countershot (Hunter)
-	[183752] = 3,		-- Consume Magic (Demon Hunter)
+	[183752] = 3,		-- Disrupt (Demon Hunter)
 	[187707] = 3,		-- Muzzle (Hunter)
 	[212619] = 6,		-- Call Felhunter (Warlock)
 	[217824] = 4,		-- Shield of Virtue (Protec Paladin)
-	[231665] = 3,		-- Avengers Shield (Paladin)
+	[220543] = 3,		-- Silence (only vs npc's) (Priest)
+	[31935]  = 3,		-- Avenger's Shield (only vs npc's) (Paladin)
+	[347008] = 4,		-- Axe Toss (Warlock)
+	[342414] = 5,		-- Cracked Mindscreecher (Priest Anima Power)
 }
 
 local spellIds = {
@@ -140,12 +144,12 @@ local spellIds = {
 	[196555] = "Immune",			-- Netherwalk
 	[188499] = "ImmunePhysical",	-- Blade Dance (dodge chance increased by 100%)
 	[213491] = "CC",				-- Demonic Trample Stun
-	[206649] = "Silence",			-- Eye of Leotheras (no silence, 4% dmg and duration reset for spell casted)
+	[206649] = "Silence",			-- Eye of Leotheras (no silence, 5% dmg and duration reset for spell casted)
 	[232538] = "Snare",				-- Rain of Chaos
 	[213405] = "Snare",				-- Master of the Glaive
-	[210003] = "Snare",				-- Razor Spikes
 	[198813] = "Snare",				-- Vengeful Retreat
 	[198589] = "Other",				-- Blur
+	[212800] = "Other",				-- Blur
 	[209426] = "Other",				-- Darkness
 	
 	----------------
@@ -161,12 +165,14 @@ local spellIds = {
 	[48707]  = "ImmuneSpell",		-- Anti-Magic Shell
 	[51271]  = "Other",				-- Pillar of Frost
 	[48792]  = "Other",				-- Icebound Fortitude
+	[49039]  = "Other",				-- Lichborne
 	[287081] = "Other",				-- Lichborne
 	[81256]  = "Other",				-- Dancing Rune Weapon
 	[194679] = "Other",				-- Rune Tap
 	[152279] = "Other",				-- Breath of Sindragosa
 	[207289] = "Other",				-- Unholy Frenzy
-	[145629] = "ImmuneSpell",		-- Anti-Magic Zone (not immune, 60% damage reduction)
+	[116888] = "Other",				-- Shroud of Purgatory
+	[145629] = "ImmuneSpell",		-- Anti-Magic Zone (not immune, 20%/60% damage reduction)
 	[207167] = "CC",				-- Blinding Sleet
 	[207165] = "CC",				-- Abomination's Might
 	[207171] = "Root",				-- Winter is Coming
@@ -177,17 +183,15 @@ local spellIds = {
 	[233395] = "Root",				-- Deathchill (pvp talent)
 	[204085] = "Root",				-- Deathchill (pvp talent)
 	[273977] = "Snare",				-- Grip of the Dead
-	[206930] = "Snare",				-- Heart Strike
-	[228645] = "Snare",				-- Heart Strike
 	[211831] = "Snare",				-- Abomination's Might (slow)
 	[200646] = "Snare",				-- Unholy Mutation
 	[143375] = "Snare",				-- Tightening Grasp
-	[211793] = "Snare",				-- Remorseless Winter
 	[208278] = "Snare",				-- Debilitating Infestation
 	[212764] = "Snare",				-- White Walker
 	[190780] = "Snare",				-- Frost Breath (Sindragosa's Fury) (artifact trait)
 	[191719] = "Snare",				-- Gravitational Pull (artifact trait)
 	[204206] = "Snare",				-- Chill Streak (pvp honor talent)
+	[334693] = "CC",				-- Absolute Zero (Legendary)
 	
 		----------------
 		-- Death Knight Ghoul
@@ -205,7 +209,6 @@ local spellIds = {
 	-- Druid
 	----------------
 	[33786]  = "CC",				-- Cyclone
-	[209753] = "CC",				-- Cyclone
 	[99]     = "CC",				-- Incapacitating Roar
 	[236748] = "CC",				-- Intimidating Roar
 	[163505] = "CC",				-- Rake
@@ -222,11 +225,14 @@ local spellIds = {
 	[102359] = "Root",				-- Mass Entanglement
 	[102793] = "Snare",				-- Ursol's Vortex
 	[50259]  = "Snare",				-- Dazed (Wild Charge - Cat)
-	[58180]  = "Snare",				-- Infected Wounds
 	[61391]  = "Snare",				-- Typhoon
 	[127797] = "Snare",				-- Ursol's Vortex
 	[232559] = "Snare",				-- Thorns (pvp honor talent)
 	[61336]  = "Immune",			-- Survival Instincts (not immune, damage taken reduced by 50%)
+	[22842]  = "Other",				-- Frenzied Regeneration
+	[332172] = "Other",				-- Frenzied Regeneration
+	[332471] = "Other",				-- Frenzied Regeneration
+	[132158] = "Other",				-- Nature's Swiftness
 	[305497] = "Other",				-- Thorns (pvp honor talent)
 	[102543] = "Other",				-- Incarnation: King of the Jungle
 	[106951] = "Other",				-- Berserk
@@ -244,11 +250,13 @@ local spellIds = {
 	-- Hunter
 	----------------
 	[117526] = "Root",				-- Binding Shot
+	[1513]   = "CC",				-- Scare Beast
 	[3355]   = "CC",				-- Freezing Trap
 	[13809]  = "CC",				-- Ice Trap 1
 	[195645] = "Snare",				-- Wing Clip
 	[19386]  = "CC",				-- Wyvern Sting
 	[128405] = "Root",				-- Narrow Escape
+	[136634] = "Root",				-- Narrow Escape
 	[201158] = "Root",				-- Super Sticky Tar (root)
 	[111735] = "Snare",				-- Tar
 	[135299] = "Snare",				-- Tar Trap
@@ -257,7 +265,8 @@ local spellIds = {
 	[206755] = "Snare",				-- Ranger's Net (snare)
 	[236699] = "Snare",				-- Super Sticky Tar (slow)
 	[213691] = "CC",				-- Scatter Shot (pvp honor talent)
-	[186265] = "Immune",			-- Deterrence (aspect of the turtle)
+	[186265] = "Immune",			-- Aspect of the Turtle
+	[189949] = "Immune",			-- Aspect of the Turtle
 	[19574]  = "ImmuneSpell",		-- Bestial Wrath (only if The Beast Within (212704) it's active) (immune to some CC's)
 	[190927] = "Root",				-- Harpoon
 	[212331] = "Root",				-- Harpoon
@@ -272,7 +281,7 @@ local spellIds = {
 	[186289] = "Other",				-- Aspect of the Eagle
 	[288613] = "Other",				-- Trueshot
 	[203337] = "CC",				-- Freezing Trap (Diamond Ice - pvp honor talent)
-	[202748] = "Immune",			-- Survival Tactics (pvp honor talent) (not immune, 99% damage reduction)
+	[202748] = "Immune",			-- Survival Tactics (pvp honor talent) (not immune, 90% damage reduction)
 	[248519] = "ImmuneSpell",		-- Interlope (pvp honor talent)
 	--[202914] = "Silence",			-- Spider Sting (pvp honor talent) --no silence, this its the previous effect
 	[202933] = "Silence",			-- Spider Sting	(pvp honor talent) --this its the silence effect
@@ -315,7 +324,6 @@ local spellIds = {
 	----------------
 	-- Mage
 	----------------
-	[44572]  = "CC",				-- Deep Freeze
 	[31661]  = "CC",				-- Dragon's Breath
 	[118]    = "CC",				-- Polymorph
 	[61305]  = "CC",				-- Polymorph: Black Cat
@@ -334,20 +342,16 @@ local spellIds = {
 	[82691]  = "CC",				-- Ring of Frost
 	[140376] = "CC",				-- Ring of Frost
 	[122]    = "Root",				-- Frost Nova
-	[111340] = "Root",				-- Ice Ward
 	[120]    = "Snare",				-- Cone of Cold
 	[116]    = "Snare",				-- Frostbolt
-	[44614]  = "Snare",				-- Frostfire Bolt
+	[44614]  = "Snare",				-- Flurry
 	[31589]  = "Snare",				-- Slow
-	[10]     = "Snare",				-- Blizzard
 	[205708] = "Snare",				-- Chilled
 	[212792] = "Snare",				-- Cone of Cold
 	[205021] = "Snare",				-- Ray of Frost
-	[135029] = "Snare",				-- Water Jet
 	[59638]  = "Snare",				-- Frostbolt (Mirror Images)
 	[228354] = "Snare",				-- Flurry
 	[157981] = "Snare",				-- Blast Wave
-	[2120]   = "Snare",				-- Flamestrike
 	[236299] = "Snare",				-- Chrono Shift
 	[45438]  = "Immune",			-- Ice Block
 	[198065] = "ImmuneSpell",		-- Prismatic Cloak (pvp talent) (not immune, 50% magic damage reduction)
@@ -355,7 +359,10 @@ local spellIds = {
 	[220107] = "Root",				-- Frostbite
 	[157997] = "Root",				-- Ice Nova
 	[228600] = "Root",				-- Glacial Spike
+	[110909] = "Other",				-- Alter Time
+	[110909] = "Other",				-- Alter Time
 	[110959] = "Other",				-- Greater Invisibility
+	[110960] = "Other",				-- Greater Invisibility
 	[198144] = "Other",				-- Ice form (stun/knockback immune)
 	[12042]  = "Other",				-- Arcane Power
 	[190319] = "Other",				-- Combustion
@@ -370,15 +377,12 @@ local spellIds = {
 	----------------
 	-- Monk
 	----------------
-	[123393] = "CC",				-- Breath of Fire (Glyph of Breath of Fire)
-	[119392] = "CC",				-- Charging Ox Wave
 	[119381] = "CC",				-- Leg Sweep
 	[115078] = "CC",				-- Paralysis
+	[324382] = "Root",				-- Clash
 	[116706] = "Root",				-- Disable
 	[116095] = "Snare",				-- Disable
-	[118585] = "Snare",				-- Leer of the Ox
 	[123586] = "Snare",				-- Flying Serpent Kick
-	[121253] = "Snare",				-- Keg Smash
 	[196733] = "Snare",				-- Special Delivery
 	[205320] = "Snare",				-- Strike of the Windlord (artifact trait)
 	[125174] = "Immune",			-- Touch of Karma
@@ -390,7 +394,6 @@ local spellIds = {
 	[123407] = "Root",				-- Spinning Fire Blossom (honor talent)
 	[115176] = "Immune",			-- Zen Meditation (60% damage reduction)
 	[202248] = "ImmuneSpell",		-- Guided Meditation (pvp honor talent) (redirect spells to monk)
-	[201325] = "Other",				-- Zen Moment
 	[122278] = "Other",				-- Dampen Harm
 	[243435] = "Other",				-- Fortifying Brew
 	[120954] = "Other",				-- Fortifying Brew
@@ -399,17 +402,14 @@ local spellIds = {
 	[214326] = "Other",				-- Exploding Keg (artifact trait - blind)
 	[213664] = "Other",				-- Nimble Brew
 	[209584] = "Other",				-- Zen Focus Tea
-	[216113] = "Other",				-- Way of the Crane
 	[137639] = "Other",				-- Storm, Earth, and Fire
 	[152173] = "Other",				-- Serenity
 	[115080] = "Other",				-- Touch of Death
-	[199387] = "Snare",				-- Spirit Tether (artifact trait)
 
 	----------------
 	-- Paladin
 	----------------
 	[105421] = "CC",				-- Blinding Light
-	[105593] = "CC",				-- Fist of Justice
 	[853]    = "CC",				-- Hammer of Justice
 	[20066]  = "CC",				-- Repentance
 	[31935]  = "Silence",			-- Avenger's Shield
@@ -429,13 +429,17 @@ local spellIds = {
 	[31850]  = "Other",				-- Ardent Defender
 	[31884]  = "Other",				-- Avenging Wrath
 	[216331] = "Other",				-- Avenging Crusader
-	[86659]  = "Other",				-- Guardian of Ancient Kings
+	[86659]  = "Immune",			-- Guardian of Ancient Kings (not immune, 50% damage reduction)
+	[212641] = "Immune",			-- Guardian of Ancient Kings (not immune, 50% damage reduction)
+	[174535] = "Immune",			-- Guardian of Ancient Kings (not immune, 50% damage reduction)
+	[10326]  = "CC",				-- Turn Evil
 	[228050] = "Immune",			-- Divine Shield (Guardian of the Forgotten Queen)
 	[205273] = "Snare",				-- Wake of Ashes (artifact trait) (snare)
 	[205290] = "CC",				-- Wake of Ashes (artifact trait) (stun)
 	[255937] = "Snare",				-- Wake of Ashes (talent) (snare)
 	[255941] = "CC",				-- Wake of Ashes (talent) (stun)
 	[199448] = "Immune",			-- Blessing of Sacrifice (Ultimate Sacrifice pvp talent) (not immune, 100% damage transfered to paladin)
+	[337851] = "Immune",			-- Guardian of Ancient Kings (Reign of Endless Kings Legendary) (not immune, 50% damage reduction)
 
 	----------------
 	-- Priest
@@ -447,10 +451,9 @@ local spellIds = {
 	[87204]  = "CC",				-- Sin and Punishment
 	[15487]  = "Silence",			-- Silence
 	[64058]  = "Disarm",			-- Psychic Horror
-	[87194]  = "Root",				-- Glyph of Mind Blast
 	[114404] = "Root",				-- Void Tendril's Grasp
 	[15407]  = "Snare",				-- Mind Flay
-	[47585]  = "Immune",			-- Dispersion
+	[47585]  = "Immune",			-- Dispersion (not immune, damage taken reduced by 75%)
 	[47788]  = "Other",				-- Guardian Spirit (prevent the target from dying)
 	[200183] = "Other",				-- Apotheosis
 	[197268] = "Other",				-- Ray of Hope
@@ -482,9 +485,6 @@ local spellIds = {
 	[280322] = "Silence",			-- Garrote - Silence
 	[3409]   = "Snare",				-- Crippling Poison
 	[26679]  = "Snare",				-- Deadly Throw
-	[185763] = "Snare",				-- Pistol Shot
-	[185778] = "Snare",				-- Shellshocked
-	[206760] = "Snare",				-- Night Terrors
 	[222775] = "Snare",				-- Strike from the Shadows (daze effect)
 	[152150] = "Immune",			-- Death from Above (in the air you are immune to CC)
 	[31224]  = "ImmuneSpell",		-- Cloak of Shadows
@@ -495,17 +495,15 @@ local spellIds = {
 	[121471] = "Other",				-- Shadow Blades
 	[45182]  = "Immune",			-- Cheating Death (-85% damage taken)
 	[5277]   = "ImmunePhysical",	-- Evasion (dodge chance increased by 100%)
+	[199027] = "ImmunePhysical", 	-- Veil of Midnight (pvp honor talent)
 	[212183] = "Other",				-- Smoke Bomb
-	[199804] = "CC",				-- Between the eyes
-	[199740] = "CC",				-- Bribe
 	[207777] = "Disarm",			-- Dismantle
-	[185767] = "Snare",				-- Cannonball Barrage
 	[212283] = "Other",				-- Symbols of Death
 	[207736] = "Other",				-- Shadowy Duel
 	[212150] = "CC",				-- Cheap Tricks (pvp honor talent) (-75%  melee & range physical hit chance)
 	[199743] = "CC",				-- Parley
 	[198222] = "Snare",				-- System Shock (pvp honor talent) (90% slow)
-	[226364] = "Other",				-- Evasion (Shadow Swiftness, artifact trait)
+	[226364] = "ImmunePhysical",	-- Evasion (Shadow Swiftness, artifact trait)
 	[209786] = "Snare",				-- Goremaw's Bite (artifact trait)
 	
 
@@ -522,16 +520,14 @@ local spellIds = {
 	[269352] = "CC",				-- Hex (skeletal hatchling)
 	[277778] = "CC",				-- Hex (zandalari Tendonripper)
 	[277784] = "CC",				-- Hex (wicker mongrel)
+	[309328] = "CC",				-- Hex (living honey)
 	[118905] = "CC",				-- Static Charge (Capacitor Totem)
 	[64695]  = "Root",				-- Earthgrab (Earthgrab Totem)
 	[3600]   = "Snare",				-- Earthbind (Earthbind Totem)
 	[116947] = "Snare",				-- Earthbind (Earthgrab Totem)
-	[77478]  = "Snare",				-- Earthquake (Glyph of Unstable Earth)
-	[8056]   = "Snare",				-- Frost Shock
 	[196840] = "Snare",				-- Frost Shock
 	[51490]  = "Snare",				-- Thunderstorm
 	[147732] = "Snare",				-- Frostbrand Attack
-	[197385] = "Snare",				-- Fury of Air
 	[207498] = "Other",				-- Ancestral Protection (prevent the target from dying)
 	[290641] = "Other",				-- Ancestral Gift (PvP Talent) (immune to Silence and Interrupt effects)
 	[108271] = "Other",				-- Astral Shift
@@ -547,7 +543,6 @@ local spellIds = {
 	[305485] = "CC",				-- Lightning Lasso
 	[204437] = "CC",				-- Lightning Lasso
 	[197214] = "CC",				-- Sundering
-	[224126] = "Snare",				-- Frozen Bite (Doom Wolves, artifact trait)
 	[207654] = "Immune",			-- Servant of the Queen (not immune, 80% damage reduction - artifact trait)
 	
 		----------------
@@ -570,12 +565,12 @@ local spellIds = {
 	[65813]  = "Silence",			-- Unstable Affliction
 	[196364] = "Silence",			-- Unstable Affliction
 	[285155] = "Silence",			-- Unstable Affliction
-	[110913] = "Other",				-- Dark Bargain
 	[104773] = "Other",				-- Unending Resolve
 	[113860] = "Other",				-- Dark Soul: Misery
 	[113858] = "Other",				-- Dark Soul: Instability
 	[212295] = "ImmuneSpell",		-- Netherward (reflects spells)
 	[233582] = "Root",				-- Entrenched in Flame (pvp honor talent)
+	[337113] = "Snare",				-- Sacrolash's Dark Strike (Legendary)
 
 		----------------
 		-- Warlock Pets
@@ -594,31 +589,26 @@ local spellIds = {
 	----------------
 	-- Warrior
 	----------------
-	[118895] = "CC",				-- Dragon Roar
 	[5246]   = "CC",				-- Intimidating Shout (aoe)
 	[132168] = "CC",				-- Shockwave
 	[107570] = "CC",				-- Storm Bolt
 	[132169] = "CC",				-- Storm Bolt
 	[46968]  = "CC",				-- Shockwave
 	[213427] = "CC",				-- Charge Stun Talent (Warbringer)
-	[7922]   = "CC",				-- Charge Stun Talent (Warbringer)
 	[237744] = "CC",				-- Charge Stun Talent (Warbringer)
-	[107566] = "Root",				-- Staggering Shout
 	[105771] = "Root",				-- Charge (root)
 	[236027] = "Snare",				-- Charge (snare)
-	[118000] = "Snare",				-- Dragon Roar
-	[147531] = "Snare",				-- Bloodbath
 	[1715]   = "Snare",				-- Hamstring
 	[12323]  = "Snare",				-- Piercing Howl
-	[6343]   = "Snare",				-- Thunder Clap
 	[46924]  = "Immune",			-- Bladestorm (not immune to dmg, only to LoC)
 	[227847] = "Immune",			-- Bladestorm (not immune to dmg, only to LoC)
 	[199038] = "Immune",			-- Leave No Man Behind (not immune, 90% damage reduction)
 	[218826] = "Immune",			-- Trial by Combat (warr fury artifact hidden trait) (only immune to death)
 	[23920]  = "ImmuneSpell",		-- Spell Reflection
-	[216890] = "ImmuneSpell",		-- Spell Reflection
-	[213915] = "ImmuneSpell",		-- Mass Spell Reflection
-	[114028] = "ImmuneSpell",		-- Mass Spell Reflection
+	[169339] = "ImmuneSpell",		-- Spell Reflection
+	[329267] = "ImmuneSpell",		-- Spell Reflection
+	[335255] = "ImmuneSpell",		-- Spell Reflection
+	[330279] = "ImmuneSpell", 		-- Overwatch (pvp honor talent)
 	[871]    = "Other",				-- Shield Wall
 	[12975]  = "Other",				-- Last Stand
 	[18499]  = "Other",				-- Berserker Rage
@@ -634,11 +624,38 @@ local spellIds = {
 	[184364] = "Other",				-- Enraged Regeneration
 	[118038] = "ImmunePhysical",	-- Die by the Sword (parry chance increased by 100%, damage taken reduced by 30%)
 	[198760] = "ImmunePhysical",	-- Intercept (pvp honor talent) (intercept the next ranged or melee hit)
-	[176289] = "CC",				-- Siegebreaker
 	[199085] = "CC",				-- Warpath
 	[199042] = "Root",				-- Thunderstruck
 	[236236] = "Disarm",			-- Disarm (pvp honor talent - protection)
 	[236077] = "Disarm",			-- Disarm (pvp honor talent)
+	
+	----------------
+	-- Shadowlands Covenant Spells
+	----------------
+	[331866] = "CC",				-- Agent of Chaos
+	[314416] = "CC",				-- Blind Faith
+	[323557] = "CC",				-- Ravenous Frenzy
+	[335432] = "CC",				-- Thirst For Anima
+	[317589] = "Silence",			-- Tormenting Backlash
+	[326062] = "CC",				-- Ancient Aftershock
+	[325886] = "CC",				-- Ancient Aftershock
+	[296035] = "CC",				-- Invoke Armaments
+	[296034] = "CC",				-- Archon of Justice
+	[324263] = "CC",				-- Sulfuric Emission
+	[347684] = "CC",				-- Sulfuric Emission
+	[332423] = "CC",				-- Sparkling Driftglobe Core
+	[323996] = "Root",				-- The Hunt
+	[325321] = "CC",				-- Wild Hunt's Charge
+	[320224] = "CC",				-- Podtender
+	[323524] = "Other",				-- Ultimate Form (immune to CC)
+	[330752] = "Other",				-- Ascendant Phial (immune to curse, disease, poison, and bleed effects)
+	[327140] = "Other",				-- Forgeborne Reveries
+	[348303] = "Other",				-- Forgeborne Reveries
+	[296040] = "Snare",				-- Vanquishing Sweep
+	[320267] = "Snare",				-- Soothing Voice
+	[321759] = "Snare",				-- Bearer's Pursuit
+	[339051] = "Snare",				-- Demonic Parole
+	[336887] = "Snare",				-- Lingering Numbness
 	
 	----------------
 	-- Other
@@ -693,6 +710,7 @@ local spellIds = {
 	[21847]  = "CC",				-- Snowman
 	[21848]  = "CC",				-- Snowman
 	[21980]  = "CC",				-- Snowman
+	[27880]  = "CC",				-- Stun
 	[141928] = "CC",				-- Growing Pains (Whole-Body Shrinka' toy)
 	[285643] = "CC",				-- Battle Screech
 	[245855] = "CC",				-- Belly Smash
@@ -704,10 +722,13 @@ local spellIds = {
 	[258236] = "CC",				-- Sleeping Quill Dart
 	[269186] = "CC",				-- Holographic Horror Projector
 	[255228] = "CC",				-- Polymorphed (Organic Discombobulation Grenade and some NPCs)
+	[334307] = "CC",				-- Imperfect Polymorph (Darktower Parchments: Instant Polymorphist)
+	[330607] = "CC",				-- 50UL-TR4P!
 	[272188] = "CC",				-- Hammer Smash (quest)
 	[264860] = "CC",				-- Binding Talisman
 	[238322] = "CC",				-- Arcane Prison
 	[171369] = "CC",				-- Arcane Prison
+	[172692] = "CC",				-- Unbound Charge
 	[295395] = "Silence",			-- Oblivion Spear
 	[268966] = "Root",				-- Hooked Deep Sea Net
 	[268965] = "Snare",				-- Tidespray Linen Net
@@ -727,6 +748,7 @@ local spellIds = {
 	[299769] = "CC",				-- Undercut
 	[299772] = "CC",				-- Tsunami Slam
 	[299805] = "Root",				-- Undertow
+	[299785] = "CC",				-- Maelstrom
 	[310126] = "Immune",			-- Psychic Shell (not immune, 99% damage reduction) (Lingering Psychic Shell trinket)
 	[314585] = "Immune",			-- Psychic Shell (not immune, 50-80% damage reduction) (Lingering Psychic Shell trinket)
 	[313448] = "CC",				-- Realized Truth (Corrupted Ring - Face the Truth ring)
@@ -741,6 +763,10 @@ local spellIds = {
 	[284379] = "CC",				-- Intimidation
 	[290438] = "CC",				-- Hex
 	[283618] = "CC",				-- Hammer of Justice
+	[339738] = "CC",				-- Dreamer's Mending (Dreamer's Mending trinket)
+	[329491] = "CC",				-- Slumberwood Band (Slumberwood Band ring)
+	[344713] = "CC",				-- Pestilent Hex
+	[336517] = "CC",				-- Hex
 	[292055] = "Immune",			-- Spirit of Redemption
 	[290049] = "Immune",			-- Ice Block
 	[283627] = "Immune",			-- Divine Shield
@@ -748,12 +774,16 @@ local spellIds = {
 	[290494] = "Silence",			-- Avenger's Shield
 	[284879] = "Root",				-- Frost Nova
 	[284844] = "Root",				-- Glacial Spike
+	[339309] = "Root",				-- Everchill Brambles (Everchill Brambles trinket)
 	[299256] = "Other",				-- Blessing of Freedom
 	[292266] = "Other",				-- Avenging Wrath
 	[292222] = "Other",				-- Blur
 	[292152] = "Other",				-- Icebound Fortitude
 	[292158] = "Other",				-- Astral Shift
 	[283433] = "Other",				-- Avatar
+	[342890] = "Other",				-- Unhindered Passing (Potion of Unhindered Passing)
+	[345548] = "Snare",				-- Spare Meat Hook (Spare Meat Hook trinket)
+	[343399] = "Snare",				-- Heart of a Gargoyle (Pulsating Stoneheart trinket)
 	[292297] = "Snare",				-- Cone of Cold
 	[283649] = "Snare",				-- Crippling Poison
 	[284860] = "Snare",				-- Flurry
@@ -765,6 +795,72 @@ local spellIds = {
 	[284414] = "Snare",				-- Mind Flay
 	[290441] = "Snare",				-- Frost Shock
 	[295577] = "Snare",				-- Frostbrand
+	[45954]  = "Immune",			-- Ahune's Shield (damage taken reduced 90%)
+	[133362] = "CC",				-- Megafantastic Discombobumorphanator
+	[286167] = "CC",				-- Cold Crash
+	[229413] = "CC",				-- Stormburst
+	[142769] = "CC",				-- Stasis Beam
+	[133308] = "Root",				-- Throw Net
+	[291399] = "CC",				-- Blinding Peck
+	[176813] = "Snare",				-- Itchy Spores
+	[298356] = "CC",				-- Tidal Blast
+	[121548] = "Immune",			-- Ice Block
+	[129032] = "Snare",				-- Frostbolt	
+	[121547] = "CC",				-- Polymorph: Sheep
+	[278575] = "CC",				-- Steel-Toed Boots
+	[58729]  = "Immune",			-- Spiritual Immunity
+	[95332]  = "Immune",			-- Spiritual Immunity
+	[171496] = "Immune",			-- Hallowed Ground
+	[178266] = "Immune",			-- Hallowed Ground
+	[222206] = "CC",				-- Playing with Matches
+	[298272] = "CC",				-- Massive Stone
+	[293935] = "CC",				-- Overcharged!
+	[281923] = "CC",				-- Super Heroic Landing
+	[52696]  = "CC",				-- Constricting Chains
+	[176278] = "CC",				-- Deep Freeze
+	[176169] = "Root",				-- Freezing Field
+	[176276] = "Root",				-- Frost Nova
+	[176268] = "Snare",				-- Frostbolt
+	[176273] = "Snare",				-- Frostbolt Volley
+	[176269] = "Immune",			-- Ice Block
+	[176204] = "CC",				-- Mass Polymorph
+	[176608] = "CC",				-- Combustion Nova
+	[176098] = "Snare",				-- Phoenix Flames
+	[174955] = "CC",				-- Frozen
+	[33844]  = "Root",				-- Entangling Roots
+	[178072] = "CC",				-- Howl of Terror
+	[32323]  = "CC",				-- Charge
+	[164464] = "CC",				-- Intimidating Shout
+	[164465] = "CC",				-- Intimidating Shout
+	[164092] = "CC",				-- Shockwave
+	[164444] = "Immune",			-- Dispersion
+	[164443] = "CC",				-- Psychic Scream
+	[178064] = "CC",				-- Hex
+	[79899]  = "Snare",				-- Chains of Ice
+	[79850]  = "Root",				-- Frost Nova
+	[79858]  = "Snare",				-- Frostbolt
+	[177606] = "Root",				-- Entangling Roots
+	[164067] = "Root",				-- Frost Nova
+	[162608] = "Snare",				-- Frostbolt
+	[164392] = "CC",				-- Leg Sweep
+	[178058] = "CC",				-- Blind
+	[178055] = "ImmuneSpell",		-- Cloak of Shadows
+	[168382] = "CC",				-- Psychic Scream
+	[162764] = "CC",				-- Hammer of Justice
+	[35963]  = "Root",				-- Improved Wing Clip
+	[189287] = "Snare",				-- Grind
+	[79857]  = "Snare",				-- Blast Wave
+	[162638] = "Silence",			-- Avenger's Shield
+	[189265] = "Snare",				-- Shred
+	[139777] = "CC",				-- Stone Smash
+	[304349] = "Silence",			-- Pacifying Screech
+	[292693] = "Immune",			-- Nullification Field
+	[300524] = "CC",				-- Song of Azshara
+	[91933]  = "CC",				-- Intimidating Roar
+	[228318] = "Other",				-- Enrage
+	[276846] = "CC",				-- Silvered Weapons
+	[287478] = "CC",				-- Oppressive Power
+	[287371] = "CC",				-- Spirits of Madness
 	[8312]   = "Root",				-- Trap (Hunting Net trinket)
 	[17308]  = "CC",				-- Stun (Hurd Smasher fist weapon)
 	[23454]  = "CC",				-- Stun (The Unstoppable Force weapon)
@@ -782,6 +878,7 @@ local spellIds = {
 	[23097]  = "ImmuneSpell",		-- Fire Reflector (Hyper-Radiant Flame Reflector trinket) (only reflect fire spells)
 	[23132]  = "ImmuneSpell",		-- Shadow Reflector (Ultra-Flash Shadow Reflector trinket) (only reflect shadow spells)
 	[30003]  = "ImmuneSpell",		-- Sheen of Zanza
+	[35474]  = "CC",				-- Drums of Panic
 	[23444]  = "CC",				-- Transporter Malfunction
 	[23447]  = "CC",				-- Transporter Malfunction
 	[23456]  = "CC",				-- Transporter Malfunction
@@ -820,7 +917,6 @@ local spellIds = {
 	[24004]  = "CC",				-- Sleep
 	[8064]   = "CC",				-- Sleepy
 	[17446]  = "CC",				-- The Black Sleep
-	[29848]  = "CC",				-- Polymorph
 	[29124]  = "CC",				-- Polymorph
 	[14621]  = "CC",				-- Polymorph
 	[27760]  = "CC",				-- Polymorph
@@ -835,7 +931,6 @@ local spellIds = {
 	[17820]  = "Other",				-- Veil of Shadow
 	[12096]  = "CC",				-- Fear
 	[27641]  = "CC",				-- Fear
-	[27990]  = "CC",				-- Fear
 	[29168]  = "CC",				-- Fear
 	[30002]  = "CC",				-- Fear
 	[26042]  = "CC",				-- Psychic Scream
@@ -843,13 +938,10 @@ local spellIds = {
 	[9915]   = "Root",				-- Frost Nova
 	[14907]  = "Root",				-- Frost Nova
 	[22645]  = "Root",				-- Frost Nova
-	[29849]  = "Root",				-- Frost Nova
-	[30094]  = "Root",				-- Frost Nova
 	[15091]  = "Snare",				-- Blast Wave
 	[17277]  = "Snare",				-- Blast Wave
 	[23039]  = "Snare",				-- Blast Wave
 	[23113]  = "Snare",				-- Blast Wave
-	[30092]  = "Snare",				-- Blast Wave
 	[12548]  = "Snare",				-- Frost Shock
 	[22582]  = "Snare",				-- Frost Shock
 	[23115]  = "Snare",				-- Frost Shock
@@ -862,18 +954,14 @@ local spellIds = {
 	[20819]  = "Snare",				-- Frostbolt
 	[12737]  = "Snare",				-- Frostbolt
 	[20792]  = "Snare",				-- Frostbolt
-	[28478]  = "Snare",				-- Frostbolt
-	[28479]  = "Snare",				-- Frostbolt
 	[17503]  = "Snare",				-- Frostbolt
 	[23412]  = "Snare",				-- Frostbolt
 	[24942]  = "Snare",				-- Frostbolt
 	[23102]  = "Snare",				-- Frostbolt
 	[20828]  = "Snare",				-- Cone of Cold
 	[22746]  = "Snare",				-- Cone of Cold
-	[30095]  = "Snare",				-- Cone of Cold
 	[20717]  = "Snare",				-- Sand Breath
 	[16568]  = "Snare",				-- Mind Flay
-	[28310]  = "Snare",				-- Mind Flay
 	[29407]  = "Snare",				-- Mind Flay
 	[16094]  = "Snare",				-- Frost Breath
 	[16340]  = "Snare",				-- Frost Breath
@@ -896,7 +984,6 @@ local spellIds = {
 	[3109]   = "CC",				-- Presence of Death
 	[3143]   = "CC",				-- Glacial Roar
 	[5403]   = "Root",				-- Crash of Waves
-	[6605]   = "CC",				-- Terrifying Screech
 	[3260]   = "CC",				-- Violent Shield Effect
 	[3263]   = "CC",				-- Touch of Ravenclaw
 	[3271]   = "CC",				-- Fatigued
@@ -925,7 +1012,6 @@ local spellIds = {
 	[20685]  = "CC",				-- Storm Bolt
 	[16803]  = "CC",				-- Flash Freeze
 	[14100]  = "CC",				-- Terrifying Roar
-	[29685]  = "CC",				-- Terrifying Roar
 	[17276]  = "CC",				-- Scald
 	[18812]  = "CC",				-- Knockdown
 	[11430]  = "CC",				-- Slam
@@ -935,10 +1021,9 @@ local spellIds = {
 	[25260]  = "CC",				-- Wings of Despair
 	[23275]  = "CC",				-- Dreadful Fright
 	[24919]  = "CC",				-- Nauseous
-	[29484]  = "CC",				-- Web Spray
 	[21167]  = "CC",				-- Snowball
 	[25815]  = "CC",				-- Frightening Shriek
-	[28786]  = "CC",				-- Locust Swarm
+	[290378] = "Immune",			-- Rock of Life
 	[9612]   = "CC",				-- Ink Spray (Chance to hit reduced by 50%)
 	[4320]   = "Silence",			-- Trelane's Freezing Touch
 	[4243]   = "Silence",			-- Pester Effect
@@ -983,6 +1068,7 @@ local spellIds = {
 	[23505]  = "Other",				-- Berserking
 	[24378]  = "Other",				-- Berserking
 	[19135]  = "Other",				-- Avatar
+	[26198]  = "CC",				-- Whisperings of C'Thun
 	[17624]  = "CC",				-- Flask of Petrification
 	[13534]  = "Disarm",			-- Disarm (The Shatterer weapon)
 	[13439]  = "Snare",				-- Frostbolt (some weapons)
@@ -993,6 +1079,268 @@ local spellIds = {
 	
 	-- PvE
 	--[123456] = "PvE",				-- This is just an example, not a real spell
+	------------------------
+	---- PVE SHADOWLANDS
+	------------------------
+	-- Castle Nathria
+	-- -- Trash
+	[341867] = "CC",				-- Subdue
+	[329438] = "CC",				-- Doubt (chance to hit with attacks and abilities decreased by 100%)
+	[327474] = "CC",				-- Crushing Doubt
+	[326227] = "CC",				-- Insidious Anxieties
+	[340622] = "CC",				-- Headbutt
+	[339525] = "Root",				-- Concentrate Anima
+	-- -- Shriekwing
+	[343024] = "CC",				-- Horrified
+	-- -- Sun King's Salvation
+	[333145] = "CC",				-- Return to Stone
+	-- -- Artificer Xy'mox
+	[326302] = "CC",				-- Stasis Trap
+	[327414] = "CC",				-- Possession
+	-- -- Hungering Destroyer
+	[329298] = "Other",				-- Gluttonous Miasma (healing received reduced by 100%)
+	-- -- Lady Inerva Darkvein
+	[332664] = "Root",				-- Concentrated Anima
+	[340477] = "Root",				-- Concentrated Anima
+	[335396] = "Root",				-- Hidden Desire
+	[341746] = "Root",				-- Rooted in Anima
+	--[324982] = "Silence",			-- Shared Suffering
+	-- -- The Council of Blood
+	[346694] = "Immune",			-- Unyielding Shield
+	[335775] = "Immune",			-- Unyielding Shield (not immune, damage taken reduced by 90%)
+	[327619] = "CC",				-- Waltz of Blood
+	[328334] = "CC",				-- Tactical Advance
+	[331706] = "CC",				-- Scarlet Letter
+	-- -- Sludgefist
+	[331314] = "CC",				-- Destructive Impact
+	[335295] = "CC",				-- Shattering Chain
+	[332572] = "CC",				-- Falling Rubble
+	[339067] = "CC",				-- Heedless Charge
+	[339181] = "Root",				-- Chain Slam (Root)
+	-- -- Stone Legion Generals
+	[329636] = "Immune",			-- Hardened Stone Form (not immune, damage taken reduced by 95%)
+	[329808] = "Immune",			-- Hardened Stone Form (not immune, damage taken reduced by 95%)
+	[342735] = "CC",				-- Ravenous Feast
+	[343273] = "CC",				-- Ravenous Feast
+	[339693] = "CC",				-- Crystalline Burst
+	[334616] = "CC",				-- Petrified
+	[331986] = "Root",				-- Chains of Suppression
+	-- -- Sire Denathrius
+	[326851] = "CC",				-- Blood Price
+	[328276] = "CC",				-- March of the Penitent
+	[328222] = "CC",				-- March of the Penitent
+	[341732] = "Silence",			-- Searing Censure
+	[341426] = "Silence",			-- Searing Censure
+	-- Shadowlands World Bosses
+	-- -- Valinor, The Light of Eons
+	[327280] = "CC",				-- Recharge Anima
+	-- -- Oranomonos the Everbranching
+	[338853] = "Root",				-- Rapid Growth
+	[339040] = "Other",				-- Withered Winds (melee and ranged chance to hit reduced by 30%)
+	[339023] = "Snare",				-- Dirge of the Fallen Sanctum
+	------------------------
+	-- Shadowlands Mythics
+	-- -- Common
+	[342494] = "CC",				-- Belligerent Boast
+	-- -- De Other Side
+	[201441] = "Immune",			-- Thorium Plating
+	[201581] = "Immune",			-- Mega Miniaturization Turbo-Beam (Chance to be hit by attacks and spells reduced by 95%)
+	[202310] = "CC",				-- Hyper Zap-o-matic Ultimate Mark III
+	[330434] = "Root",				-- Buzz-Saw
+	[331847] = "CC",				-- W-00F
+	[339978] = "CC",				-- Pacifying Mists
+	[324010] = "CC",				-- Eruption
+	[331381] = "CC",				-- Slipped
+	[338762] = "CC",				-- Slipped
+	[334505] = "CC",				-- Shimmerdust Sleep
+	[321349] = "CC",				-- Absorbing Haze
+	[340026] = "CC",				-- Wailing Grief
+	[320132] = "CC",				-- Shadowfury
+	[332605] = "CC",				-- Hex
+	[320008] = "Snare",				-- Frostbolt
+	[332236] = "Snare",				-- Sludgegrab
+	[334530] = "Snare",				-- Snaring Gore
+	-- -- Halls of Atonement
+	[322977] = "CC",				-- Sinlight Visions
+	[339237] = "CC",				-- Sinlight Visions
+	[319724] = "Immune",			-- Stone Form
+	[323741] = "Immune",			-- Ephemeral Visage
+	[319611] = "CC",				-- Turned to Stone
+	[326876] = "CC",				-- Shredded Ankles
+	[326617] = "CC",				-- Turn to Stone
+	[326607] = "Immune",			-- Turn to Stone (not immune, damage taken reduced by 50%)
+	-- -- Mists of Tirna Scithe
+	[323149] = "Immune",			-- Embrace Darkness (not immune, damage taken reduced by 50%)
+	[321005] = "CC",				-- Soul Shackle
+	[321010] = "CC",				-- Soul Shackle
+	[323059] = "CC",				-- Droman's Wrath
+	[323137] = "CC",				-- Bewildering Pollen
+	[321968] = "CC",				-- Bewildering Pollen
+	[328756] = "CC",				-- Repulsive Visage
+	[321893] = "CC",				-- Freezing Burst
+	[321828] = "CC",				-- Patty Cake
+	[337220] = "CC",				-- Parasitic Pacification
+	[337251] = "CC",				-- Parasitic Incapacitation
+	[337253] = "CC",				-- Parasitic Domination
+	[322487] = "CC",				-- Overgrowth
+	[340160] = "CC",				-- Radiant Breath
+	[324859] = "Root",				-- Bramblethorn Entanglement
+	[325027] = "Snare",				-- Bramble Burst
+	[322486] = "Snare",				-- Overgrowth
+	-- -- The Necrotic Wake
+	[320646] = "CC",				-- Fetid Gas
+	[335141] = "ImmunePhysical",	-- Dark Shroud
+	[343504] = "CC",				-- Dark Grasp
+	[326629] = "Immune",			-- Noxious Fog
+	[322548] = "CC",				-- Meat Hook
+	[327041] = "CC",				-- Meat Hook
+	[320788] = "Root",				-- Frozen Binds
+	[323730] = "Root",				-- Frozen Binds
+	[322274] = "Snare",				-- Enfeeble
+	[334748] = "CC",				-- Drain Fluids
+	[345625] = "Silence",			-- Death Burst
+	[324293] = "CC",				-- Rasping Scream
+	[328051] = "Immune",			-- Discarded Shield (not immune, damage taken reduced by 50%)
+	[333489] = "Other",				-- Necrotic Breath (healing received reduced by 50%)
+	[320573] = "Other",				-- Shadow Well (healing received reduced by 100%)
+	[324381] = "Snare",				-- Chill Scythe
+	-- -- Plaguefall
+	[321521] = "Immune",			-- Congealed Bile (not immune, damage taken reduced by 75%)
+	[326242] = "Root",				-- Slime Wave
+	[331818] = "CC",				-- Shadow Ambush
+	[336306] = "CC",				-- Web Wrap
+	[336301] = "CC",				-- Web Wrap
+	[333173] = "CC",				-- Volatile Substance
+	[328409] = "Root",				-- Enveloping Webbing
+	[328012] = "Root",				-- Binding Fungus
+	[328180] = "Root",				-- Gripping Infection
+	[328002] = "Snare",				-- Hurl Spores
+	[334926] = "Snare",				-- Wretched Phlegm
+	-- -- Sanguine Depths
+	[324092] = "Immune",			-- Shining Radiance (not immune, damage taken reduced by 65%)
+	[327107] = "Immune",			-- Shining Radiance (not immune, damage taken reduced by 75%)
+	[326836] = "Silence",			-- Curse of Suppression
+	[335306] = "Root",				-- Barbed Shackles
+	-- -- Spires of Ascension
+	[324205] = "CC",				-- Blinding Flash
+	[323878] = "CC",				-- Drained
+	[323744] = "CC",				-- Pounce
+	[347598] = "CC",				-- Carriage Knockdown
+	[330388] = "CC",				-- Terrifying Screech
+	[330453] = "Snare",				-- Stone Breath
+	[331906] = "Snare",				-- Fling Muck
+	-- -- Theater of Pain
+	[333540] = "CC",				-- Opportunity Strikes
+	[320112] = "CC",				-- Blood and Glory
+	[320287] = "CC",				-- Blood and Glory
+	[319539] = "CC",				-- Soulless
+	[333567] = "CC",				-- Possession
+	[333710] = "Root",				-- Grasping Hands
+	[342691] = "Root",				-- Grasping Hands
+	[319567] = "Root",				-- Grasping Hands
+	[333301] = "CC",				-- Curse of Desolation
+	[323750] = "CC",				-- Vile Gas
+	[330592] = "CC",				-- Vile Eruption
+	[330608] = "CC",				-- Vile Eruption
+	[323831] = "CC",				-- Death Grasp
+	[321768] = "CC",				-- On the Hook
+	[319531] = "CC",				-- Draw Soul
+	[332708] = "CC",				-- Ground Smash
+	[330562] = "CC",				-- Demoralizing Shout (damage done reduced by 50%)
+	[320679] = "Snare",				-- Charge
+	[342103] = "Snare",				-- Rancid Bile
+	[330810] = "Snare",				-- Bind Soul
+	------------------------
+	-- Torghast, Tower of the Damned
+	[314702] = "CC",				-- Twisted Hellchoker
+	[307612] = "CC",				-- Darkening Canopy
+	[329454] = "CC",				-- Ogundimu's Fist
+	[314691] = "CC",				-- Darkhelm of Nuren
+	[333599] = "CC",				-- Pridebreaker's Anvil
+	[312902] = "CC",				-- Volatile Augury
+	[331917] = "CC",				-- Force Pull
+	[332531] = "CC",				-- Ancient Drake Breath
+	[332544] = "CC",				-- Imprison
+	[314590] = "CC",				-- Big Clapper
+	[333762] = "CC",				-- The Hunt
+	[330858] = "CC",				-- Creeping Freeze
+	[321395] = "CC",				-- Polymorph: Mawrat
+	[302583] = "CC",				-- Polymorph
+	[321134] = "CC",				-- Polymorph
+	[334392] = "CC",				-- Polymorph
+	[329398] = "CC",				-- Pandemonium
+	[345524] = "CC",				-- Mad Wizard's Confusion
+	[333767] = "CC",				-- Distracting Charges
+	[342375] = "Silence",			-- Tormenting Backlash
+	[342414] = "Silence",			-- Cracked Mindscreecher
+	[332547] = "Disarm",			-- Animate Armaments
+	[337097] = "Root",				-- Grasping Tendrils
+	[331362] = "Root",				-- Hateful Shard-Ring
+	[342373] = "Root",				-- Fae Tendrils
+	[333561] = "Root",				-- Nightmare Tendrils
+	[332205] = "Other",				-- Smoking Shard of Teleportation
+	[331188] = "Other",				-- Cadaverous Cleats
+	[333920] = "ImmuneSpell",		-- Cloak of Shadows
+	[332831] = "ImmuneSpell",		-- Anti-Magic Zone
+	[335103] = "Immune",			-- Divine Shield
+	[295963] = "Immune",			-- Crumbling Aegis
+	[308204] = "Immune",			-- Crumbling Aegis
+	[331356] = "Immune",			-- Craven Strategem
+	[323220] = "Immune",			-- Shield of Unending Fury
+	[331464] = "Immune",			-- Fogged Crystal (not immune, damage taken reduced by 90%)
+	[342783] = "ImmunePhysical",	-- Crystallized Dreams
+	[322136] = "Snare",				-- Dissolving Vial
+	[338065] = "Snare",				-- Stoneflesh Figurine
+	[332165] = "CC",				-- Fearsome Shriek
+	[329930] = "CC",				-- Terrifying Screech
+	[334575] = "CC",				-- Earthen Crush
+	[334562] = "CC",				-- Suppress
+	[295985] = "CC",				-- Ground Crush
+	[330458] = "CC",				-- Shockwave
+	[327461] = "CC",				-- Meat Hook
+	[294173] = "CC",				-- Hulking Charge
+	[297018] = "CC",				-- Fearsome Howl
+	[330438] = "CC",				-- Fearsome Howl
+	[298844] = "CC",				-- Fearsome Howl
+	[320600] = "CC",				-- Fearsome Howl
+	[170751] = "CC",				-- Crushing Shadows
+	[329608] = "CC",				-- Terrifying Roar
+	[242391] = "CC",				-- Terror
+	[301952] = "Silence",			-- Silencing Calm
+	[329903] = "Silence",			-- Silence
+	[329319] = "Disarm",			-- Disarm
+	[304949] = "Root",				-- Falling Strike
+	[295945] = "Root",				-- Rat Traps
+	[304831] = "Root",				-- Chains of Ice
+	[296023] = "Root",				-- Lockdown
+	[259220] = "Root",				-- Barbed Net
+	[296454] = "Immune",			-- Vanish to Nothing
+	[167012] = "Immune",			-- Incorporeal (not immune, damage taken reduced by 99%)
+	[336556] = "Immune",			-- Concealing Fog (not immune, damage taken reduced by 50%)
+	[294517] = "Immune",			-- Phasing Roar (not immune, damage taken reduced by 80%)
+	[339006] = "ImmunePhysical",	-- Ephemeral Body (not immune, physical damage taken reduced by 75%)
+	[297166] = "ImmunePhysical",	-- Armor Plating (not immune, physical damage taken reduced by 50%)
+	[339010] = "ImmuneSpell",		-- Resonating Body (not immune, magic damage taken reduced by 75%)
+	[302543] = "ImmuneSpell",		-- Glimmering Barrier (not immune, magic damage taken reduced by 50%)
+	[38572]  = "Other",				-- Mortal Cleave (healing effects reduced by 50%)
+	[321633] = "Snare",				-- Frost Strike
+	[330479] = "Snare",				-- Gunk
+	[327471] = "Snare",				-- Noxious Cloud
+	[297292] = "Snare",				-- Thorned Shell
+	[295991] = "Snare",				-- Lumbering Might
+	[295929] = "Snare",				-- Rats!
+	[302552] = "Snare",				-- Sedative Dust
+	[330646] = "Snare",				-- Cloying Juices
+	[304093] = "Snare",				-- Mass Debilitate
+	[335685] = "Snare",				-- Wracking Torment
+	[292910] = "Snare",				-- Shackles
+	[292942] = "Snare",				-- Iron Shackles
+	[295001] = "Snare",				-- Whirlwind
+	[329905] = "Snare",				-- Mass Slow
+	[329862] = "Snare",				-- Ghastly Wail
+	[329325] = "Snare",				-- Cripple
+	[185493] = "Snare",				-- Cripple
+	[329326] = "Snare",				-- Dark Binding
 	------------------------
 	---- PVE BFA
 	------------------------
@@ -1072,8 +1420,9 @@ local spellIds = {
 	[315675] = "CC",				-- Shattered Ego
 	[315672] = "CC",				-- Shattered Ego
 	[318976] = "CC",				-- Stupefying Glare
+	[312155] = "CC",				-- Shattered Ego
 	[310134] = "Immune",			-- Manifest Madness (99% damage reduction)
-	-- -- 
+	------------------------
 	-- The Eternal Palace Raid
 	-- -- Trash
 	[303747] = "CC",				-- Ice Tomb
@@ -1281,6 +1630,7 @@ local spellIds = {
 	[282615] = "Immune",			-- Petrify
 	-- -- Grand Empress Shek'zara
 	[314306] = "CC",				-- Song of the Empress
+	[314332] = "Immune",			-- Sound Barrier (damage taken reduced 70%)
 	------------------------
 	-- Horrific Visions of N'zoth
 	[317865] = "CC",				-- Emergency Cranial Defibrillation
@@ -1650,7 +2000,7 @@ local spellIds = {
 	[274972] = "Other",				-- Breath of Darkness (healing taken reduced by 75%)
 	------------------------
 	-- BfA Mythics
-	-- --- Common to all 
+	-- -- Common
 	[314483] = "CC",				-- Cascading Terror
 	[314411] = "Other",				-- Lingering Doubt (casting speed reduced by 70%)
 	[314308] = "Other",				-- Spirit Breaker (damage taken increased by 100%)
@@ -1676,9 +2026,11 @@ local spellIds = {
 	[299572] = "CC",				-- Shrink (damage and healing done reduced by 99%)
 	[299707] = "CC",				-- Trample
 	[296571] = "Immune",			-- Power Shield (damage taken reduced 99%)
+	[295147] = "Immune",			-- Reflective Armor
 	[293986] = "Silence",			-- Sonic Pulse
 	[303264] = "CC",				-- Anti-Trespassing Field
 	[296279] = "CC",				-- Anti-Trespassing Teleport
+	[293724] = "Immune",			-- Shield Generator (damage taken reduced 75%)
 	[300514] = "Immune",			-- Stoneskin (damage taken reduced 75%)
 	[304074] = "Immune",			-- Stoneskin (damage taken reduced 75%)
 	[295168] = "CC",				-- Capacitor Discharge
@@ -1690,8 +2042,10 @@ local spellIds = {
 	[300764] = "Snare",				-- Slimebolt
 	[296560] = "Snare",				-- Clinging Static
 	[285388] = "Snare",				-- Vent Jets
-	[298602] = "Other",				-- Smoke Cloud
+	[298602] = "Immune",			-- Smoke Cloud (interferes with targeting)
 	[300675] = "Other",				-- Toxic Fog
+	[296080] = "Other",				-- Haywire
+	[300011] = "Immune",			-- Force Shield
 	-- -- Atal'Dazar
 	[255371] = "CC",				-- Terrifying Visage
 	[255041] = "CC",				-- Terrifying Screech
@@ -1701,6 +2055,13 @@ local spellIds = {
 	[255567] = "CC",				-- Frenzied Charge
 	[258653] = "Immune",			-- Bulwark of Juju (90% damage reduction)
 	[253721] = "Immune",			-- Bulwark of Juju (90% damage reduction)
+	[255971] = "Other",				-- Bad Voodoo
+	[255960] = "Other",				-- Bad Voodoo
+	[255967] = "Other",				-- Bad Voodoo
+	[255968] = "Other",				-- Bad Voodoo
+	[255970] = "Other",				-- Bad Voodoo
+	[255972] = "Other",				-- Bad Voodoo
+	[272618] = "Other",				-- Bad Voodoo
 	-- -- Kings' Rest
 	[268796] = "CC",				-- Impaling Spear
 	[269369] = "CC",				-- Deathly Roar
@@ -1777,7 +2138,7 @@ local spellIds = {
 	[261264] = "Immune",			-- Soul Armor (99% damage reduction)
 	[271590] = "Immune",			-- Soul Armor (99% damage reduction)
 	[260923] = "Immune",			-- Soul Manipulation (99% damage reduction)
-	[264027] = "Other",				-- Warding Candles (50% damage reduction)
+	[264027] = "Immune",			-- Warding Candles (50% damage reduction)
 	[264040] = "Snare",				-- Uprooted Thorns
 	[264712] = "Snare",				-- Rotten Expulsion
 	[261440] = "Snare",				-- Virulent Pathogen
@@ -2175,7 +2536,7 @@ local spellIds = {
 	[23023]  = "CC",				-- Conflagration
 	[15593]  = "CC",				-- War Stomp
 	[16740]  = "CC",				-- War Stomp
-	[27758]  = "CC",				-- War Stomp
+	[24375]  = "CC",				-- War Stomp
 	[28725]  = "CC",				-- War Stomp
 	[14515]  = "CC",				-- Dominate Mind
 	[22274]  = "CC",				-- Greater Polymorph
@@ -2228,14 +2589,11 @@ local spellIds = {
 	-- -- High Priestess Mar'li
 	[24110]  = "Silence",			-- Enveloping Webs
 	-- -- High Priest Thekal
-	--[22666]  = "Silence",			-- Silence
 	[21060]  = "CC",				-- Blind
 	[12540]  = "CC",				-- Gouge
-	[22691]  = "Disarm",			-- Disarm
 	[24193]  = "CC",				-- Charge
 	-- -- Bloodlord Mandokir & Ohgan
 	[24408]  = "CC",				-- Charge
-	[25821]  = "CC",				-- Charge
 	-- -- Gahz'ranka
 	[16099]  = "Snare",				-- Frost Breath
 	-- -- Jin'do the Hexxer
@@ -2258,8 +2616,6 @@ local spellIds = {
 	-- -- Trash
 	[25371]  = "CC",				-- Consume
 	[25654]  = "CC",				-- Tail Lash
-	--[3589]   = "Silence",			-- Deafening Screech
-	--[12252]  = "Root",			-- Web Spray
 	[25515]  = "CC",				-- Bash
 	[25187]  = "Snare",				-- Hive'Zara Catalyst
 	-- -- Kurinnaxx
@@ -2287,6 +2643,7 @@ local spellIds = {
 	[25698]  = "CC",				-- Explode
 	[26079]  = "CC",				-- Cause Insanity
 	[26049]  = "CC",				-- Mana Burn
+	[26552]  = "CC",				-- Nullify
 	[26071]  = "Root",				-- Entangling Roots
 	--[13022]  = "ImmuneSpell",		-- Fire and Arcane Reflect (only reflect fire and arcane spells)
 	--[19595]  = "ImmuneSpell",		-- Shadow and Frost Reflect (only reflect shadow and frost spells)
@@ -2320,6 +2677,52 @@ local spellIds = {
 	[26211]  = "Snare",				-- Hamstring
 	[26141]  = "Snare",				-- Hamstring
 	------------------------
+	-- Naxxramas (Classic) Raid
+	-- -- Trash
+	[6605]   = "CC",				-- Terrifying Screech
+	[27758]  = "CC",				-- War Stomp
+	[27990]  = "CC",				-- Fear
+	[28412]  = "CC",				-- Death Coil
+	[29848]  = "CC",				-- Polymorph
+	[29849]  = "Root",				-- Frost Nova
+	[30094]  = "Root",				-- Frost Nova
+	[28350]  = "Other",				-- Veil of Darkness (immune to direct healing)
+	[18328]  = "Snare",				-- Incapacitating Shout
+	[28310]  = "Snare",				-- Mind Flay
+	[30092]  = "Snare",				-- Blast Wave
+	[30095]  = "Snare",				-- Cone of Cold
+	-- -- Anub'Rekhan
+	[28786]  = "CC",				-- Locust Swarm
+	[25821]  = "CC",				-- Charge
+	[28991]  = "Root",				-- Web
+	-- -- Grand Widow Faerlina
+	[30225]  = "Silence",			-- Silence
+	-- -- Maexxna
+	[28622]  = "CC",				-- Web Wrap
+	[29484]  = "CC",				-- Web Spray
+	[28776]  = "Other",				-- Necrotic Poison (healing taken reduced by 90%)
+	-- -- Noth the Plaguebringer
+	[29212]  = "Snare",				-- Cripple
+	-- -- Heigan the Unclean
+	[30112]  = "CC",				-- Frenzied Dive
+	[30109]  = "Snare",				-- Slime Burst
+	-- -- Instructor Razuvious
+	[29061]  = "Immune",			-- Bone Barrier (not immune, 75% damage reduction)
+	[29125]  = "Other",				-- Hopeless (increases damage taken by 5000%)
+	-- -- Gothik the Harvester
+	[11428]  = "CC",				-- Knockdown
+	[27993]  = "Snare",				-- Stomp
+	-- -- Gluth
+	[29685]  = "CC",				-- Terrifying Roar
+	-- -- Sapphiron
+	[28522]  = "CC",				-- Icebolt
+	[28547]  = "Snare",				-- Chill
+	-- -- Kel'Thuzad
+	[28410]  = "CC",				-- Chains of Kel'Thuzad
+	[27808]  = "CC",				-- Frost Blast
+	[28478]  = "Snare",				-- Frostbolt
+	[28479]  = "Snare",				-- Frostbolt
+	------------------------
 	-- Classic World Bosses
 	-- -- Azuregos
 	[23186]  = "CC",				-- Aura of Frost
@@ -2340,7 +2743,6 @@ local spellIds = {
 	[12528]  = "Silence",			-- Silence
 	[23207]  = "Silence",			-- Silence
 	[29943]  = "Silence",			-- Silence
-	[30225]  = "Silence",			-- Silence
 	------------------------
 	-- Classic Dungeons
 	-- -- Ragefire Chasm
@@ -2423,8 +2825,6 @@ local spellIds = {
 	[302956] = "Root",				-- Catch of the Day
 	-- -- The Stockade
 	[3419]   = "Other",				-- Improved Blocking
-	--[19134]  = "CC",				-- Intimidating Shout
-	--[29544]  = "CC",				-- Intimidating Shout
 	[6253]   = "CC",				-- Backhand
 	[204735] = "Snare",				-- Frostbolt
 	[86740]  = "CC",				-- Dirty Blow
@@ -2491,7 +2891,6 @@ local spellIds = {
 	[29419]  = "CC",				-- Flash Bomb
 	[22592]  = "CC",				-- Knockdown
 	[21869]  = "CC",				-- Repulsive Gaze
-	[11428]  = "CC",				-- Knockdown
 	[16790]  = "CC",				-- Knockdown
 	[11922]  = "Root",				-- Entangling Roots
 	-- -- Zul'Farrak
@@ -2506,9 +2905,7 @@ local spellIds = {
 	[12888]  = "CC",				-- Cause Insanity
 	[12480]  = "CC",				-- Hex of Jammal'an
 	[12890]  = "CC",				-- Deep Slumber
-	--[25852]  = "CC",				-- Lash
 	[6607]   = "CC",				-- Lash
-	--[6608]   = "Disarm",			-- Dropped Weapon
 	[25774]  = "CC",				-- Mind Shatter
 	[33126]  = "Disarm",			-- Dropped Weapon
 	[34259]  = "CC",				-- Fear
@@ -2526,7 +2923,6 @@ local spellIds = {
 	[17492]  = "CC",				-- Hand of Thaurissan
 	[12169]  = "Other",				-- Shield Block
 	[15062]  = "Immune",			-- Shield Wall (not immune, 75% damage reduction)
-	[29061]  = "Immune",			-- Shield Wall (not immune, 75% damage reduction)
 	[14030]  = "Root",				-- Hooked Net
 	[14870]  = "CC",				-- Drunken Stupor
 	[13902]  = "CC",				-- Fist of Ragnaros
@@ -2576,7 +2972,6 @@ local spellIds = {
 	[12557]  = "Snare",				-- Cone of Cold
 	[16869]  = "CC",				-- Ice Tomb
 	[17244]  = "CC",				-- Possess
-	--[18327]  = "Silence",			-- Silence
 	[17307]  = "CC",				-- Knockout
 	[15970]  = "CC",				-- Sleep
 	[3589]   = "Silence",			-- Deafening Screech
@@ -2587,7 +2982,7 @@ local spellIds = {
 	[17145]  = "Snare",				-- Blast Wave
 	[22651]  = "CC",				-- Sacrifice
 	[22419]  = "Disarm",			-- Riptide
-	--[22691]  = "Disarm",			-- Disarm
+	[22691]  = "Disarm",			-- Disarm
 	[22833]  = "CC",				-- Booze Spit (chance to hit reduced by 75%)
 	[22856]  = "CC",				-- Ice Lock
 	[16727]  = "CC",				-- War Stomp
@@ -2652,6 +3047,48 @@ local anchors = {
 		arena3      = "ArenaEnemyFrame3ClassPortrait",
 		arena4      = "ArenaEnemyFrame4ClassPortrait",
 		arena5      = "ArenaEnemyFrame5ClassPortrait",
+	},
+	BlizzardRaidFrames = {
+		raid1        = "CompactRaidFrame1",
+		raid2        = "CompactRaidFrame2",
+		raid3        = "CompactRaidFrame3",
+		raid4        = "CompactRaidFrame4",
+		raid5        = "CompactRaidFrame5",
+		raid6        = "CompactRaidFrame6",
+		raid7        = "CompactRaidFrame7",
+		raid8        = "CompactRaidFrame8",
+		raid9        = "CompactRaidFrame9",
+		raid10       = "CompactRaidFrame10",
+		raid11       = "CompactRaidFrame11",
+		raid12       = "CompactRaidFrame12",
+		raid13       = "CompactRaidFrame13",
+		raid14       = "CompactRaidFrame14",
+		raid15       = "CompactRaidFrame15",
+		raid16       = "CompactRaidFrame16",
+		raid17       = "CompactRaidFrame17",
+		raid18       = "CompactRaidFrame18",
+		raid19       = "CompactRaidFrame19",
+		raid20       = "CompactRaidFrame20",
+		raid21       = "CompactRaidFrame21",
+		raid22       = "CompactRaidFrame22",
+		raid23       = "CompactRaidFrame23",
+		raid24       = "CompactRaidFrame24",
+		raid25       = "CompactRaidFrame25",
+		raid26       = "CompactRaidFrame26",
+		raid27       = "CompactRaidFrame27",
+		raid28       = "CompactRaidFrame28",
+		raid29       = "CompactRaidFrame29",
+		raid30       = "CompactRaidFrame30",
+		raid31       = "CompactRaidFrame31",
+		raid32       = "CompactRaidFrame32",
+		raid33       = "CompactRaidFrame33",
+		raid34       = "CompactRaidFrame34",
+		raid35       = "CompactRaidFrame35",
+		raid36       = "CompactRaidFrame36",
+		raid37       = "CompactRaidFrame37",
+		raid38       = "CompactRaidFrame38",
+		raid39       = "CompactRaidFrame39",
+		raid40       = "CompactRaidFrame40",
 	},
 	Perl = {
 		player       = "Perl_Player_PortraitFrame",
@@ -2719,13 +3156,16 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 6.2, -- This is the settings version, not necessarily the same as the LoseControl version
+	version = 7.0, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
 	noBlizzardCooldownCount = true,
 	noLossOfControlCooldown = false,
 	disablePartyInBG = true,
+	disablePartyInArena = false,
 	disableArenaInBG = true,
 	disablePartyInRaid = true,
+	disableRaidInBG = false,
+	disableRaidInArena = true,
 	disablePlayerTargetTarget = false,
 	disableTargetTargetTarget = false,
 	disablePlayerTargetPlayerTargetTarget = true,
@@ -3053,6 +3493,446 @@ local DBdefaults = {
 				}
 			}
 		},
+		raid1 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid2 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid3 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid4 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid5 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid6 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid7 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid8 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid9 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid10 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid11 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid12 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid13 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid14 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid15 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid16 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid17 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid18 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid19 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid20 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid21 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid22 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid23 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid24 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid25 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid26 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid27 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid28 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid29 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid30 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid31 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid32 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid33 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid34 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid35 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid36 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid37 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid38 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid39 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
+		raid40 = {
+			enabled = true,
+			size = 20,
+			alpha = 1,
+			anchor = "BlizzardRaidFrames",
+			categoriesEnabled = {
+				buff =      { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true } },
+				debuff =    { friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true } },
+				interrupt = { friendly = true }
+			}
+		},
 	},
 }
 local LoseControlDB -- local reference to the addon settings. this gets initialized when the ADDON_LOADED event fires
@@ -3318,6 +4198,26 @@ function LoseControl:CheckAndCleanCustomSpellIdsTable()
 	LoseControl:UpdateSpellIdsTableWithCustomSpellIds()
 end
 
+-- Function to get the enabled/disabled status of LoseControl frame
+function LoseControl:GetEnabled()
+	local inInstance, instanceType = IsInInstance()
+	local enabled = self.frame.enabled and not (
+		inInstance and instanceType == "pvp" and (
+			( LoseControlDB.disablePartyInBG and strfind(self.unitId, "party") ) or
+			( LoseControlDB.disableRaidInBG and strfind(self.unitId, "raid") ) or
+			( LoseControlDB.disableArenaInBG and strfind(self.unitId, "arena") )
+		)
+	)and not (
+		inInstance and instanceType == "arena" and (
+			( LoseControlDB.disablePartyInArena and strfind(self.unitId, "party") ) or
+			( LoseControlDB.disableRaidInArena and strfind(self.unitId, "raid") )
+		)
+	) and not (
+		IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(self.unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
+	)
+	return enabled
+end
+
 local function SetInterruptIconsSize(iconFrame, iconSize)
 	local interruptIconSize = (iconSize * 0.88) / 3
 	local interruptIconOffset = (iconSize * 0.06)
@@ -3397,6 +4297,99 @@ function LoseControl:DisableLossOfControlUI()
 	end
 end
 
+-- Function to hook the raid frame and anchors the LoseControl raid frames to their corresponding blizzard raid frame
+local function HookCompactRaidFrame(compactRaidFrame)
+	if not(compactRaidFrame.lchooked) then
+		compactRaidFrame:HookScript("OnAttributeChanged", function(self, key, value)
+			if (key == "unit" and self:IsVisible()) then
+				if (value ~= nil) then
+					local icon = LCframes[value]
+					if (icon ~= nil) then
+						local frame = icon.frame or LoseControlDB.frames[value]
+						if (frame ~= nil) then
+							anchors.BlizzardRaidFrames[value] = self:GetName()
+							if (frame.anchor == "BlizzardRaidFrames") then
+								icon.anchor = self
+								icon:ClearAllPoints()
+								icon:GetParent():ClearAllPoints()
+								icon:SetPoint(
+									frame.point or "CENTER",
+									icon.anchor,
+									frame.relativePoint or "CENTER",
+									frame.x or 0,
+									frame.y or 0
+								)
+								icon:GetParent():SetPoint(
+									frame.point or "CENTER",
+									icon.anchor,
+									frame.relativePoint or "CENTER",
+									frame.x or 0,
+									frame.y or 0
+								)
+							end
+						end
+					end
+				end
+			end
+		end)
+		compactRaidFrame:HookScript("OnShow", function(self)
+			if (self:IsVisible()) then
+				local anchorUnitId = compactRaidFrame:GetAttribute("unit")
+				if (anchorUnitId ~= nil) then
+					local icon = LCframes[anchorUnitId]
+					if (icon ~= nil) then
+						local frame = icon.frame or LoseControlDB.frames[anchorUnitId]
+						if (frame ~= nil) then
+							anchors.BlizzardRaidFrames[anchorUnitId] = self:GetName()
+							if (frame.anchor == "BlizzardRaidFrames") then
+								icon.anchor = self
+								icon:ClearAllPoints()
+								icon:GetParent():ClearAllPoints()
+								icon:SetPoint(
+									frame.point or "CENTER",
+									icon.anchor,
+									frame.relativePoint or "CENTER",
+									frame.x or 0,
+									frame.y or 0
+								)
+								icon:GetParent():SetPoint(
+									frame.point or "CENTER",
+									icon.anchor,
+									frame.relativePoint or "CENTER",
+									frame.x or 0,
+									frame.y or 0
+								)
+							end
+						end
+					end
+				end
+			end
+		end)
+		compactRaidFrame.lchooked = true
+	end
+end
+
+-- Function to hook the raid frames and anchors the LoseControl raid frames to their corresponding blizzard raid frame
+function LoseControl:MainHookCompactRaidFrames()
+	for i = 1, 40 do
+		local compactRaidFrame = _G["CompactRaidFrame"..i]
+		if (compactRaidFrame ~= nil) then
+			HookCompactRaidFrame(compactRaidFrame)
+		end
+	end
+	for i = 1, 8 do
+		for j = 1, 5 do
+			local compactRaidFrame = _G["CompactRaidGroup"..i.."Member"..j]
+			if (compactRaidFrame ~= nil) then
+				HookCompactRaidFrame(compactRaidFrame)
+			end
+		end
+	end
+	hooksecurefunc("CompactUnitFrame_OnLoad", function(self)
+		HookCompactRaidFrame(self)
+	end)
+end
+
 -- Handle default settings
 function LoseControl:ADDON_LOADED(arg1)
 	if arg1 == addonName then
@@ -3443,7 +4436,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "6.11"
+		self.VERSION = "7.0"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
@@ -3469,6 +4462,7 @@ function LoseControl:ADDON_LOADED(arg1)
 		end
 		self:UpdateSpellIdsTableWithCustomSpellIds()
 		playerGUID = UnitGUID("player")
+		self:MainHookCompactRaidFrames()
 		if Masque then
 			for _, v in pairs(LCframes) do
 				v.MasqueGroup = Masque:Group(addonName, v.unitId)
@@ -3509,6 +4503,8 @@ function LoseControl:CheckSUFUnitsAnchors(updateFrame)
 		frames = { "party1", "party2", "party3", "party4" }
 	elseif strfind(self.unitId, "arena") then
 		frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+	elseif strfind(self.unitId, "raid") then
+		frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
 	end
 	for _, unitId in ipairs(frames) do
 		if anchors.SUF.player == nil then anchors.SUF.player = SUFUnitplayer and SUFUnitplayer.portrait or nil end
@@ -3549,6 +4545,40 @@ function LoseControl:CheckSUFUnitsAnchors(updateFrame)
 					frame.x or 0,
 					frame.y or 0
 				)
+				local PositionXEditBox
+				local PositionYEditBox
+				if strfind(unitId, "party") then
+					if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'])) then
+						PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
+						PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
+					end
+				elseif strfind(unitId, "arena") then
+					if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelarenaAnchorPositionArenaDropDown'])) then
+						PositionXEditBox = _G['LoseControlOptionsPanelarenaPositionXEditBox']
+						PositionYEditBox = _G['LoseControlOptionsPanelarenaPositionYEditBox']
+					end
+				elseif strfind(unitId, "raid") then
+					if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'])) then
+						PositionXEditBox = _G['LoseControlOptionsPanelraidPositionXEditBox']
+						PositionYEditBox = _G['LoseControlOptionsPanelraidPositionYEditBox']
+					end
+				else
+					PositionXEditBox = _G['LoseControlOptionsPanel'..unitId..'PositionXEditBox']
+					PositionYEditBox = _G['LoseControlOptionsPanel'..unitId..'PositionYEditBox']
+				end
+				if (PositionXEditBox and PositionYEditBox) then
+					PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
+					PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
+					if (frame.anchor ~= "Blizzard") then
+						PositionXEditBox:Enable()
+						PositionYEditBox:Enable()
+					else
+						PositionXEditBox:Disable()
+						PositionYEditBox:Disable()
+					end
+					PositionXEditBox:SetCursorPosition(0)
+					PositionYEditBox:SetCursorPosition(0)
+				end
 				if icon.anchor:GetParent() then
 					icon:SetFrameLevel(icon.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
 				end
@@ -3566,15 +4596,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	local unitId = self.unitId
 	self.frame = LoseControlDB.frames[self.fakeUnitId or unitId] -- store a local reference to the frame's settings
 	local frame = self.frame
-	local inInstance, instanceType = IsInInstance()
-	local enabled = frame.enabled and not (
-		inInstance and instanceType == "pvp" and (
-			( LoseControlDB.disablePartyInBG and strfind(unitId, "party") ) or
-			( LoseControlDB.disableArenaInBG and strfind(unitId, "arena") )
-		)
-	) and not (
-		IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
-	)
+	local enabled = self:GetEnabled()
 	if (ShadowUF ~= nil) and not(self:CheckSUFUnitsAnchors(false)) and (self.SUFDelayedSearch == nil) then
 		self.SUFDelayedSearch = GetTime()
 		C_Timer.After(8, function()	-- delay checking to make sure all variables of the other addons are loaded
@@ -3582,7 +4604,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		end)
 	end
 	self.anchor = _G[anchors[frame.anchor][unitId]] or (type(anchors[frame.anchor][unitId])=="table" and anchors[frame.anchor][unitId] or UIParent)
-	self.unitGUID = UnitGUID(self.unitId)
+	self.unitGUID = UnitGUID(unitId)
 	self.parent:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:GetParent():ClearAllPoints()
@@ -3606,6 +4628,40 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		frame.x or 0,
 		frame.y or 0
 	)
+	local PositionXEditBox
+	local PositionYEditBox
+	if strfind(unitId, "party") then
+		if (unitId == ((_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'] ~= nil) and UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown']) or "party1")) then
+			PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
+			PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
+		end
+	elseif strfind(unitId, "arena") then
+		if (unitId == ((_G['LoseControlOptionsPanelarenaAnchorPositionArenaDropDown'] ~= nil) and UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelarenaAnchorPositionArenaDropDown']) or "arena1")) then
+			PositionXEditBox = _G['LoseControlOptionsPanelarenaPositionXEditBox']
+			PositionYEditBox = _G['LoseControlOptionsPanelarenaPositionYEditBox']
+		end
+	elseif strfind(unitId, "raid") then
+		if (unitId == ((_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'] ~= nil) and UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown']) or "raid1")) then
+			PositionXEditBox = _G['LoseControlOptionsPanelraidPositionXEditBox']
+			PositionYEditBox = _G['LoseControlOptionsPanelraidPositionYEditBox']
+		end
+	else
+		PositionXEditBox = _G['LoseControlOptionsPanel'..unitId..'PositionXEditBox']
+		PositionYEditBox = _G['LoseControlOptionsPanel'..unitId..'PositionYEditBox']
+	end
+	if (PositionXEditBox and PositionYEditBox) then
+		PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
+		PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
+		if (frame.anchor ~= "Blizzard") then
+			PositionXEditBox:Enable()
+			PositionYEditBox:Enable()
+		else
+			PositionXEditBox:Disable()
+			PositionYEditBox:Disable()
+		end
+		PositionXEditBox:SetCursorPosition(0)
+		PositionYEditBox:SetCursorPosition(0)
+	end
 	if self.anchor:GetParent() then
 		self:SetFrameLevel(self.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
 	end
@@ -3627,15 +4683,10 @@ end
 function LoseControl:GROUP_ROSTER_UPDATE()
 	local unitId = self.unitId
 	local frame = self.frame
-	if (frame == nil) or (unitId == nil) or not(strfind(unitId, "party")) then
+	if (frame == nil) or (unitId == nil) or not(strfind(unitId, "party") or (strfind(unitId, "raid"))) then
 		return
 	end
-	local inInstance, instanceType = IsInInstance()
-	local enabled = frame.enabled and not (
-		inInstance and instanceType == "pvp" and LoseControlDB.disablePartyInBG
-	) and not (
-		IsInRaid() and LoseControlDB.disablePartyInRaid and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
-	)
+	local enabled = self:GetEnabled()
 	self:RegisterUnitEvents(enabled)
 	self.unitGUID = UnitGUID(unitId)
 	self:CheckSUFUnitsAnchors(true)
@@ -3653,16 +4704,8 @@ function LoseControl:GROUP_LEFT()
 end
 
 local function UpdateUnitAuraByUnitGUID(unitGUID, typeUpdate)
-	local inInstance, instanceType = IsInInstance()
 	for k, v in pairs(LCframes) do
-		local enabled = v.frame.enabled and not (
-			inInstance and instanceType == "pvp" and (
-				( LoseControlDB.disablePartyInBG and strfind(v.unitId, "party") ) or
-				( LoseControlDB.disableArenaInBG and strfind(v.unitId, "arena") )
-			)
-		) and not (
-			IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(v.unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
-		)
+		local enabled = v:GetEnabled()
 		if enabled and not v.unlockMode then
 			if v.unitGUID == unitGUID then
 				v:UNIT_AURA(k, typeUpdate)
@@ -3681,11 +4724,7 @@ function LoseControl:ARENA_OPPONENT_UPDATE()
 		return
 	end
 	local inInstance, instanceType = IsInInstance()
-	self:RegisterUnitEvents(
-		frame.enabled and not (
-			inInstance and instanceType == "pvp" and LoseControlDB.disableArenaInBG
-		)
-	)
+	self:RegisterUnitEvents(self:GetEnabled())
 	self.unitGUID = UnitGUID(self.unitId)
 	self:CheckSUFUnitsAnchors(true)
 	if enabled and not self.unlockMode then
@@ -3697,7 +4736,7 @@ function LoseControl:ARENA_PREP_OPPONENT_SPECIALIZATIONS()
 	self:ARENA_OPPONENT_UPDATE()
 end
 
--- This event check pvp interrupts and targettarget/focustarget unit aura triggers
+-- This event check interrupts and targettarget/focustarget unit aura triggers
 function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 	if self.unitId == "target" then
 		-- Check Interrupts
@@ -3706,8 +4745,7 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 			if (event == "SPELL_INTERRUPT") then
 				local duration = interruptsIds[spellId]
 				if (duration ~= nil) then
-					local _, destClass = GetPlayerInfoByGUID(destGUID)
-					if (destClass == "DRUID") then
+					if (strfind(destGUID, "Player-") == 1) then
 						local unitIdFromGUID
 						for _, v in pairs(LCframes) do
 							if (UnitGUID(v.unitId) == destGUID) then
@@ -3716,12 +4754,17 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 							end
 						end
 						if (unitIdFromGUID ~= nil) then
+							local _, destClass = GetPlayerInfoByGUID(destGUID)
 							for i = 1, 40 do
 								local _, _, _, _, _, _, _, _, _, auxSpellId = UnitBuff(unitIdFromGUID, i)
 								if not auxSpellId then break end
-								if auxSpellId == 234084 then		-- Moon and Stars (Druid)
-									duration = duration * 0.3
-									break
+								if (destClass == "DRUID") then
+									if auxSpellId == 234084 then		-- Moon and Stars (Druid)
+										duration = duration * 0.3
+									end
+								end
+								if auxSpellId == 317920 then		-- Concentration Aura (Paladin)
+									duration = duration * 0.7
 								end
 							end
 						end
@@ -3809,7 +4852,7 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 			if (self.unitId == "targettarget") or (self.unitId == "focustarget") then
 				if debug then print(unitId, "debuff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
 			end
-
+			
 			if duration == 0 and expirationTime == 0 then
 				expirationTime = GetTime() + 1 -- normal expirationTime = 0
 			elseif expirationTime > 0 then
@@ -3823,7 +4866,7 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 				if (UnitIsPlayer(unitId)) then
 					local _, class = UnitClass(unitId)
 					if ((class == "PRIEST") or (class == "MAGE") or (class == "WARLOCK")) then
-						break
+						spellId = 1
 					elseif ((class == "SHAMAN") or (class == "DRUID")) then
 						if (unitId == "player") then 
 							local specID = GetSpecialization()
@@ -3831,18 +4874,18 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 								specID = GetSpecializationInfo(specID);
 							end
 							if ((specID ~= nil) and (specID ~= 0) and (specID ~= 263) and (specID ~= 103) and (specID ~= 104)) then
-								break
+								spellId = 1
 							end
 						else
 							local powerTypeID = UnitPowerType(unitId)
 							if ((powerTypeID ~= nil) and (powerTypeID ~= 1) and (powerTypeID ~= 3) and (powerTypeID ~= 11)) then
-								break
+								spellId = 1
 							end
 						end
 					end
 				end
 			end
-
+			
 			local spellCategory = spellIds[spellId]
 			local Priority = priority[spellCategory]
 			if self.frame.categoriesEnabled.debuff[reactionToPlayer][spellCategory] then
@@ -4043,9 +5086,9 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 		end
 		if maxPriorityIsInterrupt then
 			if self.frame.anchor == "Blizzard" then
-				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait")
+				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
 			else
-				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background")
+				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 			end
 			if (not self.iconInterruptBackground:IsShown()) then
 				self.iconInterruptBackground:Show()
@@ -4182,6 +5225,37 @@ function LoseControl:StopMoving()
 		frame.x or 0,
 		frame.y or 0
 	)
+	local PositionXEditBox
+	local PositionYEditBox
+	if strfind(self.unitId, "party") then
+		if (self.unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'])) then
+			PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
+			PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
+		end
+	elseif strfind(self.unitId, "arena") then
+		if (self.unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelarenaAnchorPositionArenaDropDown'])) then
+			PositionXEditBox = _G['LoseControlOptionsPanelarenaPositionXEditBox']
+			PositionYEditBox = _G['LoseControlOptionsPanelarenaPositionYEditBox']
+		end
+	elseif strfind(self.unitId, "raid") then
+		if (self.unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'])) then
+			PositionXEditBox = _G['LoseControlOptionsPanelraidPositionXEditBox']
+			PositionYEditBox = _G['LoseControlOptionsPanelraidPositionYEditBox']
+		end
+	else
+		PositionXEditBox = _G['LoseControlOptionsPanel'..self.unitId..'PositionXEditBox']
+		PositionYEditBox = _G['LoseControlOptionsPanel'..self.unitId..'PositionYEditBox']
+	end
+	if (PositionXEditBox and PositionYEditBox) then
+		PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
+		PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
+		if (frame.anchor ~= "Blizzard") then
+			PositionXEditBox:Enable()
+			PositionYEditBox:Enable()
+		end
+		PositionXEditBox:SetCursorPosition(0)
+		PositionYEditBox:SetCursorPosition(0)
+	end
 	if self.MasqueGroup then
 		self.MasqueGroup:ReSkin()
 	end
@@ -4226,7 +5300,7 @@ function LoseControl:new(unitId)
 	o:SetReverse(true) -- makes the cooldown shade from light to dark instead of dark to light
 
 	o.text = o:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	o.text:SetText(L[o.unitId])
+	o.text:SetText(L[o.unitId] or o.unitId)
 	o.text:SetPoint("BOTTOM", o, "BOTTOM")
 	o.text:Hide()
 
@@ -4245,7 +5319,7 @@ function LoseControl:new(unitId)
 
 	-- Create and initialize Interrupt Mini Icons
 	o.iconInterruptBackground = o:CreateTexture(addonName .. unitId .. "InterruptIconBackground", "ARTWORK", nil, -2)
-	o.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background")
+	o.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 	o.iconInterruptBackground:SetAlpha(0.7)
 	o.iconInterruptBackground:SetPoint("TOPLEFT", 0, 0)
 	o.iconInterruptBackground:Hide()
@@ -4322,6 +5396,13 @@ subText:SetText(notes)
 -- "Unlock" checkbox - allow the frames to be moved
 local Unlock = CreateFrame("CheckButton", O.."Unlock", OptionsPanel, "OptionsCheckButtonTemplate")
 _G[O.."UnlockText"]:SetText(L["Unlock"])
+Unlock.nextUnlockLoopTime = 0
+function Unlock:LoopFunction()
+	if (not self) then self = Unlock end
+	if (mathabs(GetTime()-self.nextUnlockLoopTime) < 1) then
+		self:OnClick()
+	end
+end
 function Unlock:OnClick()
 	if self:GetChecked() then
 		_G[O.."UnlockText"]:SetText(L["Unlock"] .. L[" (drag an icon to move)"])
@@ -4344,7 +5425,9 @@ function Unlock:OnClick()
 				v:Show()
 				v:GetParent():Show()
 				v:SetDrawSwipe(true)
-				v:SetCooldown( GetTime(), 60 )
+				v:SetCooldown( GetTime(), 30 )
+				self.nextUnlockLoopTime = GetTime()+30
+				C_Timer.After(30, Unlock.LoopFunction)
 				v:GetParent():SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
 				v:SetMovable(true)
 				v:RegisterForDrag("LeftButton")
@@ -4451,8 +5534,23 @@ local PriorityDescription = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameF
 PriorityDescription:SetText(L["PriorityDescription"])
 
 -------------------------------------------------------------------------------
+-- EditBox helper function
+local function CreateEditBox(text, parent, width, maxLetters, globalName)
+	local name = globalName or (parent:GetName() .. text)
+	local editbox = CreateFrame("EditBox", name, parent, "InputBoxTemplate")
+	editbox:SetAutoFocus(false)
+	editbox:SetSize(width, 25)
+	editbox:SetAltArrowKeyMode(false)
+	editbox:ClearAllPoints()
+	editbox:SetPoint("LEFT", parent, "RIGHT", 10, 0)
+	editbox:SetMaxLetters(maxLetters or 256)
+	editbox:SetMovable(false)
+	editbox:SetMultiLine(false)
+	return editbox
+end
+
 -- Slider helper function, thanks to Kollektiv
-local function CreateSlider(text, parent, low, high, step, globalName)
+local function CreateSlider(text, parent, low, high, step, createBox, globalName)
 	local name = globalName or (parent:GetName() .. text)
 	local slider = CreateFrame("Slider", name, parent, "OptionsSliderTemplate")
 	slider:SetWidth(160)
@@ -4461,13 +5559,35 @@ local function CreateSlider(text, parent, low, high, step, globalName)
 	--_G[name .. "Text"]:SetText(text)
 	_G[name .. "Low"]:SetText(low)
 	_G[name .. "High"]:SetText(high)
+	if createBox then
+		slider.editbox = CreateEditBox("EditBox", slider, 25, 3)
+		slider.editbox:SetScript("OnEnterPressed", function(self)
+			local val = self:GetText()
+			if tonumber(val) then
+				val = mathfloor(val+0.5)
+				self:SetText(val)
+				self:GetParent():SetValue(val)
+				self:ClearFocus()
+			else
+				self:SetText(mathfloor(self:GetParent():GetValue()+0.5))
+				self:ClearFocus()
+			end
+		end)
+		slider.editbox:SetScript("OnDisable", function(self)
+			self:SetTextColor(GRAY_FONT_COLOR:GetRGB())
+		end)
+		slider.editbox:SetScript("OnEnable", function(self)
+			self:SetTextColor(1, 1, 1)
+		end)
+	end
 	return slider
 end
 
 local PrioritySlider = {}
 for k in pairs(DBdefaults.priority) do
-	PrioritySlider[k] = CreateSlider(L[k], OptionsPanel, 0, 100, 5, "Priority"..k.."Slider")
+	PrioritySlider[k] = CreateSlider(L[k], OptionsPanel, 0, 100, 5, false, "Priority"..k.."Slider")
 	PrioritySlider[k]:SetScript("OnValueChanged", function(self, value)
+		value = mathfloor(value/5)*5;
 		_G[self:GetName() .. "Text"]:SetText(L[k] .. " (" .. value .. ")")
 		LoseControlDB.priority[k] = value
 		if k == "Interrupt" then
@@ -4548,7 +5668,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Create sub-option frames
-for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena" }) do
+for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena", "raid" }) do
 	local OptionsPanelFrame = CreateFrame("Frame", O..v)
 	OptionsPanelFrame.parent = addonName
 	OptionsPanelFrame.name = L[v]
@@ -4560,6 +5680,12 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		AnchorDropDown2Label = OptionsPanelFrame:CreateFontString(O..v.."AnchorDropDown2Label", "ARTWORK", "GameFontNormal")
 		AnchorDropDown2Label:SetText(L["Anchor"])
 	end
+	local PositionEditBoxLabel = OptionsPanelFrame:CreateFontString(O..v.."PositionEditBoxLabel", "ARTWORK", "GameFontNormal")
+	PositionEditBoxLabel:SetText(L["Position"])
+	local PositionXEditBoxLabel = OptionsPanelFrame:CreateFontString(O..v.."PositionXEditBoxLabel", "ARTWORK", "GameFontNormal")
+	PositionXEditBoxLabel:SetText(L["x:"])
+	local PositionYEditBoxLabel = OptionsPanelFrame:CreateFontString(O..v.."PositionYEditBoxLabel", "ARTWORK", "GameFontNormal")
+	PositionYEditBoxLabel:SetText(L["y:"])
 	local CategoriesEnabledLabel = OptionsPanelFrame:CreateFontString(O..v.."CategoriesEnabledLabel", "ARTWORK", "GameFontNormal")
 	CategoriesEnabledLabel:SetText(L["CategoriesEnabledLabel"])
 	CategoriesEnabledLabel:SetJustifyH("LEFT")
@@ -4607,6 +5733,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "party1", "party2", "party3", "party4" }
 		elseif v == "arena" then
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+		elseif v == "raid" then
+			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
 		end
 		for _, unitId in ipairs(frames) do
 			local frame = LoseControlDB.frames[unitId]
@@ -4641,6 +5769,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 						icon.MasqueGroup:RemoveButton(icon:GetParent())
 					end
 					_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"]:SetValue(portrSizeValue)
+					_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"].editbox:SetText(portrSizeValue)
+					_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"].editbox:SetCursorPosition(0)
 				end
 			else
 				if icon.MasqueGroup then
@@ -4683,6 +5813,42 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				frame.x or 0,
 				frame.y or 0
 			)
+			local PositionXEditBox
+			local PositionYEditBox
+			if v == "party" then
+				if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown'])) then
+					PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
+					PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
+				end
+			elseif v == "arena" then
+				if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown'])) then
+					PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
+					PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
+				end
+			elseif v == "raid" then
+				if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown'])) then
+					PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
+					PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
+				end
+			else
+				PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
+				PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
+			end
+			if (PositionXEditBox and PositionYEditBox) then
+				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
+				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
+				if (frame.anchor ~= "Blizzard") then
+					PositionXEditBox:Enable()
+					PositionYEditBox:Enable()
+				else
+					PositionXEditBox:Disable()
+					PositionYEditBox:Disable()
+				end
+				PositionXEditBox:SetCursorPosition(0)
+				PositionYEditBox:SetCursorPosition(0)
+				PositionXEditBox:ClearFocus()
+				PositionYEditBox:ClearFocus()
+			end
 			if icon.anchor:GetParent() then
 				icon:SetFrameLevel(icon.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
 			end
@@ -4735,15 +5901,198 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
+	
+	local AnchorPositionPartyDropDown
+	if v == "party" then
+		AnchorPositionPartyDropDown	= CreateFrame("Frame", O..v.."AnchorPositionPartyDropDown", OptionsPanelFrame, "UIDropDownMenuTemplate")
+		function AnchorPositionPartyDropDown:OnClick()
+			UIDropDownMenu_SetSelectedValue(AnchorPositionPartyDropDown, self.value)
+			local unitId = self.value
+			local frame = LoseControlDB.frames[unitId]
+			local PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
+			local PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
+			if (PositionXEditBox and PositionYEditBox) then
+				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
+				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
+				if (frame.anchor ~= "Blizzard") then
+					PositionXEditBox:Enable()
+					PositionYEditBox:Enable()
+				else
+					PositionXEditBox:Disable()
+					PositionYEditBox:Disable()
+				end
+				PositionXEditBox:SetCursorPosition(0)
+				PositionYEditBox:SetCursorPosition(0)
+				PositionXEditBox:ClearFocus()
+				PositionYEditBox:ClearFocus()
+			end
+		end
+	end
+	
+	local AnchorPositionArenaDropDown
+	if v == "arena" then
+		AnchorPositionArenaDropDown	= CreateFrame("Frame", O..v.."AnchorPositionArenaDropDown", OptionsPanelFrame, "UIDropDownMenuTemplate")
+		function AnchorPositionArenaDropDown:OnClick()
+			UIDropDownMenu_SetSelectedValue(AnchorPositionArenaDropDown, self.value)
+			local unitId = self.value
+			local frame = LoseControlDB.frames[unitId]
+			local PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
+			local PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
+			if (PositionXEditBox and PositionYEditBox) then
+				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
+				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
+				if (frame.anchor ~= "Blizzard") then
+					PositionXEditBox:Enable()
+					PositionYEditBox:Enable()
+				else
+					PositionXEditBox:Disable()
+					PositionYEditBox:Disable()
+				end
+				PositionXEditBox:SetCursorPosition(0)
+				PositionYEditBox:SetCursorPosition(0)
+				PositionXEditBox:ClearFocus()
+				PositionYEditBox:ClearFocus()
+			end
+		end
+	end
+	
+	local AnchorPositionRaidDropDown
+	if v == "raid" then
+		AnchorPositionRaidDropDown	= CreateFrame("Frame", O..v.."AnchorPositionRaidDropDown", OptionsPanelFrame, "UIDropDownMenuTemplate")
+		function AnchorPositionRaidDropDown:OnClick()
+			UIDropDownMenu_SetSelectedValue(AnchorPositionRaidDropDown, self.value)
+			local unitId = self.value
+			local frame = LoseControlDB.frames[unitId]
+			local PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
+			local PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
+			if (PositionXEditBox and PositionYEditBox) then
+				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
+				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
+				if (frame.anchor ~= "Blizzard") then
+					PositionXEditBox:Enable()
+					PositionYEditBox:Enable()
+				else
+					PositionXEditBox:Disable()
+					PositionYEditBox:Disable()
+				end
+				PositionXEditBox:SetCursorPosition(0)
+				PositionYEditBox:SetCursorPosition(0)
+				PositionXEditBox:ClearFocus()
+				PositionYEditBox:ClearFocus()
+			end
+		end
+	end
 
-	local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanelFrame, 16, 256, 2, OptionsPanelFrame:GetName() .. "IconSizeSlider")
+	local PositionXEditBox = CreateEditBox(L["Position"], OptionsPanelFrame, 55, 20, OptionsPanelFrame:GetName() .. "PositionXEditBox")
+	PositionXEditBox:SetScript("OnEnterPressed", function(self, value)
+		local val = self:GetText()
+		local unitId = v
+		if v == "party" then
+			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown'])
+		elseif v == "arena" then
+			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown'])
+		elseif v == "raid" then
+			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown'])
+		end
+		local frame = LoseControlDB.frames[unitId]
+		local icon = LCframes[unitId]
+		if tonumber(val) then
+			val = mathfloor(val+0.5)
+			self:SetText(val)
+			frame.x = val
+			icon:ClearAllPoints()
+			icon:GetParent():ClearAllPoints()
+			icon:SetPoint(
+				frame.point or "CENTER",
+				icon.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+			icon:GetParent():SetPoint(
+				frame.point or "CENTER",
+				icon.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+			if icon.MasqueGroup then
+				icon.MasqueGroup:ReSkin()
+			end
+			self:ClearFocus()
+		else
+			self:SetText(mathfloor((frame.x or 0)+0.5))
+			self:ClearFocus()
+		end
+	end)
+	PositionXEditBox:SetScript("OnDisable", function(self)
+		self:SetTextColor(GRAY_FONT_COLOR:GetRGB())
+	end)
+	PositionXEditBox:SetScript("OnEnable", function(self)
+		self:SetTextColor(1, 1, 1)
+	end)
+	
+	local PositionYEditBox = CreateEditBox(L["Position"], OptionsPanelFrame, 55, 20, OptionsPanelFrame:GetName() .. "PositionYEditBox")
+	PositionYEditBox:SetScript("OnEnterPressed", function(self, value)
+		local val = self:GetText()
+		local unitId = v
+		if v == "party" then
+			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown'])
+		elseif v == "arena" then
+			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown'])
+		elseif v == "raid" then
+			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown'])
+		end
+		local frame = LoseControlDB.frames[unitId]
+		local icon = LCframes[unitId]
+		if tonumber(val) then
+			val = mathfloor(val+0.5)
+			self:SetText(val)
+			frame.y = val
+			icon:ClearAllPoints()
+			icon:GetParent():ClearAllPoints()
+			icon:SetPoint(
+				frame.point or "CENTER",
+				icon.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+			icon:GetParent():SetPoint(
+				frame.point or "CENTER",
+				icon.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+			if icon.MasqueGroup then
+				icon.MasqueGroup:ReSkin()
+			end
+			self:ClearFocus()
+		else
+			self:SetText(mathfloor((frame.y or 0)+0.5))
+			self:ClearFocus()
+		end
+	end)
+	PositionYEditBox:SetScript("OnDisable", function(self)
+		self:SetTextColor(GRAY_FONT_COLOR:GetRGB())
+	end)
+	PositionYEditBox:SetScript("OnEnable", function(self)
+		self:SetTextColor(1, 1, 1)
+	end)
+
+	local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanelFrame, 4, 256, 1, true, OptionsPanelFrame:GetName() .. "IconSizeSlider")
 	SizeSlider:SetScript("OnValueChanged", function(self, value)
+		value = mathfloor(value+0.5)
 		_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
+		self.editbox:SetText(value)
 		local frames = { v }
 		if v == "party" then
 			frames = { "party1", "party2", "party3", "party4" }
 		elseif v == "arena" then
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+		elseif v == "raid" then
+			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].size = value
@@ -4758,14 +6107,18 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		end
 	end)
 
-	local AlphaSlider = CreateSlider(L["Opacity"], OptionsPanelFrame, 0, 100, 2, OptionsPanelFrame:GetName() .. "OpacitySlider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
+	local AlphaSlider = CreateSlider(L["Opacity"], OptionsPanelFrame, 0, 100, 1, true, OptionsPanelFrame:GetName() .. "OpacitySlider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
 	AlphaSlider:SetScript("OnValueChanged", function(self, value)
+		value = mathfloor(value+0.5)
 		_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
+		self.editbox:SetText(value)
 		local frames = { v }
 		if v == "party" then
 			frames = { "party1", "party2", "party3", "party4" }
 		elseif v == "arena" then
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+		elseif v == "raid" then
+			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].alpha = value / 100 -- the real alpha value
@@ -4775,9 +6128,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 
 	local AlphaSlider2
 	if v == "player" then
-		AlphaSlider2 = CreateSlider(L["Opacity"], OptionsPanelFrame, 0, 100, 2, OptionsPanelFrame:GetName() .. "Opacity2Slider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
+		AlphaSlider2 = CreateSlider(L["Opacity"], OptionsPanelFrame, 0, 100, 1, true, OptionsPanelFrame:GetName() .. "Opacity2Slider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
 		AlphaSlider2:SetScript("OnValueChanged", function(self, value)
+			value = mathfloor(value+0.5)
 			_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
+			self.editbox:SetText(value)
 			local frames = { v }
 			if v == "player" then
 				LoseControlDB.frames.player2.alpha = value / 100 -- the real alpha value
@@ -4799,6 +6154,18 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 			end
 		end)
+	elseif v == "raid" then
+		DisableInBG = CreateFrame("CheckButton", O..v.."DisableInBG", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisableInBGText"]:SetText(L["DisableInBG"])
+		DisableInBG:SetScript("OnClick", function(self)
+			LoseControlDB.disableRaidInBG = self:GetChecked()
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				for i = 1, 40 do
+					LCframes[v .. i].maxExpirationTime = 0
+					LCframes[v .. i]:PLAYER_ENTERING_WORLD()
+				end
+			end
+		end)
 	elseif v == "arena" then
 		DisableInBG = CreateFrame("CheckButton", O..v.."DisableInBG", OptionsPanelFrame, "OptionsCheckButtonTemplate")
 		_G[O..v.."DisableInBGText"]:SetText(L["DisableInBG"])
@@ -4806,6 +6173,33 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LoseControlDB.disableArenaInBG = self:GetChecked()
 			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
 				for i = 1, 5 do
+					LCframes[v .. i].maxExpirationTime = 0
+					LCframes[v .. i]:PLAYER_ENTERING_WORLD()
+				end
+			end
+		end)
+	end
+	
+	local DisableInArena
+	if v == "party" then
+		DisableInArena = CreateFrame("CheckButton", O..v.."DisableInArena", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisableInArenaText"]:SetText(L["DisableInArena"])
+		DisableInArena:SetScript("OnClick", function(self)
+			LoseControlDB.disablePartyInArena = self:GetChecked()
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				for i = 1, 4 do
+					LCframes[v .. i].maxExpirationTime = 0
+					LCframes[v .. i]:PLAYER_ENTERING_WORLD()
+				end
+			end
+		end)
+	elseif v == "raid" then
+		DisableInArena = CreateFrame("CheckButton", O..v.."DisableInArena", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		_G[O..v.."DisableInArenaText"]:SetText(L["DisableInArena"])
+		DisableInArena:SetScript("OnClick", function(self)
+			LoseControlDB.disableRaidInArena = self:GetChecked()
+			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
+				for i = 1, 40 do
 					LCframes[v .. i].maxExpirationTime = 0
 					LCframes[v .. i]:PLAYER_ENTERING_WORLD()
 				end
@@ -4946,96 +6340,126 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 
 	local catListEnChecksButtons = { "PvE", "Immune", "ImmuneSpell", "ImmunePhysical", "CC", "Silence", "Disarm", "Root", "Snare", "Other" }
 	local CategoriesCheckButtons = { }
-	local FriendlyInterrupt = CreateFrame("CheckButton", O..v.."FriendlyInterrupt", OptionsPanelFrame, "OptionsCheckButtonTemplate")
-	FriendlyInterrupt:SetHitRectInsets(0, -36, 0, 0)
-	_G[O..v.."FriendlyInterruptText"]:SetText(L["CatFriendly"])
-	FriendlyInterrupt:SetScript("OnClick", function(self)
-		local frames = { v }
-		if v == "party" then
-			frames = { "party1", "party2", "party3", "party4" }
-		end
-		for _, frame in ipairs(frames) do
-			LoseControlDB.frames[frame].categoriesEnabled.interrupt.friendly = self:GetChecked()
-			LCframes[frame].maxExpirationTime = 0
-			if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-				LCframes[frame]:UNIT_AURA(frame, 0)
+	if not(strfind(v, "arena")) then
+		local FriendlyInterrupt = CreateFrame("CheckButton", O..v.."FriendlyInterrupt", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+		FriendlyInterrupt:SetHitRectInsets(0, -36, 0, 0)
+		_G[O..v.."FriendlyInterruptText"]:SetText(L["CatFriendly"])
+		FriendlyInterrupt:SetScript("OnClick", function(self)
+			local frames = { v }
+			if v == "party" then
+				frames = { "party1", "party2", "party3", "party4" }
+			elseif v == "raid" then
+				frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
 			end
-		end
-	end)
-	tblinsert(CategoriesCheckButtons, { frame = FriendlyInterrupt, auraType = "interrupt", reaction = "friendly", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 140, yPos = 5 })
+			for _, frame in ipairs(frames) do
+				LoseControlDB.frames[frame].categoriesEnabled.interrupt.friendly = self:GetChecked()
+				LCframes[frame].maxExpirationTime = 0
+				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
+					LCframes[frame]:UNIT_AURA(frame, 0)
+				end
+			end
+		end)
+		tblinsert(CategoriesCheckButtons, { frame = FriendlyInterrupt, auraType = "interrupt", reaction = "friendly", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 140, yPos = 5 })
+	end
 	if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or strfind(v, "arena") then
 		local EnemyInterrupt = CreateFrame("CheckButton", O..v.."EnemyInterrupt", OptionsPanelFrame, "OptionsCheckButtonTemplate")
 		EnemyInterrupt:SetHitRectInsets(0, -36, 0, 0)
 		_G[O..v.."EnemyInterruptText"]:SetText(L["CatEnemy"])
 		EnemyInterrupt:SetScript("OnClick", function(self)
-			LoseControlDB.frames[v].categoriesEnabled.interrupt.enemy = self:GetChecked()
-			LCframes[v].maxExpirationTime = 0
-			if LoseControlDB.frames[v].enabled and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(v, 0)
+			local frames = { v }
+			if v == "arena" then
+				frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+			end
+			for _, frame in ipairs(frames) do
+				LoseControlDB.frames[frame].categoriesEnabled.interrupt.enemy = self:GetChecked()
+				LCframes[frame].maxExpirationTime = 0
+				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
+					LCframes[frame]:UNIT_AURA(frame, 0)
+				end
 			end
 		end)
-		tblinsert(CategoriesCheckButtons, { frame = EnemyInterrupt, auraType = "interrupt", reaction = "enemy", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 270, yPos = 5 })
+		tblinsert(CategoriesCheckButtons, { frame = EnemyInterrupt, auraType = "interrupt", reaction = "enemy", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = (not(strfind(v, "arena")) and 270 or 140), yPos = 5 })
 	end
 	for _, cat in pairs(catListEnChecksButtons) do
-		local FriendlyBuff = CreateFrame("CheckButton", O..v.."Friendly"..cat.."Buff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
-		FriendlyBuff:SetHitRectInsets(0, -36, 0, 0)
-		_G[O..v.."Friendly"..cat.."BuffText"]:SetText(L["CatFriendlyBuff"])
-		FriendlyBuff:SetScript("OnClick", function(self)
-			local frames = { v }
-			if v == "party" then
-				frames = { "party1", "party2", "party3", "party4" }
-			end
-			for _, frame in ipairs(frames) do
-				LoseControlDB.frames[frame].categoriesEnabled.buff.friendly[cat] = self:GetChecked()
-				LCframes[frame].maxExpirationTime = 0
-				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(frame, 0)
+		if not(strfind(v, "arena")) then
+			local FriendlyBuff = CreateFrame("CheckButton", O..v.."Friendly"..cat.."Buff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+			FriendlyBuff:SetHitRectInsets(0, -36, 0, 0)
+			_G[O..v.."Friendly"..cat.."BuffText"]:SetText(L["CatFriendlyBuff"])
+			FriendlyBuff:SetScript("OnClick", function(self)
+				local frames = { v }
+				if v == "party" then
+					frames = { "party1", "party2", "party3", "party4" }
+				elseif v == "raid" then
+					frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
 				end
-			end
-		end)
-		tblinsert(CategoriesCheckButtons, { frame = FriendlyBuff, auraType = "buff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 140, yPos = 5 })
-		local FriendlyDebuff = CreateFrame("CheckButton", O..v.."Friendly"..cat.."Debuff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
-		FriendlyDebuff:SetHitRectInsets(0, -36, 0, 0)
-		_G[O..v.."Friendly"..cat.."DebuffText"]:SetText(L["CatFriendlyDebuff"])
-		FriendlyDebuff:SetScript("OnClick", function(self)
-			local frames = { v }
-			if v == "party" then
-				frames = { "party1", "party2", "party3", "party4" }
-			end
-			for _, frame in ipairs(frames) do
-				LoseControlDB.frames[frame].categoriesEnabled.debuff.friendly[cat] = self:GetChecked()
-				LCframes[frame].maxExpirationTime = 0
-				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(frame, 0)
+				for _, frame in ipairs(frames) do
+					LoseControlDB.frames[frame].categoriesEnabled.buff.friendly[cat] = self:GetChecked()
+					LCframes[frame].maxExpirationTime = 0
+					if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
+						LCframes[frame]:UNIT_AURA(frame, 0)
+					end
 				end
-			end
-		end)
-		tblinsert(CategoriesCheckButtons, { frame = FriendlyDebuff, auraType = "debuff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 205, yPos = 5 })
+			end)
+			tblinsert(CategoriesCheckButtons, { frame = FriendlyBuff, auraType = "buff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 140, yPos = 5 })
+		end
+		if not(strfind(v, "arena")) then
+			local FriendlyDebuff = CreateFrame("CheckButton", O..v.."Friendly"..cat.."Debuff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
+			FriendlyDebuff:SetHitRectInsets(0, -36, 0, 0)
+			_G[O..v.."Friendly"..cat.."DebuffText"]:SetText(L["CatFriendlyDebuff"])
+			FriendlyDebuff:SetScript("OnClick", function(self)
+				local frames = { v }
+				if v == "party" then
+					frames = { "party1", "party2", "party3", "party4" }
+				elseif v == "raid" then
+					frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+				end
+				for _, frame in ipairs(frames) do
+					LoseControlDB.frames[frame].categoriesEnabled.debuff.friendly[cat] = self:GetChecked()
+					LCframes[frame].maxExpirationTime = 0
+					if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
+						LCframes[frame]:UNIT_AURA(frame, 0)
+					end
+				end
+			end)
+			tblinsert(CategoriesCheckButtons, { frame = FriendlyDebuff, auraType = "debuff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 205, yPos = 5 })
+		end
 		if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or strfind(v, "arena") then
 			local EnemyBuff = CreateFrame("CheckButton", O..v.."Enemy"..cat.."Buff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
 			EnemyBuff:SetHitRectInsets(0, -36, 0, 0)
 			_G[O..v.."Enemy"..cat.."BuffText"]:SetText(L["CatEnemyBuff"])
 			EnemyBuff:SetScript("OnClick", function(self)
-				LoseControlDB.frames[v].categoriesEnabled.buff.enemy[cat] = self:GetChecked()
-				LCframes[v].maxExpirationTime = 0
-				if LoseControlDB.frames[v].enabled and not LCframes[v].unlockMode then
-					LCframes[v]:UNIT_AURA(v, 0)
+				local frames = { v }
+				if v == "arena" then
+					frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+				end
+				for _, frame in ipairs(frames) do
+					LoseControlDB.frames[frame].categoriesEnabled.buff.enemy[cat] = self:GetChecked()
+					LCframes[frame].maxExpirationTime = 0
+					if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
+						LCframes[frame]:UNIT_AURA(frame, 0)
+					end
 				end
 			end)
-			tblinsert(CategoriesCheckButtons, { frame = EnemyBuff, auraType = "buff", reaction = "enemy", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 270, yPos = 5 })
+			tblinsert(CategoriesCheckButtons, { frame = EnemyBuff, auraType = "buff", reaction = "enemy", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = (not(strfind(v, "arena")) and 270 or 140), yPos = 5 })
 		end
 		if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or strfind(v, "arena") then
 			local EnemyDebuff = CreateFrame("CheckButton", O..v.."Enemy"..cat.."Debuff", OptionsPanelFrame, "OptionsCheckButtonTemplate")
 			EnemyDebuff:SetHitRectInsets(0, -36, 0, 0)
 			_G[O..v.."Enemy"..cat.."DebuffText"]:SetText(L["CatEnemyDebuff"])
 			EnemyDebuff:SetScript("OnClick", function(self)
-				LoseControlDB.frames[v].categoriesEnabled.debuff.enemy[cat] = self:GetChecked()
-				LCframes[v].maxExpirationTime = 0
-				if LoseControlDB.frames[v].enabled and not LCframes[v].unlockMode then
-					LCframes[v]:UNIT_AURA(v, 0)
+				local frames = { v }
+				if v == "arena" then
+					frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+				end
+				for _, frame in ipairs(frames) do
+					LoseControlDB.frames[frame].categoriesEnabled.debuff.enemy[cat] = self:GetChecked()
+					LCframes[frame].maxExpirationTime = 0
+					if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
+						LCframes[frame]:UNIT_AURA(frame, 0)
+					end
 				end
 			end)
-			tblinsert(CategoriesCheckButtons, { frame = EnemyDebuff, auraType = "debuff", reaction = "enemy", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 335, yPos = 5 })
+			tblinsert(CategoriesCheckButtons, { frame = EnemyDebuff, auraType = "debuff", reaction = "enemy", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = (not(strfind(v, "arena")) and 335 or 205), yPos = 5 })
 		end
 	end
 
@@ -5089,8 +6513,10 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if AlphaSlider2 then
 				if enable then
 					BlizzardOptionsPanel_Slider_Enable(AlphaSlider2)
+					if AlphaSlider2.editbox then AlphaSlider2.editbox:Enable() end
 				else
 					BlizzardOptionsPanel_Slider_Disable(AlphaSlider2)
+					if AlphaSlider2.editbox then AlphaSlider2.editbox:Disable() end
 				end
 			end
 			if AnchorDropDown2 then
@@ -5158,6 +6584,21 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					0,
 					0
 				)
+				local PositionXEditBox = _G['LoseControlOptionsPanel'..LCframes.player.unitId..'PositionXEditBox']
+				local PositionYEditBox = _G['LoseControlOptionsPanel'..LCframes.player.unitId..'PositionYEditBox']
+				if (PositionXEditBox and PositionYEditBox) then
+					PositionXEditBox:SetText(0)
+					PositionYEditBox:SetText(0)
+					if (frame.anchor ~= "Blizzard") then
+						PositionXEditBox:Enable()
+						PositionYEditBox:Enable()
+					else
+						PositionXEditBox:Disable()
+						PositionYEditBox:Disable()
+					end
+					PositionXEditBox:SetCursorPosition(0)
+					PositionYEditBox:SetCursorPosition(0)
+				end
 				if LCframes.player.anchor:GetParent() then
 					LCframes.player:SetFrameLevel(LCframes.player.anchor:GetParent():GetFrameLevel()+((frame.anchor ~= "None" and frame.anchor ~= "Blizzard") and 3 or 0))
 				end
@@ -5180,6 +6621,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		local enabled = self:GetChecked()
 		if enabled then
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
+			if DisableInArena then BlizzardOptionsPanel_CheckButton_Enable(DisableInArena) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Enable(DisableInRaid) end
 			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Enable(ShowNPCInterrupts) end
 			if DisablePlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisablePlayerTargetTarget) end
@@ -5216,18 +6658,50 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			CategoryEnabledRootLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 			CategoryEnabledSnareLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 			CategoryEnabledOtherLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			PositionEditBoxLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			PositionXEditBoxLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			PositionYEditBoxLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
+			SizeSlider.editbox:Enable()
+			AlphaSlider.editbox:Enable()
 			UIDropDownMenu_EnableDropDown(AnchorDropDown)
 			if LoseControlDB.duplicatePlayerPortrait then
-				if AlphaSlider2 then BlizzardOptionsPanel_Slider_Enable(AlphaSlider2) end
+				if AlphaSlider2 then
+					BlizzardOptionsPanel_Slider_Enable(AlphaSlider2)
+					if AlphaSlider2.editbox then AlphaSlider2.editbox:Enable() end
+				end
 				if AnchorDropDown2 then UIDropDownMenu_EnableDropDown(AnchorDropDown2) end
 			else
-				if AlphaSlider2 then BlizzardOptionsPanel_Slider_Disable(AlphaSlider2) end
+				if AlphaSlider2 then
+					BlizzardOptionsPanel_Slider_Disable(AlphaSlider2)
+					if AlphaSlider2.editbox then AlphaSlider2.editbox:Disable() end
+				end
 				if AnchorDropDown2 then UIDropDownMenu_DisableDropDown(AnchorDropDown2) end
+			end
+			if AnchorPositionPartyDropDown then UIDropDownMenu_EnableDropDown(AnchorPositionPartyDropDown) end
+			if AnchorPositionArenaDropDown then UIDropDownMenu_EnableDropDown(AnchorPositionArenaDropDown) end
+			if AnchorPositionRaidDropDown then UIDropDownMenu_EnableDropDown(AnchorPositionRaidDropDown) end
+			if (PositionXEditBox and PositionYEditBox) then
+				local unitIdSel = v
+				if (v == "party") then
+					unitIdSel = (AnchorPositionPartyDropDown ~= nil) and UIDropDownMenu_GetSelectedValue(AnchorPositionPartyDropDown) or "party1"
+				elseif (v == "arena") then
+					unitIdSel = (AnchorPositionArenaDropDown ~= nil) and UIDropDownMenu_GetSelectedValue(AnchorPositionArenaDropDown) or "arena1"
+				elseif (v == "raid") then
+					unitIdSel = (AnchorPositionRaidDropDown ~= nil) and UIDropDownMenu_GetSelectedValue(AnchorPositionRaidDropDown) or "raid1"
+				end
+				if (LoseControlDB.frames[unitIdSel].anchor ~= "Blizzard") then
+					PositionXEditBox:Enable()
+					PositionYEditBox:Enable()
+				else
+					PositionXEditBox:Disable()
+					PositionYEditBox:Disable()
+				end
 			end
 		else
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
+			if DisableInArena then BlizzardOptionsPanel_CheckButton_Disable(DisableInArena) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Disable(DisableInRaid) end
 			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Disable(ShowNPCInterrupts) end
 			if DisablePlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisablePlayerTargetTarget) end
@@ -5258,29 +6732,36 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			CategoryEnabledRootLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 			CategoryEnabledSnareLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 			CategoryEnabledOtherLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			PositionEditBoxLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			PositionXEditBoxLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			PositionYEditBoxLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
+			SizeSlider.editbox:Disable()
+			AlphaSlider.editbox:Disable()
 			UIDropDownMenu_DisableDropDown(AnchorDropDown)
-			if AlphaSlider2 then BlizzardOptionsPanel_Slider_Disable(AlphaSlider2) end
+			if AlphaSlider2 then
+				BlizzardOptionsPanel_Slider_Disable(AlphaSlider2)
+				if AlphaSlider2.editbox then AlphaSlider2.editbox:Disable() end
+			end
 			if AnchorDropDown2 then UIDropDownMenu_DisableDropDown(AnchorDropDown2) end
+			if AnchorPositionPartyDropDown then UIDropDownMenu_DisableDropDown(AnchorPositionPartyDropDown) end
+			if AnchorPositionArenaDropDown then UIDropDownMenu_DisableDropDown(AnchorPositionArenaDropDown) end
+			if AnchorPositionRaidDropDown then UIDropDownMenu_DisableDropDown(AnchorPositionRaidDropDown) end
+			if PositionXEditBox then PositionXEditBox:Disable() end
+			if PositionYEditBox then PositionYEditBox:Disable() end
 		end
 		local frames = { v }
 		if v == "party" then
 			frames = { "party1", "party2", "party3", "party4" }
 		elseif v == "arena" then
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+		elseif v == "raid" then
+			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].enabled = enabled
-			local inInstance, instanceType = IsInInstance()
-			local enable = enabled and not (
-				inInstance and instanceType == "pvp" and (
-					( LoseControlDB.disablePartyInBG and strfind(unitId, "party") ) or
-					( LoseControlDB.disableArenaInBG and strfind(unitId, "arena") )
-				)
-			) and not (
-				IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
-			)
+			local enable = enabled and LCframes[frame]:GetEnabled()
 			LCframes[frame].maxExpirationTime = 0
 			LCframes[frame]:RegisterUnitEvents(enable)
 			if enable and not LCframes[frame].unlockMode then
@@ -5298,22 +6779,31 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	end)
 
 	Enabled:SetPoint("TOPLEFT", 16, -32)
-	if DisableInBG then DisableInBG:SetPoint("TOPLEFT", Enabled, 200, 0) end
-	if DisableInRaid then DisableInRaid:SetPoint("TOPLEFT", Enabled, 200, -25) end
-	if ShowNPCInterrupts then ShowNPCInterrupts:SetPoint("TOPLEFT", Enabled, 200, 0) end
-	if DisablePlayerTargetTarget then DisablePlayerTargetTarget:SetPoint("TOPLEFT", Enabled, 200, -25) end
-	if DisableTargetTargetTarget then DisableTargetTargetTarget:SetPoint("TOPLEFT", Enabled, 200, -50) end
-	if DisablePlayerTargetPlayerTargetTarget then DisablePlayerTargetPlayerTargetTarget:SetPoint("TOPLEFT", Enabled, 200, -75) end
-	if DisableTargetDeadTargetTarget then DisableTargetDeadTargetTarget:SetPoint("TOPLEFT", Enabled, 200, -100) end
-	if DisableFocusFocusTarget then DisableFocusFocusTarget:SetPoint("TOPLEFT", Enabled, 200, -50) end
-	if DisablePlayerFocusPlayerFocusTarget then DisablePlayerFocusPlayerFocusTarget:SetPoint("TOPLEFT", Enabled, 200, -75) end
-	if DisableFocusDeadFocusTarget then DisableFocusDeadFocusTarget:SetPoint("TOPLEFT", Enabled, 200, -100) end
+	if DisableInBG then DisableInBG:SetPoint("TOPLEFT", Enabled, 225, 0) end
+	if DisableInArena then DisableInArena:SetPoint("TOPLEFT", Enabled, 225, -25) end
+	if DisableInRaid then DisableInRaid:SetPoint("TOPLEFT", Enabled, 225, -50) end
+	if ShowNPCInterrupts then ShowNPCInterrupts:SetPoint("TOPLEFT", Enabled, 225, 0) end
+	if DisablePlayerTargetTarget then DisablePlayerTargetTarget:SetPoint("TOPLEFT", Enabled, 225, -25) end
+	if DisableTargetTargetTarget then DisableTargetTargetTarget:SetPoint("TOPLEFT", Enabled, 225, -50) end
+	if DisablePlayerTargetPlayerTargetTarget then DisablePlayerTargetPlayerTargetTarget:SetPoint("TOPLEFT", Enabled, 225, -75) end
+	if DisableTargetDeadTargetTarget then DisableTargetDeadTargetTarget:SetPoint("TOPLEFT", Enabled, 225, -100) end
+	if DisableFocusFocusTarget then DisableFocusFocusTarget:SetPoint("TOPLEFT", Enabled, 225, -50) end
+	if DisablePlayerFocusPlayerFocusTarget then DisablePlayerFocusPlayerFocusTarget:SetPoint("TOPLEFT", Enabled, 225, -75) end
+	if DisableFocusDeadFocusTarget then DisableFocusDeadFocusTarget:SetPoint("TOPLEFT", Enabled, 225, -100) end
 	if DuplicatePlayerPortrait then DuplicatePlayerPortrait:SetPoint("TOPLEFT", Enabled, 305, 0) end
 	SizeSlider:SetPoint("TOPLEFT", Enabled, "BOTTOMLEFT", 0, -32)
 	AlphaSlider:SetPoint("TOPLEFT", SizeSlider, "BOTTOMLEFT", 0, -32)
 	AnchorDropDownLabel:SetPoint("TOPLEFT", AlphaSlider, "BOTTOMLEFT", 0, -12)
 	AnchorDropDown:SetPoint("TOPLEFT", AnchorDropDownLabel, "BOTTOMLEFT", 0, -8)
-	CategoriesEnabledLabel:SetPoint("TOPLEFT", AnchorDropDown, "BOTTOMLEFT", 0, -14)
+	PositionEditBoxLabel:SetPoint("TOPLEFT", AnchorDropDown, "BOTTOMLEFT", 0, -4)
+	PositionXEditBoxLabel:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 10, -9)
+	PositionXEditBox:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 27, -3)
+	PositionYEditBoxLabel:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 90, -9)
+	PositionYEditBox:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 107, -3)
+	if AnchorPositionPartyDropDown then AnchorPositionPartyDropDown:SetPoint("RIGHT", PositionYEditBox, "RIGHT", 30, 0) end
+	if AnchorPositionArenaDropDown then AnchorPositionArenaDropDown:SetPoint("RIGHT", PositionYEditBox, "RIGHT", 30, 0) end
+	if AnchorPositionRaidDropDown then AnchorPositionRaidDropDown:SetPoint("RIGHT", PositionYEditBox, "RIGHT", 30, 0) end
+	CategoriesEnabledLabel:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 0, -38)
 	CategoryEnabledInterruptLabel:SetPoint("TOPLEFT", CategoriesEnabledLabel, "BOTTOMLEFT", 0, -12)
 	CategoryEnabledPvELabel:SetPoint("TOPLEFT", CategoryEnabledInterruptLabel, "BOTTOMLEFT", 0, -8)
 	CategoryEnabledImmuneLabel:SetPoint("TOPLEFT", CategoryEnabledPvELabel, "BOTTOMLEFT", 0, -8)
@@ -5342,6 +6832,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		local unitId = v
 		if unitId == "party" then
 			DisableInBG:SetChecked(LoseControlDB.disablePartyInBG)
+			DisableInArena:SetChecked(LoseControlDB.disablePartyInArena)
 			DisableInRaid:SetChecked(LoseControlDB.disablePartyInRaid)
 			unitId = "party1"
 		elseif unitId == "arena" then
@@ -5350,6 +6841,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		elseif unitId == "player" then
 			DuplicatePlayerPortrait:SetChecked(LoseControlDB.duplicatePlayerPortrait)
 			AlphaSlider2:SetValue(LoseControlDB.frames.player2.alpha * 100)
+			AlphaSlider2.editbox:SetText(LoseControlDB.frames.player2.alpha * 100)
+			AlphaSlider2.editbox:SetCursorPosition(0)
 		elseif unitId == "target" then
 			ShowNPCInterrupts:SetChecked(LoseControlDB.showNPCInterruptsTarget)
 		elseif unitId == "focus" then
@@ -5366,6 +6859,10 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			DisableFocusFocusTarget:SetChecked(LoseControlDB.disableFocusFocusTarget)
 			DisablePlayerFocusPlayerFocusTarget:SetChecked(LoseControlDB.disablePlayerFocusPlayerFocusTarget)
 			DisableFocusDeadFocusTarget:SetChecked(LoseControlDB.disableFocusDeadFocusTarget)
+		elseif unitId == "raid" then
+			DisableInBG:SetChecked(LoseControlDB.disableRaidInBG)
+			DisableInArena:SetChecked(LoseControlDB.disableRaidInArena)
+			unitId = "raid1"
 		end
 		LCframes[unitId]:CheckSUFUnitsAnchors(true)
 		for _, checkbuttonframe in pairs(CategoriesCheckButtons) do
@@ -5388,6 +6885,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		Enabled:SetChecked(frame.enabled)
 		if frame.enabled then
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
+			if DisableInArena then BlizzardOptionsPanel_CheckButton_Enable(DisableInArena) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Enable(DisableInRaid) end
 			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Enable(ShowNPCInterrupts) end
 			if DisablePlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Enable(DisablePlayerTargetTarget) end
@@ -5424,18 +6922,42 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			CategoryEnabledRootLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 			CategoryEnabledSnareLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 			CategoryEnabledOtherLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			PositionEditBoxLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			PositionXEditBoxLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			PositionYEditBoxLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 			BlizzardOptionsPanel_Slider_Enable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
+			SizeSlider.editbox:Enable()
+			AlphaSlider.editbox:Enable()
 			UIDropDownMenu_EnableDropDown(AnchorDropDown)
 			if LoseControlDB.duplicatePlayerPortrait then
-				if AlphaSlider2 then BlizzardOptionsPanel_Slider_Enable(AlphaSlider2) end
+				if AlphaSlider2 then
+					BlizzardOptionsPanel_Slider_Enable(AlphaSlider2)
+					if AlphaSlider2.editbox then AlphaSlider2.editbox:Enable() end
+				end
 				if AnchorDropDown2 then UIDropDownMenu_EnableDropDown(AnchorDropDown2) end
 			else
-				if AlphaSlider2 then BlizzardOptionsPanel_Slider_Disable(AlphaSlider2) end
+				if AlphaSlider2 then
+					BlizzardOptionsPanel_Slider_Disable(AlphaSlider2)
+					if AlphaSlider2.editbox then AlphaSlider2.editbox:Disable() end
+				end
 				if AnchorDropDown2 then UIDropDownMenu_DisableDropDown(AnchorDropDown2) end
+			end
+			if AnchorPositionPartyDropDown then UIDropDownMenu_EnableDropDown(AnchorPositionPartyDropDown) end
+			if AnchorPositionArenaDropDown then UIDropDownMenu_EnableDropDown(AnchorPositionArenaDropDown) end
+			if AnchorPositionRaidDropDown then UIDropDownMenu_EnableDropDown(AnchorPositionRaidDropDown) end
+			if (PositionXEditBox and PositionYEditBox) then
+				if (frame.anchor ~= "Blizzard") then
+					PositionXEditBox:Enable()
+					PositionYEditBox:Enable()
+				else
+					PositionXEditBox:Disable()
+					PositionYEditBox:Disable()
+				end
 			end
 		else
 			if DisableInBG then BlizzardOptionsPanel_CheckButton_Disable(DisableInBG) end
+			if DisableInArena then BlizzardOptionsPanel_CheckButton_Disable(DisableInArena) end
 			if DisableInRaid then BlizzardOptionsPanel_CheckButton_Disable(DisableInRaid) end
 			if ShowNPCInterrupts then BlizzardOptionsPanel_CheckButton_Disable(ShowNPCInterrupts) end
 			if DisablePlayerTargetTarget then BlizzardOptionsPanel_CheckButton_Disable(DisablePlayerTargetTarget) end
@@ -5466,17 +6988,46 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			CategoryEnabledRootLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 			CategoryEnabledSnareLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 			CategoryEnabledOtherLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			PositionEditBoxLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			PositionXEditBoxLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			PositionYEditBoxLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 			BlizzardOptionsPanel_Slider_Disable(SizeSlider)
 			BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
+			SizeSlider.editbox:Disable()
+			AlphaSlider.editbox:Disable()
 			UIDropDownMenu_DisableDropDown(AnchorDropDown)
-			if AlphaSlider2 then BlizzardOptionsPanel_Slider_Disable(AlphaSlider2) end
+			if AlphaSlider2 then
+				BlizzardOptionsPanel_Slider_Disable(AlphaSlider2)
+				if AlphaSlider2.editbox then AlphaSlider2.editbox:Disable() end
+			end
 			if AnchorDropDown2 then UIDropDownMenu_DisableDropDown(AnchorDropDown2) end
+			if AnchorPositionPartyDropDown then UIDropDownMenu_DisableDropDown(AnchorPositionPartyDropDown) end
+			if AnchorPositionArenaDropDown then UIDropDownMenu_DisableDropDown(AnchorPositionArenaDropDown) end
+			if AnchorPositionRaidDropDown then UIDropDownMenu_DisableDropDown(AnchorPositionRaidDropDown) end
+			if PositionXEditBox then PositionXEditBox:Disable() end
+			if PositionYEditBox then PositionYEditBox:Disable() end
 		end
 		SizeSlider:SetValue(frame.size)
+		SizeSlider.editbox:SetText(frame.size)
+		SizeSlider.editbox:SetCursorPosition(0)
 		AlphaSlider:SetValue(frame.alpha * 100)
+		AlphaSlider.editbox:SetText(frame.alpha * 100)
+		AlphaSlider.editbox:SetCursorPosition(0)
+		if (PositionXEditBox and PositionYEditBox) then
+			PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
+			PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
+			PositionXEditBox:SetCursorPosition(0)
+			PositionYEditBox:SetCursorPosition(0)
+			PositionXEditBox:ClearFocus()
+			PositionYEditBox:ClearFocus()
+		end
 		UIDropDownMenu_Initialize(AnchorDropDown, function() -- called on refresh and also every time the drop down menu is opened
 			AddItem(AnchorDropDown, L["None"], "None")
-			AddItem(AnchorDropDown, "Blizzard", "Blizzard")
+			if not(strfind(unitId, "raid")) then
+				AddItem(AnchorDropDown, "Blizzard", "Blizzard")
+			else
+				AddItem(AnchorDropDown, "Blizzard", "BlizzardRaidFrames")
+			end
 			if _G[anchors["Perl"][unitId]] or (type(anchors["Perl"][unitId])=="table" and anchors["Perl"][unitId]) then AddItem(AnchorDropDown, "Perl", "Perl") end
 			if _G[anchors["XPerl"][unitId]] or (type(anchors["XPerl"][unitId])=="table" and anchors["XPerl"][unitId]) then AddItem(AnchorDropDown, "XPerl", "XPerl") end
 			if _G[anchors["LUI"][unitId]] or (type(anchors["LUI"][unitId])=="table" and anchors["LUI"][unitId]) then AddItem(AnchorDropDown, "LUI", "LUI") end
@@ -5493,6 +7044,33 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				if _G[anchors["SUF"][unitId]] or (type(anchors["SUF"][unitId])=="table" and anchors["SUF"][unitId]) then AddItem(AnchorDropDown2, "SUF", "SUF") end
 			end)
 			UIDropDownMenu_SetSelectedValue(AnchorDropDown2, LoseControlDB.frames.player2.anchor)
+		end
+		if AnchorPositionPartyDropDown then
+			UIDropDownMenu_Initialize(AnchorPositionPartyDropDown, function() -- called on refresh and also every time the drop down menu is opened
+				AddItem(AnchorPositionPartyDropDown, "party1", "party1")
+				AddItem(AnchorPositionPartyDropDown, "party2", "party2")
+				AddItem(AnchorPositionPartyDropDown, "party3", "party3")
+				AddItem(AnchorPositionPartyDropDown, "party4", "party4")
+			end)
+			UIDropDownMenu_SetSelectedValue(AnchorPositionPartyDropDown, "party1")
+		end
+		if AnchorPositionArenaDropDown then
+			UIDropDownMenu_Initialize(AnchorPositionArenaDropDown, function() -- called on refresh and also every time the drop down menu is opened
+				AddItem(AnchorPositionArenaDropDown, "arena1", "arena1")
+				AddItem(AnchorPositionArenaDropDown, "arena2", "arena2")
+				AddItem(AnchorPositionArenaDropDown, "arena3", "arena3")
+				AddItem(AnchorPositionArenaDropDown, "arena4", "arena4")
+				AddItem(AnchorPositionArenaDropDown, "arena5", "arena5")
+			end)
+			UIDropDownMenu_SetSelectedValue(AnchorPositionArenaDropDown, "arena1")
+		end
+		if AnchorPositionRaidDropDown then
+			UIDropDownMenu_Initialize(AnchorPositionRaidDropDown, function() -- called on refresh and also every time the drop down menu is opened
+				for i = 1, 40 do
+					AddItem(AnchorPositionRaidDropDown, "raid"..i, "raid"..i)
+				end
+			end)
+			UIDropDownMenu_SetSelectedValue(AnchorPositionRaidDropDown, "raid1")
 		end
 	end
 
@@ -5517,7 +7095,7 @@ function SlashCmd:help()
 	print("    customspells list")
 	print("    customspells wipe")
 	print("    customspells checkandclean")
-	print("<unit> can be: player, pet, target, focus, targettarget, focustarget, party1 ... party4, arena1 ... arena5")
+	print("<unit> can be: player, pet, target, focus, targettarget, focustarget, party1 ... party4, arena1 ... arena5, raid1 ... raid40")
 	print("<category> can be: none, pve, immune, immunespell, immunephysical, cc, silence, interrupt, disarm, other, root, snare")
 end
 function SlashCmd:debug(value)
@@ -5544,6 +7122,12 @@ function SlashCmd:reset(unitId)
 			LCframes[v]:PLAYER_ENTERING_WORLD()
 			print(L["LoseControl reset."].." "..v)
 		end
+	elseif unitId == "raid" then
+		for _, v in ipairs({"raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40"}) do
+			LoseControlDB.frames[v] = CopyTable(DBdefaults.frames[v])
+			LCframes[v]:PLAYER_ENTERING_WORLD()
+			print(L["LoseControl reset."].." "..v)
+		end
 	elseif LoseControlDB.frames[unitId] and unitId ~= "player2" then
 		LoseControlDB.frames[unitId] = CopyTable(DBdefaults.frames[unitId])
 		LCframes[unitId]:PLAYER_ENTERING_WORLD()
@@ -5555,7 +7139,7 @@ function SlashCmd:reset(unitId)
 	end
 	Unlock:OnClick()
 	OptionsPanel.refresh()
-	for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena" }) do
+	for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena", "raid" }) do
 		_G[O..v].refresh()
 	end
 end
@@ -5572,15 +7156,7 @@ end
 function SlashCmd:enable(unitId)
 	if LCframes[unitId] and unitId ~= "player2" then
 		LoseControlDB.frames[unitId].enabled = true
-		local inInstance, instanceType = IsInInstance()
-		local enabled = not (
-			inInstance and instanceType == "pvp" and (
-				( LoseControlDB.disablePartyInBG and strfind(unitId, "party") ) or
-				( LoseControlDB.disableArenaInBG and strfind(unitId, "arena") )
-			)
-		) and not (
-			IsInRaid() and LoseControlDB.disablePartyInRaid and strfind(unitId, "party") and not (inInstance and (instanceType=="arena" or instanceType=="pvp"))
-		)
+		local enabled = LCframes[unitId]:GetEnabled()
 		LCframes[unitId]:RegisterUnitEvents(enabled)
 		if enabled and not LCframes[unitId].unlockMode then
 			LCframes[unitId]:UNIT_AURA(unitId, 0)
@@ -5626,8 +7202,6 @@ function SlashCmd:customspells(operation, spellId, category)
 				category = "CC"
 			elseif category == "silence" then
 				category = "Silence"
-			elseif category == "interrupt" then
-				category = "Interrupt"
 			elseif category == "disarm" then
 				category = "Disarm"
 			elseif category == "other" then
@@ -5760,7 +7334,7 @@ function SlashCmd:customspells(operation, spellId, category)
 		print("    list")
 		print("    wipe")
 		print("    checkandclean")
-		print("<category> can be: none, pve, immune, immunespell, immunephysical, cc, silence, interrupt, disarm, other, root, snare")
+		print("<category> can be: none, pve, immune, immunespell, immunephysical, cc, silence, disarm, other, root, snare")
 	end
 end
 
