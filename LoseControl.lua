@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 6.02
+-- Version: 6.03
 -- Authors: Kouri, millanzarreta
 -------------------------------------------
 
@@ -142,6 +142,7 @@ local spellIds = {
 	[248406] = "CC",				-- Cold Heart (legendary)
 	[233395] = "Root",				-- Frozen Center (pvp talent)
 	[204085] = "Root",				-- Deathchill (pvp talent)
+	[273977] = "Snare",				-- Grip of the Dead
 	[206930] = "Snare",				-- Heart Strike
 	[228645] = "Snare",				-- Heart Strike
 	[211831] = "Snare",				-- Abomination's Might (slow)
@@ -179,11 +180,13 @@ local spellIds = {
 	[203126] = "CC",				-- Maim (pvp honor talent)
 	[236025] = "CC",				-- Enraged Maim (pvp honor talent)
 	[5211]   = "CC",				-- Mighty Bash
+	[2637]   = "CC",				-- Hibernate
 	[81261]  = "Silence",			-- Solar Beam
 	[339]    = "Root",				-- Entangling Roots
 	[235963] = "CC",				-- Entangling Roots (Earthen Grasp - feral pvp talent) -- Also -80% hit chance (CC and Root category)
 	[45334]  = "Root",				-- Immobilized (Wild Charge - Bear)
 	[102359] = "Root",				-- Mass Entanglement
+	[102793] = "Snare",				-- Ursol's Vortex
 	[50259]  = "Snare",				-- Dazed (Wild Charge - Cat)
 	[58180]  = "Snare",				-- Infected Wounds
 	[61391]  = "Snare",				-- Typhoon
@@ -221,8 +224,8 @@ local spellIds = {
 	[162480] = "Root",				-- Steel Trap
 	[200108] = "Root",				-- Ranger's Net
 	[212638] = "CC",				-- Tracker's Net (pvp honor talent) -- Also -80% hit chance melee & range physical (CC and Root category)
+	[186387] = "Snare",				-- Bursting Shot
 	[224729] = "Snare",				-- Bursting Shot
-	[238559] = "Snare",				-- Bursting Shot
 	[203337] = "CC",				-- Freezing Trap (Diamond Ice - pvp honor talent)
 	[202748] = "Immune",			-- Survival Tactics (pvp honor talent) (not immune, 99% damage reduction)
 	[248519] = "ImmuneSpell",		-- Interlope (pvp honor talent)
@@ -390,7 +393,7 @@ local spellIds = {
 	[13750]  = "Other",				-- Adrenaline Rush
 	[199754] = "Other",				-- Riposte
 	[1966]   = "Other",				-- Feint
-	[45182]  = "Other",				-- Cheating Death
+	[45182]  = "Immune",			-- Cheating Death (-85% damage taken)
 	[5277]   = "Other",				-- Evasion
 	[212183] = "Other",				-- Smoke Bomb
 	[199804] = "CC",				-- Between the eyes
@@ -434,7 +437,7 @@ local spellIds = {
 	[192058] = "CC",				-- Lightning Surge totem (capacitor totem)
 	[210918] = "ImmunePhysical",	-- Ethereal Form
 	[204437] = "CC",				-- Lightning Lasso
-	[197214] = "Root",				-- Sundering
+	[197214] = "CC",				-- Sundering
 	[224126] = "Snare",				-- Frozen Bite (Doom Wolves, artifact trait)
 	[207654] = "Immune",			-- Servant of the Queen (not immune, 80% damage reduction - artifact trait)
 	
@@ -474,6 +477,7 @@ local spellIds = {
 		[213688] = "CC",			-- Fel Cleave (Fel Lord - PvP Talent)
 		[170996] = "Snare",			-- Debilitate (Terrorguard)
 		[170995] = "Snare",			-- Cripple (Doomguard)
+		[6360]   = "Snare",			-- Whiplash (Succubus)
 
 	----------------
 	-- Warrior
@@ -490,6 +494,7 @@ local spellIds = {
 	[107566] = "Root",				-- Staggering Shout
 	[105771] = "Root",				-- Charge (root)
 	[236027] = "Snare",				-- Charge (snare)
+	[118000] = "Snare",				-- Dragon Roar
 	[147531] = "Snare",				-- Bloodbath
 	[1715]   = "Snare",				-- Hamstring
 	[12323]  = "Snare",				-- Piercing Howl
@@ -855,7 +860,6 @@ local spellIds = {
 	[272609] = "CC",				-- Maddening Gaze
 	[265511] = "CC",				-- Spirit Drain
 	[278961] = "CC",				-- Decaying Mind
-	[269185] = "Immune",			-- Blood Barrier
 	[269406] = "CC",				-- Purge Corruption
 	[258347] = "Silence",			-- Sonic Screech
 	------------------------
@@ -1498,7 +1502,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	)
 	self.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
 	self.unitGUID = UnitGUID(self.unitId)
-	self:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
+	self.parent:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
 	--self:SetFrameStrata(frame.strata or "LOW")
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:SetWidth(frame.size)
@@ -1807,8 +1811,13 @@ end
 -- Constructor method
 function LoseControl:new(unitId)
 	local o = CreateFrame("Cooldown", addonName .. unitId, nil, 'CooldownFrameTemplate') --, UIParent)
+	local op = CreateFrame("Frame", addonName .. "FrameParent" .. unitId)
 	setmetatable(o, self)
 	self.__index = self
+	
+	o:SetParent(op)
+	o.parent = op
+	
 	o:SetDrawEdge(false)
 
 	-- Init class members
@@ -1884,7 +1893,7 @@ function Unlock:OnClick()
 			if frame.enabled and (_G[anchors[frame.anchor][k]] or frame.anchor == "None") then -- only unlock frames whose anchor exists
 				v:RegisterUnitEvents(false)
 				v.texture:SetTexture(select(3, GetSpellInfo(keys[random(#keys)])))
-				v:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
+				v.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
 				--v:SetFrameStrata(frame.strata or "MEDIUM")
 				if v.anchor:GetParent() then
 					v:SetFrameLevel(v.anchor:GetParent():GetFrameLevel())
@@ -2097,7 +2106,7 @@ for _, v in ipairs({ "player", "pet", "target", "focus", "party", "arena" }) do
 			icon.anchor = _G[anchors[frame.anchor][unitId]] or UIParent
 
 			if not Unlock:GetChecked() then -- prevents the icon from disappearing if the frame is currently hidden
-				icon:SetParent(icon.anchor:GetParent())
+				icon.parent:SetParent(icon.anchor:GetParent())
 			end
 
 			icon:ClearAllPoints() -- if we don't do this then the frame won't always move
