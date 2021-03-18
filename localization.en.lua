@@ -4,13 +4,16 @@
 	LOSECONTROL_DISARM  = "Disarm"
 	LOSECONTROL_ROOT    = "Root"
 	LOSECONTROL_SNARE   = "Snare"
+	LOSECONTROL_PVE     = "PvE"
 
-	LOSECONTROL_DESCRIPTION = "Displays the duration of CC effects on your character"
-	LOSECONTROL_SIZE = "Size"
-	LOSECONTROL_ALPHA = "Transparency"
+	LOSECONTROL_SIZE = "Icon Size"
+	LOSECONTROL_ALPHA = "Opacity"
 	LOSECONTROL_UNLOCK = "Unlock"
 	LOSECONTROL_UNLOCK2 = " (drag the icon to move)"
 	LOSECONTROL_COOLDOWNCOUNT = "Disable CooldownCount Support"
-	LOSECONTROL_TRACK = "Track "
+	LOSECONTROL_TRACKING = "Tracking"
+	LOSECONTROL_MINDURATION = "Minimum duration"
+	LOSECONTROL_MAXDURATION = "Maximum duration"
+
 	LOSECONTROL_RESET = "LoseControl reset."
 --end

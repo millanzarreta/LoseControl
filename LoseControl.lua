@@ -18,16 +18,18 @@ local Silence = LOSECONTROL_SILENCE
 local Disarm  = LOSECONTROL_DISARM
 local Root    = LOSECONTROL_ROOT
 local Snare   = LOSECONTROL_SNARE
+local PvE     = LOSECONTROL_PVE
 
 local spellIds = {
 	-- Death Knight
-	[47481] = CC,		-- Gnaw
+	[47481] = CC,		-- Gnaw (Ghoul)
 	[51209] = CC,		-- Hungering Cold
 	[47476] = Silence,	-- Strangulate
 	[45524] = Snare,	-- Chains of Ice
 	[58617] = Snare,	-- Glyph of Blood Boil
+	[50436] = Snare,	-- Icy Clutch (Chilblains)
 	-- Druid
-	[5211]  = CC,		-- Bash
+	[5211]  = CC,		-- Bash (also Shaman Spirit Wolf ability)
 	[33786] = CC,		-- Cyclone
 	[2637]  = CC,		-- Hibernate (works against Druids in most forms and Shamans using Ghost Wolf)
 	[22570] = CC,		-- Maim
@@ -52,6 +54,15 @@ local spellIds = {
 	--[13810] = Snare,	-- Frost Trap Aura (no duration, lasts as long as you stand in it)
 	[61394] = Snare,	-- Glyph of Freezing Trap
 	[2974]  = Snare,	-- Wing Clip
+	-- Hunter Pets
+	[50519] = CC,		-- Sonic Blast (Bat)
+	[50541] = Disarm,	-- Snatch (Bird of Prey)
+	[54644] = Snare,	-- Froststorm Breath (Chimera)
+	[50245] = Root,		-- Pin (Crab)
+	[50271] = Snare,	-- Tendon Rip (Hyena)
+	[50518] = CC,		-- Ravage (Ravager)
+	[54706] = Root,		-- Venom Web Spray (Silithid)
+	[4167]  = Root,		-- Web (Spider)
 	-- Mage
 	[44572] = CC,		-- Deep Freeze
 	[31661] = CC,		-- Dragon's Breath
@@ -73,7 +84,7 @@ local spellIds = {
 	[20066] = CC,		-- Repentance
 	[20170] = CC,		-- Stun (Seal of Justice proc)
 	[10326] = CC,		-- Turn Evil (works against Warlocks using Metamorphasis and Death Knights using Lichborne)
-	--[20184] = Snare,	-- Judgement of Justice (not really a slow, druids might want this though)
+	[20184] = Snare,	-- Judgement of Justice (not really a snare, druids might want this though)
 	-- Priest
 	[15269] = CC,		-- Blackout
 	[605]   = CC,		-- Mind Control
@@ -108,13 +119,13 @@ local spellIds = {
 	[18093] = CC,		-- Pyroclasm
 	[6358]  = CC,		-- Seduction (Succubus)
 	[30283] = CC,		-- Shadowfury
-	[24259] = Silence,	-- Spell Lock
+	[24259] = Silence,	-- Spell Lock (Felhunter)
 	[18118] = Snare,	-- Aftermath
 	[18223] = Snare,	-- Curse of Exhaustion
 	-- Warrior
 	[7922]  = CC,		-- Charge Stun
 	[12809] = CC,		-- Concussion Blow
-	[20253] = CC,		-- Intercept
+	[20253] = CC,		-- Intercept (also Warlock Felguard ability)
 	[5246]  = CC,		-- Intimidating Shout
 	[12798] = CC,		-- Revenge Stun
 	[46968] = CC,		-- Shockwave
@@ -129,11 +140,16 @@ local spellIds = {
 	[30216] = CC,		-- Fel Iron Bomb
 	[20549] = CC,		-- War Stomp
 	[25046] = Silence,	-- Arcane Torrent
+	[39965] = Root,		-- Frost Grenade
 	[55536] = Root,		-- Frostweave Net
 	[13099] = Root,		-- Net-o-Matic
 	[29703] = Snare,	-- Dazed
+	-- PvE
+	[28169] = PvE,		-- Mutating Injection (Grobbulus)
+	[28059] = PvE,		-- Positive Charge (Thaddius)
+	[28084] = PvE,		-- Negative Charge (Thaddius)
+	[27819] = PvE,		-- Detonate Mana (Kel'Thuzad)
 }
-local tracking
 local abilities = {} -- localized names are saved here
 for key,value in pairs(spellIds) do
 	abilities[GetSpellInfo(key)] = value
@@ -141,7 +157,7 @@ end
 
 -- Default settings
 local DBdefaults = {
-	Version = 1.3,
+	Version = 1.31,
 	Size = 36,
 	Alpha = 1,
 	position = {
@@ -156,11 +172,13 @@ local DBdefaults = {
 		[Silence] = true,
 		[Disarm]  = true,
 		[Root]    = false,
-		[Snare]   = false
-	}
+		[Snare]   = false,
+		[PvE]     = false
+	},
+	minDuration = 1,
+	maxDuration = 60
 }
-
-LoseControlDB = CopyTable(DBdefaults) -- this gets overwritten later when the SavedVariables load
+local LoseControlDB -- this gets initialized when the SavedVariables load
 
 -- Create the main frame
 local f = CreateFrame("Cooldown", L.."Frame") -- Cooldown exposes the SetCooldown method
@@ -176,17 +194,17 @@ f:RegisterEvent("UNIT_AURA")
 
 -- This function gets reused to update the frame when the defaults are set
 function f:VARIABLES_LOADED() -- fired after all addons and savedvariables are loaded
-	if LoseControlDB.Version < DBdefaults.Version then
-		LoseControlDB = CopyTable(DBdefaults)
+	if not _G.LoseControlDB or _G.LoseControlDB.Version < DBdefaults.Version then
+		_G.LoseControlDB = CopyTable(DBdefaults)
 		log(LOSECONTROL_RESET)
 	end
+	LoseControlDB = _G.LoseControlDB
 	self:SetWidth(LoseControlDB.Size)
 	self:SetHeight(LoseControlDB.Size)
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:SetPoint(LoseControlDB.position.point, UIParent, LoseControlDB.position.relativePoint, LoseControlDB.position.x, LoseControlDB.position.y)
 	self:SetAlpha(LoseControlDB.Alpha)
 	self.noCooldownCount = LoseControlDB.noCooldownCount
-	tracking = LoseControlDB.tracking
 end
 
 -- This is the main event
@@ -194,18 +212,23 @@ function f:UNIT_AURA(arg1) -- fired when a (de)buff is gained/lost
 	if arg1 ~= "player" then return end
 
 	local maxExpirationTime = 0
-	local maxDuration, maxIcon
+	local Duration, Icon
 
 	for i=1, 40 do
-		local name, rank, icon, count, debuffType, duration, expirationTime =  UnitDebuff("player", i)
+		local name, _, icon, _, debuffType, duration, expirationTime =  UnitDebuff("player", i)
 
 		if not name then break end -- no more debuffs, terminate the loop
 		--log(i .. ") " .. name .. " | " .. rank .. " | " .. icon .. " | " .. count .. " | " .. debuffType .. " | " .. duration .. " | " .. expirationTime )
 
-		if tracking[abilities[name]] and expirationTime > maxExpirationTime and not (debuffType == "Poison" and duration == 6) then -- hack for Wyvern Sting
+		if LoseControlDB.tracking[abilities[name]]
+			and expirationTime > maxExpirationTime
+			and duration >= LoseControlDB.minDuration
+			and duration <= LoseControlDB.maxDuration
+			and not (debuffType == "Poison" and duration == 6) -- hack for Wyvern Sting
+		then
 			maxExpirationTime = expirationTime
-			maxDuration = duration
-			maxIcon = icon
+			Duration = duration
+			Icon = icon
 		end
 	end
 
@@ -214,9 +237,9 @@ function f:UNIT_AURA(arg1) -- fired when a (de)buff is gained/lost
 		self:Hide()
 	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different debuff, so initialize the cooldown
 		self.maxExpirationTime = maxExpirationTime
-		self.texture:SetTexture(maxIcon)
+		self.texture:SetTexture(Icon)
 		self:Show()
-		self:SetCooldown( maxExpirationTime - maxDuration, maxDuration )
+		self:SetCooldown( maxExpirationTime - Duration, Duration )
 		self:SetAlpha(LoseControlDB.Alpha) -- hack to apply the alpha to the cooldown timer
 	end
 end
@@ -245,7 +268,11 @@ local title = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge
 title:SetText(L)
 
 local subText = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-subText:SetText(LOSECONTROL_DESCRIPTION)
+local notes = GetAddOnMetadata(L, "Notes-" .. GetLocale())
+if not notes then
+	notes = GetAddOnMetadata(L, "Notes")
+end
+subText:SetText(notes)
 
 -- Slider helper function
 local function CreateSlider(text, parent, low, high, step)
@@ -254,22 +281,15 @@ local function CreateSlider(text, parent, low, high, step)
 	slider:SetWidth(160)
 	slider:SetMinMaxValues(low, high)
 	slider:SetValueStep(step)
-	_G[name .. "Text"]:SetText(text)
+	--_G[name .. "Text"]:SetText(text)
 	_G[name .. "Low"]:SetText(low)
 	_G[name .. "High"]:SetText(high)
-
-	-- text slightly to the right of the slider to display the actual value
-	slider.valText = slider:CreateFontString(nil, "BACKGROUND")
-	slider.valText:SetFontObject("GameFontHighlightSmall")
-	slider.valText:SetVertexColor(GRAY_FONT_COLOR.r, GRAY_FONT_COLOR.g, GRAY_FONT_COLOR.b);
-	slider.valText:SetPoint("CENTER", slider, "RIGHT", 24, 1)
-
 	return slider
 end
 
 local SizeSlider = CreateSlider(LOSECONTROL_SIZE, OptionsPanel, 16, 512, 4)
 SizeSlider:SetScript("OnValueChanged", function(self, value)
-	self.valText:SetText(value .. "px")
+	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL_SIZE .. " (" .. value .. "px)")
 	LoseControlDB.Size = value
 	f:SetWidth(value)
 	f:SetHeight(value)
@@ -277,7 +297,7 @@ end)
 
 local AlphaSlider = CreateSlider(LOSECONTROL_ALPHA, OptionsPanel, 0, 100, 5) -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
 AlphaSlider:SetScript("OnValueChanged", function(self, value)
-	self.valText:SetText(value .. "%")
+	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL_ALPHA .. " (" .. value .. "%)")
 	LoseControlDB.Alpha = value / 100 -- the real alpha value
 	f:SetAlpha(LoseControlDB.Alpha)
 end)
@@ -321,34 +341,55 @@ DisableCooldownCount:SetScript("OnClick", function(self)
 	f.noCooldownCount = LoseControlDB.noCooldownCount
 end)
 
+local Tracking = OptionsPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+Tracking:SetText(LOSECONTROL_TRACKING)
+
 local TrackCCs = CreateFrame("CheckButton", O.."TrackCCs", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackCCsText"]:SetText(LOSECONTROL_TRACK .. CC)
+_G[O.."TrackCCsText"]:SetText(CC)
 TrackCCs:SetScript("OnClick", function(self)
 	LoseControlDB.tracking[CC] = self:GetChecked()
 end)
 
 local TrackSilences = CreateFrame("CheckButton", O.."TrackSilences", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackSilencesText"]:SetText(LOSECONTROL_TRACK .. Silence)
+_G[O.."TrackSilencesText"]:SetText(Silence)
 TrackSilences:SetScript("OnClick", function(self)
 	LoseControlDB.tracking[Silence] = self:GetChecked()
 end)
 
 local TrackDisarms = CreateFrame("CheckButton", O.."TrackDisarms", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackDisarmsText"]:SetText(LOSECONTROL_TRACK .. Disarm)
+_G[O.."TrackDisarmsText"]:SetText(Disarm)
 TrackDisarms:SetScript("OnClick", function(self)
 	LoseControlDB.tracking[Disarm] = self:GetChecked()
 end)
 
 local TrackRoots = CreateFrame("CheckButton", O.."TrackRoots", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackRootsText"]:SetText(LOSECONTROL_TRACK .. Root)
+_G[O.."TrackRootsText"]:SetText(Root)
 TrackRoots:SetScript("OnClick", function(self)
 	LoseControlDB.tracking[Root] = self:GetChecked()
 end)
 
 local TrackSnares = CreateFrame("CheckButton", O.."TrackSnares", OptionsPanel, "OptionsCheckButtonTemplate")
-_G[O.."TrackSnaresText"]:SetText(LOSECONTROL_TRACK .. Snare)
+_G[O.."TrackSnaresText"]:SetText(Snare)
 TrackSnares:SetScript("OnClick", function(self)
 	LoseControlDB.tracking[Snare] = self:GetChecked()
+end)
+
+local TrackPvE = CreateFrame("CheckButton", O.."TrackPvE", OptionsPanel, "OptionsCheckButtonTemplate")
+_G[O.."TrackPvEText"]:SetText(PvE)
+TrackPvE:SetScript("OnClick", function(self)
+	LoseControlDB.tracking[PvE] = self:GetChecked()
+end)
+
+local minDurationSlider = CreateSlider(LOSECONTROL_MINDURATION, OptionsPanel, 0, 30, .5)
+minDurationSlider:SetScript("OnValueChanged", function(self, value)
+	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL_MINDURATION .. " (" .. value .. "s)")
+	LoseControlDB.minDuration = value
+end)
+
+local maxDurationSlider = CreateSlider(LOSECONTROL_MAXDURATION, OptionsPanel, 0, 60, 1)
+maxDurationSlider:SetScript("OnValueChanged", function(self, value)
+	_G[self:GetName() .. "Text"]:SetText(LOSECONTROL_MAXDURATION .. " (" .. value .. "s)")
+	LoseControlDB.maxDuration = value
 end)
 
 -- Arrange them all neatly
@@ -358,14 +399,18 @@ Unlock:SetPoint("TOPLEFT", subText, "BOTTOMLEFT", 0, -16)
 SizeSlider:SetPoint("TOPLEFT", Unlock, "BOTTOMLEFT", 0, -16)
 AlphaSlider:SetPoint("TOPLEFT", SizeSlider, "BOTTOMLEFT", 0, -16)
 DisableCooldownCount:SetPoint("TOPLEFT", AlphaSlider, "BOTTOMLEFT", 0, -24)
-TrackCCs:SetPoint("TOPLEFT", DisableCooldownCount, "BOTTOMLEFT", 0, -24)
-TrackSilences:SetPoint("TOPLEFT", TrackCCs, "BOTTOMLEFT", 0, -8)
-TrackDisarms:SetPoint("TOPLEFT", TrackSilences, "BOTTOMLEFT", 0, -8)
-TrackRoots:SetPoint("TOPLEFT", TrackDisarms, "BOTTOMLEFT", 0, -8)
-TrackSnares:SetPoint("TOPLEFT", TrackRoots, "BOTTOMLEFT", 0, -8)
+Tracking:SetPoint("TOPLEFT", DisableCooldownCount, "BOTTOMLEFT", 0, -24)
+TrackCCs:SetPoint("TOPLEFT", Tracking, "BOTTOMLEFT", 0, -8)
+TrackSilences:SetPoint("TOPLEFT", TrackCCs, "TOPRIGHT", 100, 0)
+TrackDisarms:SetPoint("TOPLEFT", TrackSilences, "TOPRIGHT", 100, 0)
+TrackRoots:SetPoint("TOPLEFT", TrackCCs, "BOTTOMLEFT", 0, -8)
+TrackSnares:SetPoint("TOPLEFT", TrackSilences, "BOTTOMLEFT", 0, -8)
+TrackPvE:SetPoint("TOPLEFT", TrackDisarms, "BOTTOMLEFT", 0, -8)
+minDurationSlider:SetPoint("TOPLEFT", TrackRoots, "BOTTOMLEFT", 0, -24)
+maxDurationSlider:SetPoint("TOPLEFT", minDurationSlider, "BOTTOMLEFT", 0, -16)
 
 OptionsPanel.default = function() -- This method will run when the player clicks "defaults".
-	LoseControlDB.Version = 0
+	_G.LoseControlDB.Version = nil
 	f:VARIABLES_LOADED()
 end
 
@@ -378,6 +423,9 @@ OptionsPanel.refresh = function() -- This method will run when the Interface Opt
 	TrackDisarms:SetChecked(LoseControlDB.tracking[Disarm])
 	TrackRoots:SetChecked(LoseControlDB.tracking[Root])
 	TrackSnares:SetChecked(LoseControlDB.tracking[Snare])
+	TrackPvE:SetChecked(LoseControlDB.tracking[PvE])
+	minDurationSlider:SetValue(LoseControlDB.minDuration)
+	maxDurationSlider:SetValue(LoseControlDB.maxDuration)
 end
 
 InterfaceOptions_AddCategory(OptionsPanel)
