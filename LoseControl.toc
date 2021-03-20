@@ -1,7 +1,7 @@
-## Interface: 90002
+## Interface: 90005
 ## Title: LoseControl
-## Author: Kouri, millanzarreta
-## Version: 7.01
+## Author: millanzarreta, Kouri
+## Version: 7.02
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter
@@ -16,8 +16,9 @@
 ## X-Website: http://www.curse.com/addons/wow/losecontrol
 ## X-Website2: http://www.wowinterface.com/downloads/info11642-LoseControl.html
 ## X-Category: Buffs
-## OptionalDeps: Masque, ShadowedUnitFrames
+## OptionalDeps: LibStub, Masque, ShadowedUnitFrames
 ## SavedVariablesPerCharacter: LoseControlDB
 
+Libs\LibStub\LibStub.lua
 localization.lua
 LoseControl.lua
