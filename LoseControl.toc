@@ -1,7 +1,7 @@
-## Interface: 90005
-## Title: LoseControl
+## Interface: 20501
+## Title: LoseControl TBC
 ## Author: millanzarreta, Kouri
-## Version: 7.03
+## Version: 2.00
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter
@@ -16,7 +16,7 @@
 ## X-Website: http://www.curse.com/addons/wow/losecontrol
 ## X-Website2: http://www.wowinterface.com/downloads/info11642-LoseControl.html
 ## X-Category: Buffs
-## OptionalDeps: LibStub, Masque, ShadowedUnitFrames, ConsolePort, ElvUI, ConsolePortBar, Bartender4, LibActionButton-1.0
+## OptionalDeps: LibStub, Masque, ShadowedUnitFrames
 ## SavedVariablesPerCharacter: LoseControlDB
 
 Libs\LibStub\LibStub.lua
