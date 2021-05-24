@@ -1,14 +1,16 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.08
+-- Version: 1.09
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
 ]]
 
 local addonName, L = ...
-local UIParent = UIParent -- it's faster to keep local references to frequently used global vars
+local _G = _G				-- it's faster to keep local references to frequently used global vars
+local _
+local UIParent = UIParent
 local UnitAura = UnitAura
 local UnitCanAttack = UnitCanAttack
 local UnitClass = UnitClass
@@ -146,13 +148,13 @@ local spellIds = {
 	[22570]  = "CC",				-- Mangle (rank 1)
 	[16922]  = "CC",				-- Starfire Stun (Improved Starfire talent)
 	[19675]  = "Root",				-- Feral Charge Effect (Feral Charge talent)
-	[17116]  = "Other",				-- Nature's Swiftness (talent) (!)
-	[16689]  = "Other",				-- Nature's Grasp (rank 1) (!)
-	[16810]  = "Other",				-- Nature's Grasp (rank 2) (!)
-	[16811]  = "Other",				-- Nature's Grasp (rank 3) (!)
-	[16812]  = "Other",				-- Nature's Grasp (rank 4) (!)
-	[16813]  = "Other",				-- Nature's Grasp (rank 5) (!)
-	[17329]  = "Other",				-- Nature's Grasp (rank 6) (!)
+	[17116]  = "Other",				-- Nature's Swiftness (talent)
+	[16689]  = "Other",				-- Nature's Grasp (rank 1)
+	[16810]  = "Other",				-- Nature's Grasp (rank 2)
+	[16811]  = "Other",				-- Nature's Grasp (rank 3)
+	[16812]  = "Other",				-- Nature's Grasp (rank 4)
+	[16813]  = "Other",				-- Nature's Grasp (rank 5)
+	[17329]  = "Other",				-- Nature's Grasp (rank 6)
 	[22812]  = "Other",				-- Barkskin
 	[29166]  = "Other",				-- Innervate
 
@@ -183,9 +185,9 @@ local spellIds = {
 	[15571]  = "Snare",				-- Dazed (Aspect of the Cheetah and Aspect of the Pack)
 	[13809]  = "Snare",				-- Frost Trap
 	[13810]  = "Snare",				-- Frost Trap Aura
-	[19263]  = "Other",				-- Deterrence
-	[19574]  = "Other",				-- Bestial Wrath (talent)
-	[5384]   = "Other",				-- Feign Death (!)
+	[19263]  = "Other",				-- Deterrence (dodge and Parry chance increased by 25%)
+	[19574]  = "ImmuneSpell",		-- Bestial Wrath (talent) (not immuune to spells, only immune to some CC's)
+	[5384]   = "Other",				-- Feign Death
 	
 		----------------
 		-- Hunter Pets
@@ -241,7 +243,7 @@ local spellIds = {
 	[13019]  = "Snare",				-- Blast Wave (talent) (rank 3)
 	[13020]  = "Snare",				-- Blast Wave (talent) (rank 4)
 	[13021]  = "Snare",				-- Blast Wave (talent) (rank 5)
-	[12043]  = "Other",				-- Presence of Mind (talent) (!)
+	[12043]  = "Other",				-- Presence of Mind (talent)
 	[12042]  = "Other",				-- Arcane Power (talent)
 
 	----------------
@@ -265,6 +267,7 @@ local spellIds = {
 	[10326]  = "CC",				-- Turn Undead (rank 3)
 	[20066]  = "CC",				-- Repentance (talent)
 	[1044]   = "Other",				-- Blessing of Freedom
+	[20216]  = "Other",				-- Divine Favor
 
 	----------------
 	-- Priest
@@ -272,7 +275,7 @@ local spellIds = {
 	[15487]  = "Silence",			-- Silence (talent)
 	[10060]  = "Other",				-- Power Infusion (talent)
 	[15269]  = "CC",				-- Blackout (talent)
-	[6346]   = "Other",				-- Fear Ward (!)
+	[6346]   = "Other",				-- Fear Ward
 	[605]    = "CC",				-- Mind Control (rank 1)
 	[10911]  = "CC",				-- Mind Control (rank 2)
 	[10912]  = "CC",				-- Mind Control (rank 3)
@@ -283,6 +286,7 @@ local spellIds = {
 	[9484]   = "CC",				-- Shackle Undead (rank 1)
 	[9485]   = "CC",				-- Shackle Undead (rank 2)
 	[10955]  = "CC",				-- Shackle Undead (rank 3)
+	[14751]  = "Other",				-- Inner Focus
 	[15407]  = "Snare",				-- Mind Flay (talent) (rank 1)
 	[17311]  = "Snare",				-- Mind Flay (talent) (rank 2)
 	[17312]  = "Snare",				-- Mind Flay (talent) (rank 3)
@@ -310,22 +314,22 @@ local spellIds = {
 	[18425]  = "Silence",			-- Kick - Silenced (talent)
 	[3409]   = "Snare",				-- Crippling Poison (rank 1)
 	[11201]  = "Snare",				-- Crippling Poison (rank 2)
-	[5277]   = "ImmunePhysical",	-- Evasion (dodge chance increased 100%)
-	[14177]  = "Other",				-- Cold Blood (talent) (!)
+	[5277]   = "ImmunePhysical",	-- Evasion (dodge chance increased 50%)
+	[14177]  = "Other",				-- Cold Blood (talent)
 	[13877]  = "Other",				-- Blade Flurry
 	[13750]  = "Other",				-- Adrenaline Rush
 
 	----------------
 	-- Shaman
 	----------------
-	[8178]   = "ImmuneSpell",		-- Grounding Totem Effect (Grounding Totem) (!)
+	[8178]   = "ImmuneSpell",		-- Grounding Totem Effect (Grounding Totem)
 	[8056]   = "Snare",				-- Frost Shock (rank 1)
 	[8058]   = "Snare",				-- Frost Shock (rank 2)
 	[10472]  = "Snare",				-- Frost Shock (rank 3)
 	[10473]  = "Snare",				-- Frost Shock (rank 4)
 	[3600]   = "Snare",				-- Earthbind (Earthbind Totem)
-	[16166]  = "Other",				-- Elemental Mastery (talent) (!)
-	[16188]  = "Other",				-- Nature's Swiftness (talent) (!)
+	[16166]  = "Other",				-- Elemental Mastery (talent)
+	[16188]  = "Other",				-- Nature's Swiftness (talent)
 
 	----------------
 	-- Warlock
@@ -342,9 +346,9 @@ local spellIds = {
 	[17926]  = "CC",				-- Death Coil (rank 3)
 	[22703]  = "CC",				-- Inferno Effect
 	[18093]  = "CC",				-- Pyroclasm (talent)
+	[18708]  = "Other",				-- Fel Domination (talent)
 	[18223]  = "Snare",				-- Curse of Exhaustion (talent)
 	[18118]  = "Snare",				-- Aftermath (talent)
-	[18708]  = "Other",				-- Fel Domination (talent) (!)
 
 		----------------
 		-- Warlock Pets
@@ -378,7 +382,7 @@ local spellIds = {
 	[2565]   = "Other",				-- Shield Block
 	[12328]  = "Other",				-- Death Wish (talent)
 	[12976]  = "Other",				-- Last Stand (talent)
-	[20230]  = "Other",				-- Retaliation (!)
+	[20230]  = "Other",				-- Retaliation
 	[18499]  = "Other",				-- Berserker Rage
 	[1719]   = "Other",				-- Recklessness
 
@@ -412,7 +416,6 @@ local spellIds = {
 	[23097]  = "ImmuneSpell",		-- Fire Reflector (Hyper-Radiant Flame Reflector trinket) (only reflect fire spells)
 	[23132]  = "ImmuneSpell",		-- Shadow Reflector (Ultra-Flash Shadow Reflector trinket) (only reflect shadow spells)
 	[30003]  = "ImmuneSpell",		-- Sheen of Zanza
-	[35474]  = "CC",				-- Drums of Panic
 	[23444]  = "CC",				-- Transporter Malfunction
 	[23447]  = "CC",				-- Transporter Malfunction
 	[23456]  = "CC",				-- Transporter Malfunction
@@ -721,6 +724,7 @@ local spellIds = {
 	[16600]  = "CC",				-- Might of Shahram (Blackblade of Shahram sword)
 	[16597]  = "Snare",				-- Curse of Shahram (Blackblade of Shahram sword)
 	[13496]  = "Snare",				-- Dazed (Mug O' Hurt mace)
+	[21066]  = "Snare",				-- Void Bolt
 	[3238]   = "Other",				-- Nimble Reflexes
 	[5990]   = "Other",				-- Nimble Reflexes
 	[6615]   = "Other",				-- Free Action Potion
@@ -803,7 +807,6 @@ local spellIds = {
 	[23023]  = "CC",				-- Conflagration
 	[15593]  = "CC",				-- War Stomp
 	[16740]  = "CC",				-- War Stomp
-	[24375]  = "CC",				-- War Stomp
 	[28725]  = "CC",				-- War Stomp
 	[14515]  = "CC",				-- Dominate Mind
 	[22274]  = "CC",				-- Greater Polymorph
@@ -823,7 +826,6 @@ local spellIds = {
 	[22667]  = "CC",				-- Shadow Command
 	[22663]  = "Immune",			-- Nefarian's Barrier
 	[22686]  = "CC",				-- Bellowing Roar
-	[39427]  = "CC",				-- Bellowing Roar
 	[22678]  = "CC",				-- Fear
 	[23603]  = "CC",				-- Wild Polymorph
 	[23364]  = "CC",				-- Tail Lash
@@ -845,6 +847,7 @@ local spellIds = {
 	[24053]  = "CC",				-- Hex
 	[24021]  = "ImmuneSpell",		-- Anti-Magic Shield
 	[24674]  = "Other",				-- Veil of Shadow
+	[13737]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
 	[3604]   = "Snare",				-- Tendon Rip
 	[24002]  = "Snare",				-- Tranquilizing Poison
 	[24003]  = "Snare",				-- Tranquilizing Poison
@@ -1238,6 +1241,7 @@ local spellIds = {
 	[28858]  = "Root",				-- Entangling Roots
 	[22415]  = "Root",				-- Entangling Roots
 	[22744]  = "Root",				-- Chains of Ice
+	[16856]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
 	[12611]  = "Snare",				-- Cone of Cold
 	[16838]  = "Silence",			-- Banshee Shriek
 	[22519]  = "CC",				-- Ice Nova
@@ -1503,7 +1507,7 @@ local DBdefaults = {
 			anchor = "Blizzard",
 			categoriesEnabled = {
 				buff = {
-					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true }
 				},
 				debuff = {
 					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
@@ -1520,7 +1524,7 @@ local DBdefaults = {
 			anchor = "Blizzard",
 			categoriesEnabled = {
 				buff = {
-					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true }
 				},
 				debuff = {
 					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
@@ -1537,7 +1541,7 @@ local DBdefaults = {
 			anchor = "Blizzard",
 			categoriesEnabled = {
 				buff = {
-					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true }
 				},
 				debuff = {
 					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
@@ -1554,7 +1558,7 @@ local DBdefaults = {
 			anchor = "Blizzard",
 			categoriesEnabled = {
 				buff = {
-					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true }
 				},
 				debuff = {
 					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
@@ -1571,7 +1575,7 @@ local DBdefaults = {
 			anchor = "None",
 			categoriesEnabled = {
 				buff = {
-					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
+					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = false,  Root = true,  Snare = true }
 				},
 				debuff = {
 					friendly = { PvE = true,  Immune = true,  ImmuneSpell = true,  ImmunePhysical = true,  CC = true,  Silence = true,  Disarm = true,  Other = true,  Root = true,  Snare = true }
@@ -2336,6 +2340,7 @@ function LoseControl:UpdateInterruptsSpellIdByNameTable()
 	end
 end
 
+-- Function to set the size of the schoolinterrupt icons based on the size of the main icon
 local function SetInterruptIconsSize(iconFrame, iconSize)
 	local interruptIconSize = (iconSize * 0.88) / 3
 	local interruptIconOffset = (iconSize * 0.06)
@@ -2413,7 +2418,7 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 	if compactRaidFrame:IsForbidden() then return end
 	local name = compactRaidFrame:GetName()
 	if not name or not name:match("^Compact") then return end
-	if ((key == nil or key == "unit") and compactRaidFrame:IsVisible()) then
+	if (key == nil or key == "unit") then
 		local anchorUnitId = value or compactRaidFrame.displayedUnit or compactRaidFrame.unit
 		if (anchorUnitId ~= nil and strfind(anchorUnitId, "raid")) then
 			local icon = LCframes[anchorUnitId]
@@ -2423,6 +2428,7 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 					anchors.BlizzardRaidFrames[anchorUnitId] = name
 					if (frame.anchor == "BlizzardRaidFrames") then
 						icon.anchor = compactRaidFrame
+						icon.parent:SetParent(icon.anchor:GetParent())
 						icon:ClearAllPoints()
 						icon:GetParent():ClearAllPoints()
 						icon:SetPoint(
@@ -2439,6 +2445,9 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 							frame.x or 0,
 							frame.y or 0
 						)
+					end
+					if (icon.frame and icon.frame.anchor == "BlizzardRaidFrames") then
+						icon:UNIT_AURA(anchorUnitId, -80)
 					end
 				end
 			end
@@ -2457,6 +2466,10 @@ local function HookCompactRaidFrame(compactRaidFrame)
 				UpdateRaidIconsAnchorCompactRaidFrame(self, key, value)
 			end)
 			compactRaidFrame:HookScript("OnShow", function(self)
+				if self:IsForbidden() then return end
+				UpdateRaidIconsAnchorCompactRaidFrame(self)
+			end)
+			compactRaidFrame:HookScript("OnHide", function(self)
 				if self:IsForbidden() then return end
 				UpdateRaidIconsAnchorCompactRaidFrame(self)
 			end)
@@ -2547,7 +2560,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.08"
+		self.VERSION = "1.09"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
@@ -2666,6 +2679,7 @@ function LoseControl:CheckSUFUnitsAnchors(updateFrame)
 			local newAnchor = (anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="table") and anchors[frame.anchor][unitId] or UIParent)
 			if newAnchor ~= nil and icon.anchor ~= newAnchor then
 				icon.anchor = newAnchor
+				icon.parent:SetParent(icon.anchor:GetParent())
 				icon:SetPoint(
 					frame.point or "CENTER",
 					icon.anchor,
@@ -2735,8 +2749,8 @@ function LoseControl:PLAYER_ENTERING_WORLD()
 			self:CheckSUFUnitsAnchors(true)
 		end)
 	end
-	self.anchor = (anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="table") and anchors[frame.anchor][unitId] or UIParent)
 	self.unitGUID = UnitGUID(unitId)
+	self.anchor = (anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="table") and anchors[frame.anchor][unitId] or UIParent)
 	self.parent:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:GetParent():ClearAllPoints()
@@ -2865,13 +2879,13 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 							if ((spellId == 6554) and (playerGUID ~= nil) and (sourceGUID ~= nil)) then
 								if (playerGUID == sourceGUID) then
 									if ((playerClass ~= nil) and (playerClass > 1)) then
-										local itemIdMainHand = GetInventoryItemID("player", 16);
-										local itemIdOffHand = GetInventoryItemID("player", 17);
+										local itemIdMainHand = GetInventoryItemID("player", 16)
+										local itemIdOffHand = GetInventoryItemID("player", 17)
 										if ((itemIdMainHand == 2942) or (itemIdOffHand == 2942)) then
 											spellId = 13491
 										end
 									end
-								elseif strfind(sourceGUID, "Player-") then
+								elseif strfind(sourceGUID, "^Player-") then
 									local _, engClass = GetPlayerInfoByGUID(sourceGUID)
 									if ((engClass ~= nil) and (engClass ~= "WARRIOR")) then
 										spellId = 13491
@@ -3067,6 +3081,7 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 		-- Check buffs
 		for i = 1, 40 do
 			local localForceEventUnitAuraAtEnd = false
+			local newCategory
 			local name, icon, duration, expirationTime, spellId
 			if LoseControlDB.noGetEnemiesBuffsInformation then
 				name, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i, "HELPFUL")
@@ -3107,12 +3122,14 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 					localForceEventUnitAuraAtEnd = true
 				end
 			end
-			-- exceptions for Mind Control and Axe Flurry
-			if (spellId == 605) or (spellId == 10911) or (spellId == 10912) or (spellId == 24020) then
+			-- exceptions
+			if (spellId == 605) or (spellId == 10911) or (spellId == 10912) or (spellId == 24020) then	-- Mind Control and Axe Flurry
 				spellId = 1
+			elseif (spellId == 19574 and (unitId == "pet" or (playerClass ~= 1 and playerClass ~= 2 and playerClass ~= 5 and playerClass ~= 9))) then	-- Bestial Wrath
+				newCategory = "Other"
 			end
 			
-			local spellCategory = spellIds[spellId]
+			local spellCategory = newCategory or spellIds[spellId]
 			local Priority = priority[spellCategory]
 			if self.frame.categoriesEnabled.buff[reactionToPlayer] and self.frame.categoriesEnabled.buff[reactionToPlayer][spellCategory] then
 				if Priority then
@@ -3407,6 +3424,7 @@ function LoseControl:StopMoving()
 		end
 	end
 	self.anchor = (anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][self.unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.unitId])=="table") and anchors[frame.anchor][self.unitId] or UIParent)
+	self.parent:SetParent(self.anchor:GetParent())
 	self:ClearAllPoints()
 	self:GetParent():ClearAllPoints()
 	self:SetPoint(
@@ -3825,7 +3843,7 @@ local PrioritySlider = {}
 for k in pairs(DBdefaults.priority) do
 	PrioritySlider[k] = CreateSlider(L[k], OptionsPanel, 0, 100, 5, false, "Priority"..k.."Slider")
 	PrioritySlider[k]:SetScript("OnValueChanged", function(self, value)
-		value = mathfloor(value/5)*5;
+		value = mathfloor(value/5)*5
 		_G[self:GetName() .. "Text"]:SetText(L[k] .. " (" .. value .. ")")
 		LoseControlDB.priority[k] = value
 		if k == "Interrupt" then
@@ -3994,6 +4012,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				frame.anchor = "None"
 			end
 			icon.anchor = (anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][icon.unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.unitId])=="table") and anchors[frame.anchor][icon.unitId] or UIParent)
+			icon.parent:SetParent(icon.anchor:GetParent())
 			if frame.anchor ~= "None" then -- reset the frame position so it centers on the anchor frame
 				frame.point = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].point) or nil
 				frame.relativePoint = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].relativePoint) or nil
@@ -4247,6 +4266,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				icon:SetSwipeColor(0, 0, 0, 0.8)
 			end
 			icon.anchor = (anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframes.player.unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.unitId])=="table") and anchors[frame.anchor][LCframes.player.unitId] or UIParent)
+			icon.parent:SetParent(icon.anchor:GetParent())
 			SetInterruptIconsSize(icon, frame.size)
 			icon:ClearAllPoints() -- if we don't do this then the frame won't always move
 			icon:GetParent():ClearAllPoints()
@@ -5000,6 +5020,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 					}, "Button", true)
 				end
 				LCframes.player.anchor = (anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframes.player.unitId]]) or (anchors[frame.anchor]~=nil and (type(anchors[frame.anchor][LCframes.player.unitId])=="table") and anchors[frame.anchor][LCframes.player.unitId] or UIParent)
+				LCframes.player.parent:SetParent(LCframes.player.anchor:GetParent())
 				LCframes.player:ClearAllPoints()
 				LCframes.player:SetPoint(
 					"CENTER",
