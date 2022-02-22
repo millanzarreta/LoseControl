@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.10
+-- Version: 1.11
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -695,7 +695,7 @@ local spellIds = {
 	[25057]  = "Disarm",			-- Dropped Weapon
 	[25655]  = "Disarm",			-- Dropped Weapon
 	[14180]  = "Disarm",			-- Sticky Tar
-	[5376]  = "Disarm",				-- Hand Snap
+	[5376]   = "Disarm",			-- Hand Snap
 	[6576]   = "CC",				-- Intimidating Growl
 	[7093]   = "CC",				-- Intimidation
 	[8715]   = "CC",				-- Terrifying Howl
@@ -769,6 +769,24 @@ local spellIds = {
 
 	-- PvE
 	--[123456] = "PvE",				-- This is just an example, not a real spell
+	------------------------
+	---- PVE CLASSIC SEASON OF MASTERY
+	------------------------
+	[367873] = "CC",				-- Blinding Ash (chance to hit reduced by 50%)
+	[367928] = "CC",				-- Corrupted Slam
+	[367888] = "CC",				-- Dream Breath
+	[367728] = "CC",				-- Dream Fog
+	[367476] = "CC",				-- Faulty Wiring
+	[368136] = "CC",				-- Faulty Wiring
+	[367741] = "CC",				-- Frozen Solid
+	[368724] = "CC",				-- Static Overload
+	[367701] = "CC",				-- Time Stop
+	[365122] = "Other",				-- Berserk
+	[368388] = "Other",				-- Berserk
+	[368329] = "Root",				-- Nightmare Brambles
+	[369077] = "Root",				-- Wing Buffet
+	[367897] = "Snare",				-- Dream Breath
+	[367724] = "Snare",				-- Dream Fog
 	------------------------
 	---- PVE CLASSIC
 	------------------------
@@ -3029,7 +3047,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.10"
+		self.VERSION = "1.11"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
