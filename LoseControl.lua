@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl TBC
--- Version: 2.01
+-- Version: 2.02
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -4448,7 +4448,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "2.01"
+		self.VERSION = "2.02"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		if (LoseControlDB.duplicatePlayerPortrait and LoseControlDB.frames.player.anchor == "Blizzard") then
