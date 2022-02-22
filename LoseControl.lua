@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 7.06
+-- Version: 7.07
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -564,6 +564,8 @@ local interruptsIds = {
 	[355638] = 4,		-- Quelling Strike
 	[358210] = 0.1,		-- Mawforged Halberd
 	[358344] = 6,		-- Disruptive Shout
+	[360096] = 3,		-- Disabling Howl
+	[363388] = 3,		-- Wallop
 }
 
 local spellIds = {
@@ -1034,6 +1036,7 @@ local spellIds = {
 		[89766]  = "CC",			-- Axe Toss (Felguard/Wrathguard)
 		[115268] = "CC",			-- Mesmerize (Shivarra)
 		[6358]   = "CC",			-- Seduction (Succubus)
+		[261589] = "CC",			-- Seduction (Succubus)
 		[171017] = "CC",			-- Meteor Strike (infernal)
 		[171018] = "CC",			-- Meteor Strike (abisal)
 		[213688] = "CC",			-- Fel Cleave (Fel Lord - PvP Talent)
@@ -1502,10 +1505,72 @@ local spellIds = {
 	[320566] = "CC",				-- Surprise!
 	[349897] = "CC",				-- Quiet Suicide
 	[337347] = "CC",				-- Shockwave
+	[357597] = "CC",				-- Elune's Judgement
+	[365804] = "CC",				-- Enlightened Cage
+	[365808] = "CC",				-- Enlightened Cage
+	[367077] = "CC",				-- Primeval Snare
+	[363530] = "CC",				-- Flattened
+	[365825] = "CC",				-- Cruel Bludgeon
+	[366413] = "CC",				-- Paralytic Spew
+	[365919] = "CC",				-- Explosive Armaments
+	[362727] = "CC",				-- Wailing Demise
+	[365857] = "CC",				-- Binding Chains
+	[366076] = "CC",				-- Obscuring Dust
+	[364905] = "CC",				-- Blinding Flash
+	[365876] = "CC",				-- Soul Dust
+	[366972] = "CC",				-- Xy'rath's Smoke Bomb
+	[366939] = "CC",				-- Xy'rath's Utility Web
+	[364429] = "CC",				-- Hyperlight Flash
+	[360659] = "CC",				-- Dominated
+	[365709] = "CC",				-- Call of the Damned
+	[359696] = "CC",				-- Damaged (damage done reduced)
+	[364440] = "CC",				-- Damaged (damage done reduced)
+	[362319] = "CC",				-- Oblivion
+	[366082] = "CC",				-- Clutched
+	[365044] = "CC",				-- Commanding Stomp
+	[368445] = "CC",				-- Cosmic Tides
+	[362985] = "CC",				-- Crush of the Infinite
+	[368175] = "CC",				-- Defensive Sweep
+	[365686] = "CC",				-- Desecrated Slam
+	[363580] = "CC",				-- Discordant Backlash
+	[368374] = "CC",				-- Engulfing Hunger
+	[364683] = "CC",				-- Ensared
+	[368340] = "CC",				-- Entangled in Gossamer
+	[368283] = "CC",				-- Eruption
+	[365834] = "CC",				-- Fear of the Unknown
+	[360466] = "CC",				-- Feedback
+	[351339] = "CC",				-- Feedback
+	[368544] = "CC",				-- Flash Freeze
+	[364187] = "CC",				-- Furious Charge
+	[361228] = "CC",				-- Hands Up
+	[361453] = "CC",				-- Hardened Sputum
+	[362409] = "CC",				-- Knockdown
+	[365317] = "CC",				-- Maul
+	[360244] = "CC",				-- Mighty Slam
+	[367316] = "CC",				-- Overcharge
+	[364808] = "CC",				-- Overwhelming Effusion
+	[362481] = "CC",				-- Overwhelming Guilt
+	[365020] = "CC",				-- Paralytic Goo
+	[362983] = "CC",				-- Paralyzed!
+	[362479] = "CC",				-- Perseverence
+	[361841] = "CC",				-- Resist Domination
+	[360213] = "CC",				-- Reverberating Stomp
+	[361407] = "CC",				-- Sacred Charge
+	[360958] = "CC",				-- Sap
+	[365127] = "CC",				-- Stunned
+	[361932] = "CC",				-- Swooped
+	[356336] = "CC",				-- Trapped!
+	[363332] = "CC",				-- Unbreaking Grasp
+	[362209] = "CC",				-- Vomhop!
+	[360875] = "CC",				-- Whirling Smash
+	[362710] = "CC",				-- Arcing Sweep
+	[363523] = "CC",				-- Blinding Light
+	[368785] = "CC",				-- Intrusive Thoughtcage (Intrusive Thoughtcage trinket)
 	[325706] = "Silence",			-- Call to Chaos
 	[337064] = "Silence",			-- Forgotten Voice
 	[345340] = "Silence",			-- Dead Quiet
 	[353848] = "Silence",			-- Slanknen's Salty Soak
+	[362820] = "Silence",			-- Muted
 	[332442] = "Disarm",			-- Hurled Charge
 	[346992] = "Disarm",			-- Disarm
 	[325034] = "Disarm",			-- Called Shot: Arm
@@ -1536,6 +1601,29 @@ local spellIds = {
 	[356192] = "Immune",			-- Popo's Potion (not immune, damage taken reduced by 50%)
 	[356193] = "Immune",			-- Popo's Potion (not immune, damage taken reduced by 50%)
 	[352181] = "Immune",			-- Flameforged Core not immune, damage taken reduced by 99%)
+	[359942] = "Immune",			-- Refractive Cloak
+	[361502] = "Immune",			-- Strength of Mind
+	[359199] = "Immune",			-- Forming
+	[364013] = "Immune",			-- Foundry Shift
+	[362821] = "Immune",			-- Poco-Protect
+	[362933] = "Immune",			-- Pocopoc's Escape
+	[366139] = "Immune",			-- Dark Ward
+	[365639] = "Immune",			-- Shielding
+	[360536] = "Immune",			-- Stygic Protection
+	[363068] = "Immune",			-- Synthesize
+	[364213] = "Immune",			-- Transference
+	[363582] = "Immune",			-- Protected
+	[369379] = "Immune",			-- Lingering Cloak of the Exile
+	[364821] = "Immune",			-- Cosmic Power (not immune, damage taken reduced by 50%)
+	[368548] = "Immune",			-- Divine Armor (not immune, damage taken reduced by 60%)
+	[362780] = "Immune", 			-- Maniacal Resolve (not immune, damage taken reduced by 99%)
+	[360351] = "Immune",			-- Shell Barrier (not immune, damage taken reduced by 50%)
+	[361447] = "Immune",			-- Shell Barrier (not immune, damage taken reduced by 50%)
+	[364591] = "Immune",			-- Soul Ward (not immune, damage taken reduced by 99%)
+	[367651] = "Immune",			-- Tenacity of the Survivor (not immune, damage taken reduced by 99%)
+	[367966] = "Immune",			-- Primed (not immune, damage taken reduced by 50%)
+	[362574] = "Immune",			-- Progenitor Growth (not immune, damage taken reduced by 50%)
+	[368936] = "Immune",			-- Terminal Barrier (not immune, damage taken reduced by 50%)
 	[343046] = "ImmuneSpell",		-- Magic Shell (magic damage taken reduced by 70%)
 	[320401] = "ImmuneSpell",		-- Lucky Dust
 	[357956] = "ImmuneSpell",		-- Magebane Ward
@@ -1570,6 +1658,7 @@ local spellIds = {
 	[352766] = "Root",				-- Heavy Hands
 	[354588] = "Root",				-- Grasping Roots
 	[360423] = "Root",				-- Tome of Small Sins
+	[365850] = "Root",				-- Reclamation
 	[335047] = "Other",				-- Goliath Bulwark (deflecting attacks from the front)
 	[338085] = "Other",				-- Necrosis (healing received reduced by 100%)
 	[321000] = "Other",				-- Unholy Bulwark (deflecting attacks from the front)
@@ -1638,6 +1727,23 @@ local spellIds = {
 	[171858] = "Snare",				-- Frostbolt
 	[357458] = "Snare",				-- Oil Slicked Spin Out
 	[361180] = "Snare",				-- Observe Weakness
+	[363996] = "Snare",				-- Cosmic Tremor
+	[360096] = "Snare",				-- Disabling Howl
+	[359940] = "Snare",				-- Divergent Energy
+	[361587] = "Snare",				-- Emboss
+	[362126] = "Snare",				-- Exploding Corpses
+	[368085] = "Snare",				-- Fatiguing Roar
+	[366701] = "Snare",				-- Gravity Bane
+	[366823] = "Snare",				-- Heavy Strikes
+	[365399] = "Snare",				-- Mired Spray
+	[363684] = "Snare",				-- Poco-Boom!
+	[362818] = "Snare",				-- Poco-Boom!
+	[368734] = "Snare",				-- Seething Anger
+	[363194] = "Snare",				-- Slime Trail
+	[367406] = "Snare",				-- Sodiate Burns
+	[362899] = "Snare",				-- Sticky Mucus
+	[360340] = "Snare",				-- Sticky Mucus
+	[359689] = "Snare",				-- Unstable Eruption
 	[56]     = "CC",				-- Stun (some weapons proc)
 	[835]    = "CC",				-- Tidal Charm (trinket)
 	[8312]   = "Root",				-- Trap (Hunting Net trinket)
@@ -2381,6 +2487,87 @@ local spellIds = {
 	------------------------
 	---- PVE SHADOWLANDS
 	------------------------
+	-- Sepulcher of the First Ones Raid
+	-- -- Trash
+	[365168] = "CC",				-- Cosmic Slam
+	[365251] = "CC",				-- Cosmic Slam
+	[365866] = "CC",				-- Explosive Armaments
+	[366189] = "CC",				-- Hyperlight Flash
+	[366196] = "CC",				-- Tachyon Ambush
+	[365948] = "CC",				-- Collapsing Reality
+	[365949] = "CC",				-- Collapsing Reality
+	[365952] = "CC",				-- Collapsing Reality
+	[365953] = "CC",				-- Collapsing Reality
+	[365954] = "CC",				-- Collapsing Reality
+	[365463] = "CC",				-- Wave of Hate (damage and healing done reduced by 50%)
+	[365720] = "CC",				-- Domination's Grasp
+	[365721] = "CC",				-- Domination's Grasp
+	[367428] = "Silence",			-- Devour Essence
+	[365626] = "Immune",			-- Cosmic Barrier (not immune, damage taken reduced by 75%)
+	[365036] = "Immune",			-- Ephemeral Barrier (not immune, damage taken reduced by 50%)
+	-- -- Vigilant Guardian
+	[360404] = "Immune",			-- Force Field (enemies)
+	[367356] = "Immune",			-- Force Field (enemies)
+	[367354] = "Immune",			-- Force Field (enemies)
+	--[360403] = "Immune",			-- Force Field (allies)
+	[366805] = "Snare",				-- Matter Dissolution
+	-- -- Skolex, the Insatiable Ravener
+	[360098] = "CC",				-- Warp Sickness
+	[364645] = "Other",				-- Berserk
+	-- -- Artificer Xy'mox
+	[363687] = "CC",				-- Stasis Trap
+	[362882] = "CC",				-- Stasis Trap
+	[364040] = "CC",				-- Hyperlight Ascension
+	[367573] = "Immune",			-- Genesis Bulwark (not immune, damage taken reduced by 99%)
+	[364030] = "Snare",				-- Debilitating Ray
+	-- -- Dausegne, the Fallen Oracle
+	[365418] = "Other",				-- Total Dominion
+	[365852] = "Other",				-- Total Dominion
+	[365444] = "Other",				-- Total Dominion
+	-- -- Prototype Pantheon
+	[366232] = "Silence",			-- Animastorm
+	[362135] = "Silence",			-- Animastorm
+	[362352] = "CC",				-- Pinned
+	[364867] = "CC",				-- Sinful Projection
+	[361067] = "CC",				-- Bastion's Ward
+	[361299] = "Immune",			-- Bastion's Ward
+	[366159] = "Immune",			-- Imprinted Safeguards (not immune, damage taken reduced by 50%)
+	-- -- Lihuvim, Principal Architect
+	[364312] = "Immune",			-- Ephemeral Barrier (not immune, damage taken reduced by 50%)
+	[368809] = "Immune",			-- Ephemeral Barrier (not immune, damage taken reduced by 50%)
+	[363356] = "ImmuneMagic",		-- Protoform Disalignment (not immune, only cosmic damage taken reduced by 90%)
+	-- -- Halondrus the Reclaimer
+	[364231] = "CC",				-- Lightshatter Beam
+	[368908] = "Snare",				-- Shattered Prism
+	-- -- Anduin Wrynn
+	[364020] = "CC",				-- March of the Damned
+	[369011] = "CC",				-- Psychic Terror
+	[365024] = "CC",				-- Wicked Star
+	[367634] = "CC",				-- Empowered Wicked Star
+	[362505] = "CC",				-- Domination's Grasp
+	[365235] = "Other",				-- Aura of Despair
+	[364031] = "Other",				-- Gloom (healing effects received reduced by 100% and movement speed reduced by 80%)
+	-- -- Lords of Dread
+	[360008] = "CC",				-- Cloud of Carrion
+	[366575] = "CC",				-- Cloud of Carrion
+	[362202] = "CC",				-- Shatter Mind
+	[361284] = "Immune",			-- Paranoia (stun and immune, not immune, damage taken reduced by 99%)
+	[360148] = "CC",				-- Bursting Dread
+	[366635] = "CC",				-- Bursting Dread
+	[363235] = "CC",				-- Horrifying Shadows
+	[360241] = "CC",				-- Unsettling Dreams
+	[361934] = "Immune",			-- Incomplete Form (cannot be killed)
+	[362020] = "Immune",			-- Incomplete Form (cannot be killed)
+	-- -- Rygelon
+	[365381] = "Immune",			-- Nebular Cloud (not immune, damage taken reduced by 99%)
+	-- -- The Jailer
+	[362075] = "CC",				-- Domination
+	[364481] = "CC",				-- Dominated
+	[362397] = "CC",				-- Compulsion
+	[367198] = "CC",				-- Compulsion
+	[360180] = "Immune", 			-- Oblivion
+	[363886] = "Root",				-- Imprisonment
+	------------------------
 	-- Sanctum of Domination Raid
 	-- -- Trash
 	[355063] = "CC",				-- Crushing Strike
@@ -2473,6 +2660,7 @@ local spellIds = {
 	[354926] = "Root",				-- Runic Mark
 	[347608] = "Root",				-- Sylvanas
 	[350003] = "Snare",				-- Cone of Cold
+	------------------------
 	-- Castle Nathria Raid
 	-- -- Trash
 	[341867] = "CC",				-- Subdue
@@ -2552,6 +2740,7 @@ local spellIds = {
 	[360831] = "ImmunePhysical",	-- Tiny Dancing Shoes
 	[357826] = "Other",				-- Vial of Desperation (damage taken reduced by 50%)
 	[361180] = "Snare",				-- Observe Weakness
+	[366288] = "CC",				-- Force Slam
 	-- -- Tazavesh, the Veiled Market
 	[348006] = "CC",				-- Containment Cell
 	[345770] = "CC",				-- Impound Contraband
@@ -2612,7 +2801,8 @@ local spellIds = {
 	[326876] = "CC",				-- Shredded Ankles
 	[326617] = "CC",				-- Turn to Stone
 	[326607] = "Immune",			-- Turn to Stone (not immune, damage taken reduced by 50%)
-	--[326450] = "Other",				-- Loyal Beasts	(increases all damage done by 125%)
+	[326771] = "Immune",			-- Stone Watcher (not immune, damage taken reduced by 99%)
+	[326450] = "Other",				-- Loyal Beasts	(increases all damage done by 125%)
 	-- -- Mists of Tirna Scithe
 	[323149] = "Immune",			-- Embrace Darkness (not immune, damage taken reduced by 50%)
 	[336499] = "Immune",			-- Guessing Game
@@ -3854,6 +4044,7 @@ local spellIds = {
 	[244894] = "Immune",			-- Corrupt Aegis
 	[246014] = "CC",				-- Searing Tempest
 	[255062] = "CC",				-- Empowered Searing Tempest
+	[255528] = "CC",				-- Searing Binding
 	------------------------
 	-- The Deaths of Chromie Scenario
 	[246941] = "CC",				-- Looming Shadows
@@ -7405,7 +7596,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "7.06"
+		self.VERSION = "7.07"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
