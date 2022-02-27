@@ -1,7 +1,7 @@
 ## Interface: 11402
 ## Title: LoseControl Classic
 ## Author: millanzarreta, Kouri
-## Version: 1.11
+## Version: 1.12
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter
@@ -16,11 +16,14 @@
 ## X-Website: http://www.curse.com/addons/wow/losecontrol
 ## X-Website2: http://www.wowinterface.com/downloads/info11642-LoseControl.html
 ## X-Category: Buffs
-## OptionalDeps: LibStub, CallbackHandler-1.0, LibClassicDurations, Masque, ClassicAuraDurations
+## OptionalDeps: LibStub, CallbackHandler-1.0, LibClassicDurations, Masque, ClassicAuraDurations, PitBull4
 ## SavedVariablesPerCharacter: LoseControlDB
 
+#@no-lib-strip@
 Libs\LibStub\LibStub.lua
-Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 Libs\LibClassicDurations\LibClassicDurations.xml
+#@end-no-lib-strip@
+
 localization.lua
 LoseControl.lua
