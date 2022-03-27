@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.12
+-- Version: 1.13
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -781,6 +781,9 @@ local spellIds = {
 	[367741] = "CC",				-- Frozen Solid
 	[368724] = "CC",				-- Static Overload
 	[367701] = "CC",				-- Time Stop
+	[370436] = "CC",				-- Mask of Death
+	[370308] = "CC",				-- Rod of Necromancy
+	[370417] = "Immune",			-- Failsafe Phylactory
 	[365122] = "Other",				-- Berserk
 	[368388] = "Other",				-- Berserk
 	[368329] = "Root",				-- Nightmare Brambles
@@ -2502,7 +2505,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 					if not autoCall and self.timerActive then return end
 					if (self.frame.enabled and not self.unlockMode and UnitExists(self.unitId)) then
 						self.unitGUID = UnitGUID(self.unitId)
-						self:UNIT_AURA(self.unitId, 300)
+						self:UNIT_AURA(self.unitId, true, nil, 300)
 						self.timerActive = true
 						C_Timer.After(0.5, self.UpdateStateFuncCache)
 					else
@@ -2513,7 +2516,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 				self:SetScript("OnAttributeChanged", function(self, name, value)
 					if (self.frame.enabled and not self.unlockMode) then
 						self.unitGUID = UnitGUID(self.unitId)
-						self:UNIT_AURA(self.unitId, 200)
+						self:UNIT_AURA(self.unitId, true, nil, 200)
 					end
 					if value then
 						self:UpdateState()
@@ -2524,9 +2527,9 @@ function LoseControl:RegisterUnitEvents(enabled)
 					if (self.frame.enabled and not self.unlockMode) then
 						self.unitGUID = UnitGUID(self.unitId)
 						if self.frame.anchor == "Blizzard" then
-							self:UNIT_AURA(self.unitId, -30)
+							self:UNIT_AURA(self.unitId, true, nil, -30)
 						else
-							self:UNIT_AURA(self.unitId, 30)
+							self:UNIT_AURA(self.unitId, true, nil, 30)
 						end
 					end
 				end)
@@ -2540,7 +2543,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
 									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
 										self.unitGUID = UnitGUID(self.unitId)
-										self:UNIT_AURA(self.unitId, 40)
+										self:UNIT_AURA(self.unitId, true, nil, 40)
 									end
 								end)
 							end
@@ -2551,7 +2554,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
 									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
 										self.unitGUID = UnitGUID(self.unitId)
-										self:UNIT_AURA(self.unitId, 43)
+										self:UNIT_AURA(self.unitId, true, nil, 43)
 									end
 								end)
 							end
@@ -2684,7 +2687,7 @@ function LoseControl:UpdateGetEnemiesBuffInformationOptionState()
 			local icon = LCframes[unitId]
 			if icon then
 				if icon:GetEnabled() and not icon.unlockMode then
-					icon:UNIT_AURA(unitId, -1)
+					icon:UNIT_AURA(unitId, true, nil, -1)
 				end
 			end
 		end)
@@ -2934,7 +2937,7 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 						)
 					end
 					if (icon.frame and icon.frame.anchor == "BlizzardRaidFrames") then
-						icon:UNIT_AURA(icon.unitId, -80)
+						icon:UNIT_AURA(icon.unitId, true, nil, -80)
 					end
 				end
 			end
@@ -3047,7 +3050,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.12"
+		self.VERSION = "1.13"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
@@ -3335,7 +3338,7 @@ function LoseControl:PLAYER_ENTERING_WORLD()
 	
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
-		self:UNIT_AURA(self.unitId, 0)
+		self:UNIT_AURA(self.unitId, true, nil, 0)
 	end
 end
 
@@ -3353,7 +3356,7 @@ function LoseControl:GROUP_ROSTER_UPDATE()
 	end
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
-		self:UNIT_AURA(unitId, 0)
+		self:UNIT_AURA(unitId, true, nil, 0)
 	end
 end
 
@@ -3370,9 +3373,9 @@ local function UpdateUnitAuraByUnitGUID(unitGUID, typeUpdate)
 		local enabled = v:GetEnabled()
 		if enabled and not v.unlockMode then
 			if v.unitGUID == unitGUID then
-				v:UNIT_AURA(v.unitId, typeUpdate)
+				v:UNIT_AURA(v.unitId, true, nil, typeUpdate)
 				if (k == "player") and LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, typeUpdate)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, typeUpdate)
 				end
 			end
 		end
@@ -3532,7 +3535,7 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 				local timeCombatLogAuraEvent = GetTime()
 				C_Timer.After(0.01, function()	-- execute in some close next frame to accurate use of UnitAura function
 					if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent ~= timeCombatLogAuraEvent)) then
-						self:UNIT_AURA(self.unitId, 3)
+						self:UNIT_AURA(self.unitId, true, nil, 3)
 					end
 				end)
 			end
@@ -3541,9 +3544,19 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 end
 
 -- This is the main event. Check for (de)buffs and update the frame icon and cooldown.
-function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is gained/lost
+function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -- fired when a (de)buff is gained/lost
 	if (((typeUpdate ~= nil and typeUpdate > 0) or (typeUpdate == nil and self.unitId == "targettarget")) and (self.lastTimeUnitAuraEvent == GetTime())) then return end
 	if (self.unitId == "targettarget" and (not UnitIsUnit(unitId, self.unitId))) then return end
+	if (isFullUpdate == false) and (updatedAuras ~= nil) then
+		local anyInterestAura = false
+		for _, v in pairs(updatedAuras) do
+			if (spellIds[v.spellId] ~= nil) then
+				anyInterestAura = true
+				break
+			end
+		end
+		if not(anyInterestAura) then return end
+	end
 	local priority = LoseControlDB.priority
 	local maxPriority = 1
 	local maxExpirationTime = 0
@@ -3714,7 +3727,7 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 							end
 							C_Timer.After(nextTimerUpdate, function()
 								if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < (GetTime() - 0.04))) then
-									self:UNIT_AURA(self.unitId, 20)
+									self:UNIT_AURA(self.unitId, true, nil, 20)
 								end
 								for e, f in pairs(InterruptAuras) do
 									for g, h in pairs(f) do
@@ -3820,7 +3833,7 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 			end
 			C_Timer.After(nextTimerUpdate, function()
 				if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < (GetTime() - 0.08))) then
-					self:UNIT_AURA(self.unitId, 4)
+					self:UNIT_AURA(self.unitId, true, nil, 4)
 				end
 			end)
 		end
@@ -3849,7 +3862,7 @@ function LoseControl:PLAYER_TARGET_CHANGED()
 		self.unitGUID = UnitGUID(self.unitId)
 		self:CheckAnchor(self.frame.anchor=="PitBullUF")
 		if not self.unlockMode then
-			self:UNIT_AURA(self.unitId, -11)
+			self:UNIT_AURA(self.unitId, true, nil, -11)
 		end
 	end
 end
@@ -3860,7 +3873,7 @@ function LoseControl:UNIT_TARGET(unitId)
 		self.unitGUID = UnitGUID(self.unitId)
 		self:CheckAnchor(self.frame.anchor=="PitBullUF")
 		if not self.unlockMode then
-			self:UNIT_AURA(self.unitId, -12)
+			self:UNIT_AURA(self.unitId, true, nil, -12)
 		end
 	end
 end
@@ -3871,7 +3884,7 @@ function LoseControl:UNIT_PET(unitId)
 		self.unitGUID = UnitGUID(self.unitId)
 		self:CheckAnchor(self.frame.anchor=="PitBullUF")
 		if not self.unlockMode then
-			self:UNIT_AURA(self.unitId, -13)
+			self:UNIT_AURA(self.unitId, true, nil, -13)
 		end
 	end
 end
@@ -4787,7 +4800,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			end
 			if icon:GetEnabled() and not icon.unlockMode then
 				icon.maxExpirationTime = 0
-				icon:UNIT_AURA(icon.unitId, 0)
+				icon:UNIT_AURA(icon.unitId, true, nil, 0)
 			end
 		end
 	end
@@ -4886,7 +4899,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			end
 			if icon:GetEnabled() and not icon.unlockMode then
 				icon.maxExpirationTime = 0
-				icon:UNIT_AURA(icon.unitId, 0)
+				icon:UNIT_AURA(icon.unitId, true, nil, 0)
 			end
 		end
 	end
@@ -5388,7 +5401,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				LCframes[frame].maxExpirationTime = 0
 				LCframes[frame]:RegisterUnitEvents(enable)
 				if enable and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -5403,7 +5416,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				LCframes[frame].maxExpirationTime = 0
 				LCframes[frame]:RegisterUnitEvents(enable)
 				if enable and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -5421,7 +5434,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				LCframes[frame].maxExpirationTime = 0
 				LCframes[frame]:RegisterUnitEvents(enable)
 				if enable and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -5441,7 +5454,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -5456,7 +5469,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -5471,7 +5484,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -5486,7 +5499,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -5501,7 +5514,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -5835,7 +5848,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			LoseControlDB.frames[frame].categoriesEnabled.interrupt.friendly = self:GetChecked()
 			LCframes[frame].maxExpirationTime = 0
 			if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 			end
 		end
 	end)
@@ -5848,7 +5861,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			LoseControlDB.frames[v].categoriesEnabled.interrupt.enemy = self:GetChecked()
 			LCframes[v].maxExpirationTime = 0
 			if LoseControlDB.frames[v].enabled and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 		tblinsert(CategoriesCheckButtons, { frame = EnemyInterrupt, auraType = "interrupt", reaction = "enemy", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 270, yPos = 5 })
@@ -5868,7 +5881,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				LoseControlDB.frames[frame].categoriesEnabled.buff.friendly[cat] = self:GetChecked()
 				LCframes[frame].maxExpirationTime = 0
 				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -5887,7 +5900,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				LoseControlDB.frames[frame].categoriesEnabled.debuff.friendly[cat] = self:GetChecked()
 				LCframes[frame].maxExpirationTime = 0
 				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -5900,7 +5913,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				LoseControlDB.frames[v].categoriesEnabled.buff.enemy[cat] = self:GetChecked()
 				LCframes[v].maxExpirationTime = 0
 				if LoseControlDB.frames[v].enabled and not LCframes[v].unlockMode then
-					LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+					LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 				end
 			end)
 			tblinsert(CategoriesCheckButtons, { frame = EnemyBuff, auraType = "buff", reaction = "enemy", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 270, yPos = 5 })
@@ -5913,7 +5926,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				LoseControlDB.frames[v].categoriesEnabled.debuff.enemy[cat] = self:GetChecked()
 				LCframes[v].maxExpirationTime = 0
 				if LoseControlDB.frames[v].enabled and not LCframes[v].unlockMode then
-					LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+					LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 				end
 			end)
 			tblinsert(CategoriesCheckButtons, { frame = EnemyDebuff, auraType = "debuff", reaction = "enemy", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 335, yPos = 5 })
@@ -5930,7 +5943,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			LoseControlDB.frames.player2.categoriesEnabled.interrupt.friendly = self:GetChecked()
 			LCframeplayer2.maxExpirationTime = 0
 			if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 			end
 		end)
 		tblinsert(CategoriesCheckButtonsPlayer2, { frame = FriendlyInterruptPlayer2, auraType = "interrupt", reaction = "friendly", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 310, yPos = 5 })
@@ -5942,7 +5955,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				LoseControlDB.frames.player2.categoriesEnabled.buff.friendly[cat] = self:GetChecked()
 				LCframeplayer2.maxExpirationTime = 0
 				if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 				end
 			end)
 			tblinsert(CategoriesCheckButtonsPlayer2, { frame = FriendlyBuffPlayer2, auraType = "buff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 310, yPos = 5 })
@@ -5953,7 +5966,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				LoseControlDB.frames.player2.categoriesEnabled.debuff.friendly[cat] = self:GetChecked()
 				LCframeplayer2.maxExpirationTime = 0
 				if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 				end
 			end)
 			tblinsert(CategoriesCheckButtonsPlayer2, { frame = FriendlyDebuffPlayer2, auraType = "debuff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 419, yPos = 5 })
@@ -6110,7 +6123,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				end
 			end
 			if enable and not LCframeplayer2.unlockMode then
-				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 			elseif Unlock:GetChecked() then
 				Unlock:OnClick()
 			end
@@ -6137,7 +6150,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 				AnchorPositionPartyDropDown:OnClick()
 			end
 			if enable and not LCframes.partyplayer.unlockMode then
-				LCframes.partyplayer:UNIT_AURA(LCframes.partyplayer.unitId, 0)
+				LCframes.partyplayer:UNIT_AURA(LCframes.partyplayer.unitId, true, nil, 0)
 			elseif Unlock:GetChecked() then
 				Unlock:OnClick()
 			end
@@ -6359,14 +6372,14 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid" 
 			LCframes[frame].maxExpirationTime = 0
 			LCframes[frame]:RegisterUnitEvents(enable)
 			if enable and not LCframes[frame].unlockMode then
-				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 			end
 			if (frame == "player") then
 				LoseControlDB.frames.player2.enabled = enabled and LoseControlDB.duplicatePlayerPortrait
 				LCframeplayer2.maxExpirationTime = 0
 				LCframeplayer2:RegisterUnitEvents(enabled and LoseControlDB.duplicatePlayerPortrait)
 				if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 				end
 			end
 		end
@@ -6714,14 +6727,14 @@ function SlashCmd:enable(unitId)
 		end
 		if enabled and not LCframes[unitId].unlockMode then
 			LCframes[unitId].maxExpirationTime = 0
-			LCframes[unitId]:UNIT_AURA(LCframes[unitId].unitId, 0)
+			LCframes[unitId]:UNIT_AURA(LCframes[unitId].unitId, true, nil, 0)
 		end
 		if (unitId == "player") then
 			LoseControlDB.frames.player2.enabled = LoseControlDB.duplicatePlayerPortrait
 			LCframeplayer2:RegisterUnitEvents(LoseControlDB.duplicatePlayerPortrait)
 			if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
 				LCframeplayer2.maxExpirationTime = 0
-				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 			end
 		elseif (unitId == "partyplayer") then
 			LoseControlDB.showPartyplayerIcon = true
