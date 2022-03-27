@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 7.08
+-- Version: 7.09
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -20,6 +20,7 @@ local UnitIsUnit = UnitIsUnit
 local UnitHealth = UnitHealth
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
 local GetPlayerInfoByGUID = GetPlayerInfoByGUID
+local GetInventoryItemID = GetInventoryItemID
 local GetInstanceInfo = GetInstanceInfo
 local GetSpellInfo = GetSpellInfo
 local GetTime = GetTime
@@ -62,17 +63,26 @@ local debug = false -- type "/lc debug on" if you want to see UnitAura info logg
 local LCframes = {}
 local LCframeplayer2
 local InterruptAuras = { }
-local SpecialAurasExtraInfo = { [145629] = { }, [81261] = { }, [212183] = { } }
+local SpecialAurasExtraInfo = { [145629] = { }, [81261] = { }, [212183] = { }, [331582] = { }, [362699] = { } }
 local origSpellIdsChanged = { }
 local LoseControlCompactRaidFramesHooked
 local LCHookedCompactRaidFrames = { }
 local Masque = LibStub("Masque", true)
-local LCAddonBartender4IsPresent = false
-local LCAddonConsolePortIsPresent = false
-local LCAddonElvUIIsPresent = false
-local LCBartender4ButtonsTable = {} 
-local LCConsolePortButtonsTable = {} 
-local LCElvUIButtonsTable = {} 
+local LCAddon = {
+	Bartender4 = {
+		IsPresent = false,
+		ButtonsTable = {}
+		
+	},
+	ConsolePort = {
+		IsPresent = false,
+		ButtonsTable = {}
+	},
+	ElvUI = {
+		IsPresent = false,
+		ButtonsTable = {}
+	}
+}
 local LCUnitPendingUnitWatchFrames = {}
 local LCCombatLockdownDelayFrame = CreateFrame("Frame")
 local RefreshBlizzardLossOfControlOptionsEnabled = function() end
@@ -635,6 +645,7 @@ local spellIds = {
 	[191719] = "Snare",				-- Gravitational Pull (artifact trait)
 	[204206] = "Snare",				-- Chill Streak (pvp talent)
 	[356518] = "Snare",				-- Doomburst (pvp talent)
+	[279303] = "Snare",				-- Frostwyrm's Fury
 	[334693] = "CC",				-- Absolute Zero (Legendary)
 	
 		----------------
@@ -1092,6 +1103,9 @@ local spellIds = {
 	[314416] = "CC",				-- Blind Faith
 	[323557] = "CC",				-- Ravenous Frenzy
 	[335432] = "CC",				-- Thirst For Anima
+	[334699] = "CC",				-- Vorkai Charge
+	[335074] = "CC",				-- Crystallizing Anima
+	[335826] = "CC",				-- Clear Tone
 	[317589] = "Silence",			-- Tormenting Backlash
 	[326062] = "CC",				-- Ancient Aftershock
 	[325886] = "CC",				-- Ancient Aftershock
@@ -1305,11 +1319,17 @@ local spellIds = {
 	[287371] = "CC",				-- Spirits of Madness
 	[228318] = "Other",				-- Enrage
 	[79872]  = "CC",				-- Shockwave
+	[190329] = "CC",				-- Charge
 	[341945] = "CC",				-- Defiling Horror
 	[311079] = "CC",				-- Deep Introspection
 	[327430] = "CC",				-- Touch of the Maw
 	[340500] = "CC",				-- Terrifying Slam
 	[319266] = "CC",				-- Shambling Rush
+	[315220] = "CC",				-- Cursed Mirror!
+	[315365] = "CC",				-- The Countess's Grasp
+	[336875] = "CC",				-- Concussive Blast
+	[331498] = "CC",				-- Valorous Charge
+	[321922] = "CC",				-- Anima Barrage
 	[321662] = "CC",				-- Bone Spike
 	[327145] = "CC",				-- Called to the Stone
 	[313451] = "CC",				-- Fuseless Special
@@ -1324,6 +1344,7 @@ local spellIds = {
 	[319575] = "CC",				-- Stunning Strike
 	[310998] = "CC",				-- Basket Trap Sprung
 	[311124] = "CC",				-- Nightmares
+	[325837] = "CC",				-- On The List
 	[312063] = "CC",				-- Faerie Punishment
 	[326316] = "CC",				-- Massive Blow
 	[340724] = "CC",				-- Whimsy Eruption
@@ -1354,6 +1375,7 @@ local spellIds = {
 	[341226] = "CC",				-- Charge
 	[342187] = "CC",				-- Beckon
 	[340593] = "CC",				-- Bewildering Slam
+	[336177] = "CC",				-- Deep Fog
 	[340469] = "CC",				-- Radiant Breath
 	[272272] = "CC",				-- Trampling Charge
 	[343153] = "CC",				-- Twilight Barrage (all damage done reduced by 75%)
@@ -1411,7 +1433,9 @@ local spellIds = {
 	[240009] = "CC",				-- Howl from Beyond
 	[342820] = "CC",				-- Charge
 	[347146] = "CC",				-- Wave of Trepidation
+	[313107] = "CC",				-- Energy Core
 	[337121] = "CC",				-- Overpowering Dirge
+	[322723] = "CC",				-- Wake of Ashes
 	[343119] = "CC",				-- Mournful Dirge
 	[343830] = "CC",				-- Dominating Grasp
 	[343172] = "CC",				-- Soulfreezing Rune
@@ -1444,7 +1468,6 @@ local spellIds = {
 	[346191] = "CC",				-- Ensared
 	[357920] = "CC",				-- Crushing Swipe
 	[324849] = "CC",				-- Dark Leap
-	[334699] = "CC",				-- Vorkai Charge
 	[326145] = "CC",				-- Cage of Humility
 	[354625] = "CC",				-- Bubble Trap
 	[352215] = "CC",				-- Cries of the Tormented
@@ -1478,6 +1501,8 @@ local spellIds = {
 	[217017] = "CC",				-- Slumber
 	[205605] = "CC",				-- Psychic Scream
 	[353202] = "CC",				-- Blinding Dust
+	[338084] = "CC",				-- Call General Draven
+	[340532] = "CC",				-- Necromantic Feedback
 	[353333] = "CC",				-- Moonberry's Trick: Snail
 	[126663] = "CC",				-- Debilitating Strike
 	[351044] = "CC",				-- Dirge of Dread
@@ -1525,6 +1550,13 @@ local spellIds = {
 	[365709] = "CC",				-- Call of the Damned
 	[359696] = "CC",				-- Damaged (damage done reduced)
 	[364440] = "CC",				-- Damaged (damage done reduced)
+	[359690] = "CC",				-- Domination
+	[359593] = "CC",				-- Domination
+	[359526] = "CC",				-- Domination
+	[361880] = "CC",				-- Imprisoned
+	[366179] = "CC",				-- Containment Field
+	[359451] = "CC",				-- Containment Trap
+	[361542] = "CC",				-- Targeting Relic
 	[362319] = "CC",				-- Oblivion
 	[366082] = "CC",				-- Clutched
 	[365044] = "CC",				-- Commanding Stomp
@@ -1547,6 +1579,7 @@ local spellIds = {
 	[362409] = "CC",				-- Knockdown
 	[365317] = "CC",				-- Maul
 	[360244] = "CC",				-- Mighty Slam
+	[359991] = "CC",				-- Nommed (decreased damage done by 100%)
 	[367316] = "CC",				-- Overcharge
 	[364808] = "CC",				-- Overwhelming Effusion
 	[362481] = "CC",				-- Overwhelming Guilt
@@ -1560,7 +1593,6 @@ local spellIds = {
 	[365127] = "CC",				-- Stunned
 	[361932] = "CC",				-- Swooped
 	[356336] = "CC",				-- Trapped!
-	[363332] = "CC",				-- Unbreaking Grasp
 	[362209] = "CC",				-- Vomhop!
 	[360875] = "CC",				-- Whirling Smash
 	[362710] = "CC",				-- Arcing Sweep
@@ -1588,6 +1620,7 @@ local spellIds = {
 	[344530] = "Immune",			-- Edict of the Eternal Ones
 	[348464] = "Immune",			-- Lingering Cloak of Ve'nari
 	[338038] = "Immune",			-- Misty Veil
+	[323775] = "Immune",			-- Indomitable Will
 	[333856] = "Immune",			-- Soul Barrier
 	[290378] = "Immune",			-- Rock of Life
 	[334791] = "Immune",			-- Undeath Barrier
@@ -1614,6 +1647,7 @@ local spellIds = {
 	[364213] = "Immune",			-- Transference
 	[363582] = "Immune",			-- Protected
 	[369379] = "Immune",			-- Lingering Cloak of the Exile
+	[344953] = "Immune",			-- Armored Recollection
 	[364821] = "Immune",			-- Cosmic Power (not immune, damage taken reduced by 50%)
 	[368548] = "Immune",			-- Divine Armor (not immune, damage taken reduced by 60%)
 	[362780] = "Immune", 			-- Maniacal Resolve (not immune, damage taken reduced by 99%)
@@ -1623,10 +1657,10 @@ local spellIds = {
 	[367651] = "Immune",			-- Tenacity of the Survivor (not immune, damage taken reduced by 99%)
 	[367966] = "Immune",			-- Primed (not immune, damage taken reduced by 50%)
 	[362574] = "Immune",			-- Progenitor Growth (not immune, damage taken reduced by 50%)
-	[368936] = "Immune",			-- Terminal Barrier (not immune, damage taken reduced by 50%)
 	[343046] = "ImmuneSpell",		-- Magic Shell (magic damage taken reduced by 70%)
 	[320401] = "ImmuneSpell",		-- Lucky Dust
 	[357956] = "ImmuneSpell",		-- Magebane Ward
+	[363522] = "ImmuneSpell",		-- Gladiator's Eternal Aegis (not immune, absorbing 50% of all magic damage taken, up to a maximum value)
 	[343062] = "ImmunePhysical",	-- Iron Shell
 	[328286] = "ImmunePhysical",	-- Nimble Dodge (increased dodge chance by 100%)
 	[340398] = "ImmunePhysical",	-- Aura of Protection
@@ -1638,11 +1672,14 @@ local spellIds = {
 	[329710] = "Root",				-- Creeping Tendrils
 	[302124] = "Root",				-- Ol' Big Tusk Charge
 	[311767] = "Root",				-- Death From Above
+	[314826] = "Root",				-- Overwhelming Power
 	[330456] = "Root",				-- Shadow Surge
 	[330106] = "Root",				-- Shadow Surge
+	[338612] = "Root",				-- Frost Blast
 	[330593] = "Root",				-- Web
 	[308277] = "Root",				-- Entangling Spores
 	[328782] = "Root",				-- Webspinner Song
+	[334040] = "Root",				-- Aspirant's Bindings
 	[329023] = "Root",				-- Extra Sticky Spidey Webs
 	[312353] = "Root",				-- Soultrapped
 	[331515] = "Root",				-- Time Out
@@ -1659,6 +1696,7 @@ local spellIds = {
 	[354588] = "Root",				-- Grasping Roots
 	[360423] = "Root",				-- Tome of Small Sins
 	[365850] = "Root",				-- Reclamation
+	[359945] = "Root",				-- Overgrowth
 	[335047] = "Other",				-- Goliath Bulwark (deflecting attacks from the front)
 	[338085] = "Other",				-- Necrosis (healing received reduced by 100%)
 	[321000] = "Other",				-- Unholy Bulwark (deflecting attacks from the front)
@@ -1667,6 +1705,8 @@ local spellIds = {
 	[324883] = "Other",				-- Decaying Spores (damage done reduced by 50%)
 	--[356567] = "Other",				-- Shackles of Malediction
 	--[358259] = "Other",				-- Gladiator's Maledict
+	--[363715] = "Other",				-- Gladiator's Maledict
+	[362699] = "Other",				-- Gladiator's Resolve (immune to interrupt and crowd control effects)
 	[51878]  = "Snare",				-- Ice Slash
 	[329158] = "Snare",				-- Frigid Blast
 	[321525] = "Snare",				-- Spectral Shackle
@@ -1686,6 +1726,7 @@ local spellIds = {
 	[329432] = "Snare",				-- Cripple
 	[347163] = "Snare",				-- Iron Shackles
 	[334177] = "Snare",				-- Death's Demise
+	[335373] = "Snare",				-- Leap of Faith
 	[336040] = "Snare",				-- Heartshroom Bloat
 	[308228] = "Snare",				-- Shackles
 	[342252] = "Snare",				-- Cursed Heart
@@ -1693,6 +1734,7 @@ local spellIds = {
 	[343072] = "Snare",				-- Crushing Stomp
 	[336859] = "Snare",				-- Fel Armament
 	[324114] = "Snare",				-- Forbidden Knowledge
+	[316993] = "Snare",				-- Wake of Ashes
 	[340482] = "Snare",				-- Explosive Fungistorm
 	[344408] = "Snare",				-- Carrying a Rock
 	[339617] = "Snare",				-- Crushing Strength
@@ -2520,6 +2562,7 @@ local spellIds = {
 	[364040] = "CC",				-- Hyperlight Ascension
 	[367573] = "Immune",			-- Genesis Bulwark (not immune, damage taken reduced by 99%)
 	[364030] = "Snare",				-- Debilitating Ray
+	[302547] = "Other",				-- Berserk
 	-- -- Dausegne, the Fallen Oracle
 	[365418] = "Other",				-- Total Dominion
 	[365852] = "Other",				-- Total Dominion
@@ -2533,6 +2576,7 @@ local spellIds = {
 	[361299] = "Immune",			-- Bastion's Ward
 	[366159] = "Immune",			-- Imprinted Safeguards (not immune, damage taken reduced by 50%)
 	-- -- Lihuvim, Principal Architect
+	[368936] = "Immune",			-- Terminal Barrier (not immune, damage taken reduced by 50%)
 	[364312] = "Immune",			-- Ephemeral Barrier (not immune, damage taken reduced by 50%)
 	[368809] = "Immune",			-- Ephemeral Barrier (not immune, damage taken reduced by 50%)
 	[363356] = "ImmuneMagic",		-- Protoform Disalignment (not immune, only cosmic damage taken reduced by 90%)
@@ -2545,26 +2589,33 @@ local spellIds = {
 	[365024] = "CC",				-- Wicked Star
 	[367634] = "CC",				-- Empowered Wicked Star
 	[362505] = "CC",				-- Domination's Grasp
+	[362394] = "CC",				-- Rain of Despair (damage and healing done reduced by 50%)
 	[365235] = "Other",				-- Aura of Despair
 	[364031] = "Other",				-- Gloom (healing effects received reduced by 100% and movement speed reduced by 80%)
 	-- -- Lords of Dread
 	[360008] = "CC",				-- Cloud of Carrion
 	[366575] = "CC",				-- Cloud of Carrion
 	[362202] = "CC",				-- Shatter Mind
-	[361284] = "Immune",			-- Paranoia (stun and immune, not immune, damage taken reduced by 99%)
+	[361284] = "CC",				-- Paranoia (stun and damage taken reduced by 99%)
 	[360148] = "CC",				-- Bursting Dread
 	[366635] = "CC",				-- Bursting Dread
 	[363235] = "CC",				-- Horrifying Shadows
 	[360241] = "CC",				-- Unsettling Dreams
+	[360516] = "CC",				-- Infiltration
 	[361934] = "Immune",			-- Incomplete Form (cannot be killed)
 	[362020] = "Immune",			-- Incomplete Form (cannot be killed)
+	[360300] = "Other",				-- Swarm of Decay (100% increased damage from AoE abilities)
+	[360304] = "Other",				-- Swarm of Darkness (100% increased damage from AoE abilities)
 	-- -- Rygelon
+	[369571] = "Immune",			-- Burned Out
 	[365381] = "Immune",			-- Nebular Cloud (not immune, damage taken reduced by 99%)
 	-- -- The Jailer
 	[362075] = "CC",				-- Domination
 	[364481] = "CC",				-- Dominated
 	[362397] = "CC",				-- Compulsion
 	[367198] = "CC",				-- Compulsion
+	[363332] = "CC",				-- Unbreaking Grasp
+	[370718] = "CC",				-- Unbreaking Grasp
 	[360180] = "Immune", 			-- Oblivion
 	[363886] = "Root",				-- Imprisonment
 	------------------------
@@ -2789,6 +2840,7 @@ local spellIds = {
 	[340026] = "CC",				-- Wailing Grief
 	[320132] = "CC",				-- Shadowfury
 	[332605] = "CC",				-- Hex
+	[333227] = "Other",				-- Undying Rage
 	[320008] = "Snare",				-- Frostbolt
 	[332236] = "Snare",				-- Sludgegrab
 	[334530] = "Snare",				-- Snaring Gore
@@ -2863,6 +2915,7 @@ local spellIds = {
 	[324092] = "Immune",			-- Shining Radiance (not immune, damage taken reduced by 65%)
 	[327107] = "Immune",			-- Shining Radiance (not immune, damage taken reduced by 75%)
 	[336749] = "CC",				-- Rend Souls
+	[334324] = "CC",				-- Motivational Clubbing
 	[326836] = "Silence",			-- Curse of Suppression
 	[335306] = "Root",				-- Barbed Shackles
 	-- -- Spires of Ascension
@@ -3900,6 +3953,7 @@ local spellIds = {
 	[205043] = "CC",				-- Infested Mind
 	-- -- Ursoc
 	[197980] = "CC",				-- Nightmarish Cacophony
+	[26662]  = "Other",				-- Berserk
 	-- -- Dragons of Nightmare
 	[205341] = "CC",				-- Seeping Fog
 	[225356] = "CC",				-- Seeping Fog
@@ -6889,7 +6943,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 					if not autoCall and self.timerActive then return end
 					if (self.frame.enabled and not self.unlockMode and UnitExists(self.unitId)) then
 						self.unitGUID = UnitGUID(self.unitId)
-						self:UNIT_AURA(self.unitId, 300)
+						self:UNIT_AURA(self.unitId, true, nil, 300)
 						self.timerActive = true
 						C_Timer.After(2.5, self.UpdateStateFuncCache)
 					else
@@ -6900,7 +6954,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 				self:SetScript("OnAttributeChanged", function(self, name, value)
 					if (self.frame.enabled and not self.unlockMode) then
 						self.unitGUID = UnitGUID(self.unitId)
-						self:UNIT_AURA(self.unitId, 200)
+						self:UNIT_AURA(self.unitId, true, nil, 200)
 					end
 					if value then
 						self:UpdateState()
@@ -6911,9 +6965,9 @@ function LoseControl:RegisterUnitEvents(enabled)
 					if (self.frame.enabled and not self.unlockMode) then
 						self.unitGUID = UnitGUID(self.unitId)
 						if self.frame.anchor == "Blizzard" then
-							self:UNIT_AURA(self.unitId, -30)
+							self:UNIT_AURA(self.unitId, true, nil, -30)
 						else
-							self:UNIT_AURA(self.unitId, 30)
+							self:UNIT_AURA(self.unitId, true, nil, 30)
 						end
 					end
 				end)
@@ -6927,7 +6981,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
 									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
 										self.unitGUID = UnitGUID(self.unitId)
-										self:UNIT_AURA(self.unitId, 40)
+										self:UNIT_AURA(self.unitId, true, nil, 40)
 									end
 								end)
 							end
@@ -6938,7 +6992,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
 									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
 										self.unitGUID = UnitGUID(self.unitId)
-										self:UNIT_AURA(self.unitId, 43)
+										self:UNIT_AURA(self.unitId, true, nil, 43)
 									end
 								end)
 							end
@@ -6969,7 +7023,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 					if not autoCall and self.timerActive then return end
 					if (self.frame.enabled and not self.unlockMode and UnitExists(self.unitId)) then
 						self.unitGUID = UnitGUID(self.unitId)
-						self:UNIT_AURA(self.unitId, 300)
+						self:UNIT_AURA(self.unitId, true, nil, 300)
 						self.timerActive = true
 						C_Timer.After(2.5, self.UpdateStateFuncCache)
 					else
@@ -6980,7 +7034,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 				self:SetScript("OnAttributeChanged", function(self, name, value)
 					if (self.frame.enabled and not self.unlockMode) then
 						self.unitGUID = UnitGUID(self.unitId)
-						self:UNIT_AURA(self.unitId, 200)
+						self:UNIT_AURA(self.unitId, true, nil, 200)
 					end
 					if value then
 						self:UpdateState()
@@ -6991,9 +7045,9 @@ function LoseControl:RegisterUnitEvents(enabled)
 					if (self.frame.enabled and not self.unlockMode) then
 						self.unitGUID = UnitGUID(self.unitId)
 						if self.frame.anchor == "Blizzard" then
-							self:UNIT_AURA(self.unitId, -30)
+							self:UNIT_AURA(self.unitId, true, nil, -30)
 						else
-							self:UNIT_AURA(self.unitId, 30)
+							self:UNIT_AURA(self.unitId, true, nil, 30)
 						end
 					end
 				end)
@@ -7007,7 +7061,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
 									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
 										self.unitGUID = UnitGUID(self.unitId)
-										self:UNIT_AURA(self.unitId, 30)
+										self:UNIT_AURA(self.unitId, true, nil, 30)
 									end
 								end)
 							end
@@ -7018,7 +7072,7 @@ function LoseControl:RegisterUnitEvents(enabled)
 								C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
 									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
 										self.unitGUID = UnitGUID(self.unitId)
-										self:UNIT_AURA(self.unitId, 31)
+										self:UNIT_AURA(self.unitId, true, nil, 31)
 									end
 								end)
 							end
@@ -7334,9 +7388,9 @@ end
 -- Function to reconfigure all BT4Buttons when Bartender4 ActionBars are loaded or modified
 function LoseControl_HookBartender4LoseControlIcons()
 	for i = 1, 120 do
-		if (not LCBartender4ButtonsTable[i]) then
+		if (not LCAddon.Bartender4.ButtonsTable[i]) then
 			local button = _G["BT4Button"..i]
-			LCBartender4ButtonsTable[i] = button
+			LCAddon.Bartender4.ButtonsTable[i] = button
 			if (button and (not button.LOSECONTROL_BT4_HOOKED)) then
 				button.GetLossOfControlCooldown = LoseControl_ActionButtonGetLossOfControlCooldown
 				button.LOSECONTROL_BT4_HOOKED = true
@@ -7351,9 +7405,9 @@ function LoseControl_HookConsolePortLoseControlIcons()
 	for bindName in ConsolePort:GetBindings() do
 		for _, modSuf in ipairs(mods) do
 			local buttonName = "CPB_"..bindName..modSuf
-			if (not LCConsolePortButtonsTable[buttonName]) then
+			if (not LCAddon.ConsolePort.ButtonsTable[buttonName]) then
 				local button = _G[buttonName]
-				LCConsolePortButtonsTable[buttonName] = button
+				LCAddon.ConsolePort.ButtonsTable[buttonName] = button
 				if (button and (not button.LOSECONTROL_CONSOLEPORT_HOOKED)) then
 					button.GetLossOfControlCooldown = LoseControl_ActionButtonGetLossOfControlCooldown
 					button.LOSECONTROL_CONSOLEPORT_HOOKED = true
@@ -7368,9 +7422,9 @@ function LoseControl_HookElvUILoseControlIcons()
 	for iBar = 1, 10 do
 		for iButton = 1, 12 do
 			local index = (iBar-1)*12+iButton
-			if (not LCElvUIButtonsTable[index]) then
+			if (not LCAddon.ElvUI.ButtonsTable[index]) then
 				local button = _G["ElvUI_Bar"..iBar.."Button"..iButton]
-				LCElvUIButtonsTable[index] = button
+				LCAddon.ElvUI.ButtonsTable[index] = button
 				if (button and (not button.LOSECONTROL_ELVUI_HOOKED)) then
 					button.GetLossOfControlCooldown = LoseControl_ActionButtonGetLossOfControlCooldown
 					button.LOSECONTROL_ELVUI_HOOKED = true
@@ -7382,34 +7436,34 @@ end
 
 -- Function to disable Cooldown on player bars for CC effects
 function LoseControl:DisableLossOfControlUI(isAutoCall)
-	if (not LCAddonBartender4IsPresent) then
+	if (not LCAddon.Bartender4.IsPresent) then
 		if ((BINDING_HEADER_Bartender4 ~= nil) and (BINDING_NAME_BTTOGGLEACTIONBARLOCK ~= nil) and (Bartender4 ~= nil) and (Bartender4.ActionBar ~= nil)) then
 			if (not Bartender4.ActionBar.LOSECONTROL_BT4_HOOKED) then
 				hooksecurefunc(Bartender4.ActionBar, 'ApplyConfig', LoseControl_HookBartender4LoseControlIcons)
 				LoseControl_HookBartender4LoseControlIcons()
 				Bartender4.ActionBar.LOSECONTROL_BT4_HOOKED = true
 			end
-			LCAddonBartender4IsPresent = true
+			LCAddon.Bartender4.IsPresent = true
 		elseif not(isAutoCall) then	-- delay checking to make sure all variables of the other addons are loaded
 			C_Timer.After(8, function() self:DisableLossOfControlUI(true) end)
 		end
 	end
-	if (not LCAddonConsolePortIsPresent) then
+	if (not LCAddon.ConsolePort.IsPresent) then
 		if ((ConsolePort ~= nil) and (ConsolePortBar ~= nil) and (CPActionButtonMixin ~= nil)) then
 			if (not ConsolePortBar.LOSECONTROL_CONSOLEPORT_HOOKED) then
 				hooksecurefunc(ConsolePortBar, 'OnLoad', LoseControl_HookConsolePortLoseControlIcons)
 				LoseControl_HookConsolePortLoseControlIcons()
 				ConsolePortBar.LOSECONTROL_CONSOLEPORT_HOOKED = true
 			end
-			LCAddonConsolePortIsPresent = true
+			LCAddon.ConsolePort.IsPresent = true
 		elseif not(isAutoCall) then	-- delay checking to make sure all variables of the other addons are loaded
 			C_Timer.After(9, function() self:DisableLossOfControlUI(true) end)
 		end
 	end
-	if (not LCAddonElvUIIsPresent) then
+	if (not LCAddon.ElvUI.IsPresent) then
 		if ((ElvUI ~= nil) and (Elv_ABFade ~= nil) and (ElvUI_Bar1 ~= nil)) then
 			LoseControl_HookElvUILoseControlIcons()
-			LCAddonElvUIIsPresent = true
+			LCAddon.ElvUI.IsPresent = true
 		elseif not(isAutoCall) then	-- delay checking to make sure all variables of the other addons are loaded
 			C_Timer.After(10, function() self:DisableLossOfControlUI(true) end)
 		end
@@ -7483,7 +7537,7 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 						)
 					end
 					if (icon.frame and icon.frame.anchor == "BlizzardRaidFrames") then
-						icon:UNIT_AURA(icon.unitId, -80)
+						icon:UNIT_AURA(icon.unitId, true, nil, -80)
 					end
 				end
 			end
@@ -7596,7 +7650,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "7.08"
+		self.VERSION = "7.09"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
@@ -7896,7 +7950,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
-		self:UNIT_AURA(self.unitId, 0)
+		self:UNIT_AURA(self.unitId, true, nil, 0)
 	end
 end
 
@@ -7914,7 +7968,7 @@ function LoseControl:GROUP_ROSTER_UPDATE()
 	end
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
-		self:UNIT_AURA(unitId, 0)
+		self:UNIT_AURA(unitId, true, nil, 0)
 	end
 end
 
@@ -7931,9 +7985,9 @@ local function UpdateUnitAuraByUnitGUID(unitGUID, typeUpdate)
 		local enabled = v:GetEnabled()
 		if enabled and not v.unlockMode then
 			if v.unitGUID == unitGUID then
-				v:UNIT_AURA(v.unitId, typeUpdate)
+				v:UNIT_AURA(v.unitId, true, nil, typeUpdate)
 				if (k == "player") and LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, typeUpdate)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, typeUpdate)
 				end
 			end
 		end
@@ -7952,7 +8006,7 @@ function LoseControl:ARENA_OPPONENT_UPDATE()
 	self:CheckAnchor(true)
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
-		self:UNIT_AURA(unitId, 0)
+		self:UNIT_AURA(unitId, true, nil, 0)
 	end
 end
 
@@ -8001,7 +8055,6 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 							for i = 1, 120 do
 								local _, _, _, _, _, _, _, _, _, auxSpellId = UnitAura(unitIdFromGUID, i)
 								if not auxSpellId then break end
-								-- spellId = 35126 [Interrupted Mechanic Duration -20% (Item) (doesn't stack)] and spellId = 42184 [Interrupted Mechanic Duration -10% (Item) (doesn't stack)] are hidden auras, assume absent
 								if (destClass == "DRUID") then
 									if auxSpellId == 234084 then		-- Moon and Stars (Druid) [Interrupted Mechanic Duration -70% (stacks)]
 										duration = duration * 0.3
@@ -8012,11 +8065,45 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 								end
 							end
 						end
-						-- Familiar Predicaments (Nadjia Soulbind Spell, spellId = 331582, soulbindNodeId = 1403) [Interrupted Mechanic Duration -15% ((doesn't stack)] (only trackable on player atm)
-						if ((destGUID == playerGUID) and (SoulbindsGetActiveSoulbindID() == 8) and (SoulbindsGetNode(1403) and SoulbindsGetNode(1403).state == 3)) then
-							duration2 = duration2 * 0.85
-							if (duration2 < duration) then
-								duration = duration2
+						if (destGUID == playerGUID) then
+							local itemIdHead = GetInventoryItemID("player", 1)
+							local itemIdNeck = GetInventoryItemID("player", 2)
+							-- spellId = 35126 [Interrupted Mechanic Duration -20% (Item) (doesn't stack)]
+							if (itemIdHead == 21517) or (itemIdNeck == 29347) or (itemIdNeck == 30008) then
+								duration2 = duration2 * 0.8
+								if (duration2 < duration) then
+									duration = duration2
+								end
+							-- Familiar Predicaments (Nadjia Soulbind Spell, spellId = 331582, soulbindNodeId = 1403) [Interrupted Mechanic Duration -15% ((doesn't stack)] (player)
+							elseif ((SoulbindsGetActiveSoulbindID() == 8) and (SoulbindsGetNode(1403) and SoulbindsGetNode(1403).state == 3)) then
+								duration2 = duration2 * 0.85
+								if (duration2 < duration) then
+									duration = duration2
+								end
+							-- spellId = 42184 [Interrupted Mechanic Duration -10% (Item) (doesn't stack)]
+							elseif (itemIdNeck == 16009) then
+								duration2 = duration2 * 0.9
+								if (duration2 < duration) then
+									duration = duration2
+								end
+							end
+							local itemIdTrinket1 = GetInventoryItemID("player", 13)
+							local itemIdTrinket2 = GetInventoryItemID("player", 14)
+							-- Gladiator's Resolve [Interrupted Mechanic Duration +20% (stacks)] (player)
+							if ((itemIdTrinket1 == 188691) or (itemIdTrinket2 == 188691)) then
+								duration = duration * 1.2
+							end
+						else
+							-- Familiar Predicaments (Nadjia Soulbind Spell, spellId = 331582, soulbindNodeId = 1403) [Interrupted Mechanic Duration -15% ((doesn't stack)] (other players)
+							if ((SpecialAurasExtraInfo[331582][destGUID] ~= nil) and (GetTime() < SpecialAurasExtraInfo[331582][destGUID].expirationTime) and SpecialAurasExtraInfo[331582][destGUID].activeFP) then
+								duration2 = duration2 * 0.85
+								if (duration2 < duration) then
+									duration = duration2
+								end
+							end
+							-- Gladiator's Resolve [Interrupted Mechanic Duration +20% (stacks)] (other players)
+							if ((SpecialAurasExtraInfo[362699][destGUID] ~= nil) and (GetTime() < SpecialAurasExtraInfo[362699][destGUID].expirationTime) and SpecialAurasExtraInfo[362699][destGUID].activePT) then
+								duration = duration * 1.2
 							end
 						end
 					end
@@ -8104,6 +8191,121 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 						SpecialAurasExtraInfo[212183][sourceGUID] = nil
 					end)
 				end
+			elseif (spellId == 363117) then -- Gladiator's Fastidious Resolve
+				if (sourceGUID ~= playerGUID) then
+					if (strfind(sourceGUID, "^Player-")) then
+						if (SpecialAurasExtraInfo[362699][sourceGUID] ~= nil) then
+							if ((GetTime() > SpecialAurasExtraInfo[362699][sourceGUID].expirationTime) or (SpecialAurasExtraInfo[362699][sourceGUID].activePT)) then
+								SpecialAurasExtraInfo[362699][sourceGUID].timestamp = GetTime()
+								SpecialAurasExtraInfo[362699][sourceGUID].duration = 360
+								SpecialAurasExtraInfo[362699][sourceGUID].expirationTime = GetTime() + 360
+								SpecialAurasExtraInfo[362699][sourceGUID].activePT = false
+							elseif ((GetTime()-SpecialAurasExtraInfo[362699][sourceGUID].timestamp) > 10) then
+								SpecialAurasExtraInfo[362699][sourceGUID].timestamp = GetTime()
+								SpecialAurasExtraInfo[362699][sourceGUID].expirationTime = GetTime() + 360
+							end
+						else
+							SpecialAurasExtraInfo[362699][sourceGUID] = {
+								timestamp = GetTime(),
+								duration = 360,	-- Remember it for 360 seconds
+								expirationTime = GetTime() + 360,
+								activePT = false
+							}
+						end
+					end
+				end
+			end
+		elseif (((event == "SPELL_AURA_APPLIED") or (event == "SPELL_AURA_APPLIED_DOSE") or (event == "SPELL_AURA_REMOVED") or (event == "SPELL_AURA_REMOVED_DOSE")) and sourceGUID ~= nil) then
+			if (spellId == 331939 or spellId == 331937 or spellId == 354054 or spellId == 331866 or spellId == 354050 or spellId == 331868) then	-- Familiar Predicaments (Nadjia Soulbind)
+				if (sourceGUID ~= playerGUID) then
+					if (strfind(sourceGUID, "^Player-")) then
+						if (SpecialAurasExtraInfo[331582][sourceGUID] ~= nil) then
+							if (GetTime() > SpecialAurasExtraInfo[331582][sourceGUID].expirationTime) then
+								SpecialAurasExtraInfo[331582][sourceGUID].timestamp = GetTime()
+								SpecialAurasExtraInfo[331582][sourceGUID].duration = 90
+								SpecialAurasExtraInfo[331582][sourceGUID].expirationTime = GetTime() + 90
+								SpecialAurasExtraInfo[331582][sourceGUID].activeFP = true
+							elseif (SpecialAurasExtraInfo[331582][sourceGUID].activeFP and ((GetTime()-SpecialAurasExtraInfo[331582][sourceGUID].timestamp) > 15)) then
+								SpecialAurasExtraInfo[331582][sourceGUID].timestamp = GetTime()
+								SpecialAurasExtraInfo[331582][sourceGUID].expirationTime = GetTime() + 90
+							end
+						else
+							SpecialAurasExtraInfo[331582][sourceGUID] = {
+								timestamp = GetTime(),
+								duration = 90,	-- Remember it for 90 seconds
+								expirationTime = GetTime() + 90,
+								activeFP = true
+							}
+						end
+					end
+				end
+			elseif (spellId == 331934) then	-- Adversary (Nadjia Soulbind) (Familiar Predicaments)
+				if (sourceGUID ~= playerGUID) then
+					if (strfind(sourceGUID, "^Player-")) then
+						if (SpecialAurasExtraInfo[331582][sourceGUID] ~= nil) then
+							if ((GetTime() > SpecialAurasExtraInfo[331582][sourceGUID].expirationTime) or (SpecialAurasExtraInfo[331582][sourceGUID].activeFP)) then
+								SpecialAurasExtraInfo[331582][sourceGUID].timestamp = GetTime()
+								SpecialAurasExtraInfo[331582][sourceGUID].duration = 360
+								SpecialAurasExtraInfo[331582][sourceGUID].expirationTime = GetTime() + 360
+								SpecialAurasExtraInfo[331582][sourceGUID].activeFP = false
+							elseif ((GetTime()-SpecialAurasExtraInfo[331582][sourceGUID].timestamp) > 10) then
+								SpecialAurasExtraInfo[331582][sourceGUID].timestamp = GetTime()
+								SpecialAurasExtraInfo[331582][sourceGUID].expirationTime = GetTime() + 360
+							end
+						else
+							SpecialAurasExtraInfo[331582][sourceGUID] = {
+								timestamp = GetTime(),
+								duration = 360,	-- Remember it for 360 seconds
+								expirationTime = GetTime() + 360,
+								activeFP = false
+							}
+						end
+					end
+				end
+			elseif (spellId == 362699) then -- Gladiator's Resolve
+				if (sourceGUID ~= playerGUID) then
+					if (strfind(sourceGUID, "^Player-")) then
+						if (event == "SPELL_AURA_REMOVED_DOSE") then
+							if (SpecialAurasExtraInfo[362699][sourceGUID] ~= nil) then
+								if ((GetTime() > SpecialAurasExtraInfo[362699][sourceGUID].expirationTime) or (SpecialAurasExtraInfo[362699][sourceGUID].activePT)) then
+									SpecialAurasExtraInfo[362699][sourceGUID].timestamp = GetTime()
+									SpecialAurasExtraInfo[362699][sourceGUID].duration = 360
+									SpecialAurasExtraInfo[362699][sourceGUID].expirationTime = GetTime() + 360
+									SpecialAurasExtraInfo[362699][sourceGUID].activePT = false
+								elseif ((GetTime()-SpecialAurasExtraInfo[362699][sourceGUID].timestamp) > 10) then
+									SpecialAurasExtraInfo[362699][sourceGUID].timestamp = GetTime()
+									SpecialAurasExtraInfo[362699][sourceGUID].expirationTime = GetTime() + 360
+								end
+							else
+								SpecialAurasExtraInfo[362699][sourceGUID] = {
+									timestamp = GetTime(),
+									duration = 360,	-- Remember it for 360 seconds
+									expirationTime = GetTime() + 360,
+									activePT = false
+								}
+							end
+						else
+							if (SpecialAurasExtraInfo[362699][sourceGUID] ~= nil) then
+								if (GetTime() > SpecialAurasExtraInfo[362699][sourceGUID].expirationTime) then
+									SpecialAurasExtraInfo[362699][sourceGUID].timestamp = GetTime()
+									SpecialAurasExtraInfo[362699][sourceGUID].duration = 90
+									SpecialAurasExtraInfo[362699][sourceGUID].expirationTime = GetTime() + 90
+									SpecialAurasExtraInfo[362699][sourceGUID].activePT = true
+								elseif (SpecialAurasExtraInfo[362699][sourceGUID].activePT and ((GetTime()-SpecialAurasExtraInfo[362699][sourceGUID].timestamp) > 10)) then
+									SpecialAurasExtraInfo[362699][sourceGUID].timestamp = GetTime()
+									SpecialAurasExtraInfo[362699][sourceGUID].expirationTime = GetTime() + 90
+								end
+							else
+								SpecialAurasExtraInfo[362699][sourceGUID] = {
+									timestamp = GetTime(),
+									duration = 90,	-- Remember it for 90 seconds
+									expirationTime = GetTime() + 90,
+									activePT = true
+								}
+							end
+						end
+					end
+				end
 			end
 		end
 		-- Check Cold Snap use
@@ -8143,7 +8345,7 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 				local timeCombatLogAuraEvent = GetTime()
 				C_Timer.After(0.01, function()	-- execute in some close next frame to accurate use of UnitAura function
 					if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent ~= timeCombatLogAuraEvent)) then
-						self:UNIT_AURA(self.unitId, 3)
+						self:UNIT_AURA(self.unitId, true, nil, 3)
 					end
 				end)
 			end
@@ -8152,9 +8354,19 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 end
 
 -- This is the main event. Check for (de)buffs and update the frame icon and cooldown.
-function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is gained/lost
+function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -- fired when a (de)buff is gained/lost
 	if (((typeUpdate ~= nil and typeUpdate > 0) or (typeUpdate == nil and self.unitId == "targettarget") or (typeUpdate == nil and self.unitId == "focustarget")) and (self.lastTimeUnitAuraEvent == GetTime())) then return end
 	if ((self.unitId == "targettarget" or self.unitId == "focustarget") and (not UnitIsUnit(unitId, self.unitId))) then return end
+	if (isFullUpdate == false) and (updatedAuras ~= nil) then
+		local anyInterestAura = false
+		for _, v in pairs(updatedAuras) do
+			if (spellIds[v.spellId] ~= nil) then
+				anyInterestAura = true
+				break
+			end
+		end
+		if not(anyInterestAura) then return end
+	end
 	local priority = LoseControlDB.priority
 	local maxPriority = 1
 	local maxExpirationTime = 0
@@ -8441,7 +8653,7 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 								end
 								C_Timer.After(nextTimerUpdate, function()
 									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < (GetTime() - 0.04))) then
-										self:UNIT_AURA(self.unitId, 20)
+										self:UNIT_AURA(self.unitId, true, nil, 20)
 									end
 									for e, f in pairs(InterruptAuras) do
 										for g, h in pairs(f) do
@@ -8528,7 +8740,7 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 								end
 								C_Timer.After(nextTimerUpdate, function()
 									if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < (GetTime() - 0.04))) then
-										self:UNIT_AURA(self.unitId, 20)
+										self:UNIT_AURA(self.unitId, true, nil, 20)
 									end
 									for e, f in pairs(InterruptAuras) do
 										for g, h in pairs(f) do
@@ -8675,7 +8887,7 @@ function LoseControl:UNIT_AURA(unitId, typeUpdate) -- fired when a (de)buff is g
 			end
 			C_Timer.After(nextTimerUpdate, function()
 				if ((not self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < (GetTime() - 0.08))) then
-					self:UNIT_AURA(self.unitId, 4)
+					self:UNIT_AURA(self.unitId, true, nil, 4)
 				end
 			end)
 		end
@@ -8704,7 +8916,7 @@ function LoseControl:PLAYER_FOCUS_CHANGED()
 		self.unitGUID = UnitGUID(self.unitId)
 		self:CheckAnchor(self.frame.anchor=="PitBullUF")
 		if not self.unlockMode then
-			self:UNIT_AURA(self.unitId, -10)
+			self:UNIT_AURA(self.unitId, true, nil, -10)
 		end
 	end
 end
@@ -8715,7 +8927,7 @@ function LoseControl:PLAYER_TARGET_CHANGED()
 		self.unitGUID = UnitGUID(self.unitId)
 		self:CheckAnchor(self.frame.anchor=="PitBullUF")
 		if not self.unlockMode then
-			self:UNIT_AURA(self.unitId, -11)
+			self:UNIT_AURA(self.unitId, true, nil, -11)
 		end
 	end
 end
@@ -8726,7 +8938,7 @@ function LoseControl:UNIT_TARGET(unitId)
 		self.unitGUID = UnitGUID(self.unitId)
 		self:CheckAnchor(self.frame.anchor=="PitBullUF")
 		if not self.unlockMode then
-			self:UNIT_AURA(self.unitId, -12)
+			self:UNIT_AURA(self.unitId, true, nil, -12)
 		end
 	end
 end
@@ -8737,7 +8949,7 @@ function LoseControl:UNIT_PET(unitId)
 		self.unitGUID = UnitGUID(self.unitId)
 		self:CheckAnchor(self.frame.anchor=="PitBullUF")
 		if not self.unlockMode then
-			self:UNIT_AURA(self.unitId, -13)
+			self:UNIT_AURA(self.unitId, true, nil, -13)
 		end
 	end
 end
@@ -9917,7 +10129,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 			if icon:GetEnabled() and not icon.unlockMode then
 				icon.maxExpirationTime = 0
-				icon:UNIT_AURA(icon.unitId, 0)
+				icon:UNIT_AURA(icon.unitId, true, nil, 0)
 			end
 		end
 	end
@@ -10016,7 +10228,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 			if icon:GetEnabled() and not icon.unlockMode then
 				icon.maxExpirationTime = 0
-				icon:UNIT_AURA(icon.unitId, 0)
+				icon:UNIT_AURA(icon.unitId, true, nil, 0)
 			end
 		end
 	end
@@ -10613,7 +10825,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LCframes[frame].maxExpirationTime = 0
 				LCframes[frame]:RegisterUnitEvents(enable)
 				if enable and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -10628,7 +10840,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LCframes[frame].maxExpirationTime = 0
 				LCframes[frame]:RegisterUnitEvents(enable)
 				if enable and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -10643,7 +10855,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LCframes[frame].maxExpirationTime = 0
 				LCframes[frame]:RegisterUnitEvents(enable)
 				if enable and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -10661,7 +10873,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LCframes[frame].maxExpirationTime = 0
 				LCframes[frame]:RegisterUnitEvents(enable)
 				if enable and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -10676,7 +10888,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LCframes[frame].maxExpirationTime = 0
 				LCframes[frame]:RegisterUnitEvents(enable)
 				if enable and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -10694,7 +10906,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LCframes[frame].maxExpirationTime = 0
 				LCframes[frame]:RegisterUnitEvents(enable)
 				if enable and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -10718,7 +10930,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -10737,7 +10949,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -10752,7 +10964,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -10767,7 +10979,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -10782,7 +10994,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -10797,7 +11009,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -10812,7 +11024,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -10827,7 +11039,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LCframes[v].maxExpirationTime = 0
 			LCframes[v]:RegisterUnitEvents(enable)
 			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, 0)
+				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
 			end
 		end)
 	end
@@ -11193,7 +11405,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 			LCframes[frame].maxExpirationTime = 0
 			if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 			end
 			if (frame == "player") then
 				LoseControlDB.frames.player2.enableElementalSchoolMiniIcon = self:GetChecked()
@@ -11208,7 +11420,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 				LCframeplayer2.maxExpirationTime = 0
 				if LoseControlDB.frames.player2.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 				end
 			end
 		end
@@ -11241,7 +11453,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 			LCframes[frame].maxExpirationTime = 0
 			if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 			end
 			if (frame == "player") then
 				LoseControlDB.frames.player2.enableChaosSchoolMiniIcon = self:GetChecked()
@@ -11256,7 +11468,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 				LCframeplayer2.maxExpirationTime = 0
 				if LoseControlDB.frames.player2.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 				end
 			end
 		end
@@ -11298,7 +11510,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 			LCframes[frame].maxExpirationTime = 0
 			if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 			end
 			if (frame == "player") then
 				LoseControlDB.frames.player2.useSpellInsteadSchoolMiniIcon = self:GetChecked()
@@ -11313,7 +11525,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 				LCframeplayer2.maxExpirationTime = 0
 				if LoseControlDB.frames.player2.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 				end
 			end
 		end
@@ -11339,7 +11551,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LoseControlDB.frames[frame].categoriesEnabled.interrupt.friendly = self:GetChecked()
 				LCframes[frame].maxExpirationTime = 0
 				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -11358,7 +11570,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LoseControlDB.frames[frame].categoriesEnabled.interrupt.enemy = self:GetChecked()
 				LCframes[frame].maxExpirationTime = 0
 				if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 				end
 			end
 		end)
@@ -11380,7 +11592,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					LoseControlDB.frames[frame].categoriesEnabled.buff.friendly[cat] = self:GetChecked()
 					LCframes[frame].maxExpirationTime = 0
 					if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-						LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+						LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 					end
 				end
 			end)
@@ -11401,7 +11613,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					LoseControlDB.frames[frame].categoriesEnabled.debuff.friendly[cat] = self:GetChecked()
 					LCframes[frame].maxExpirationTime = 0
 					if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-						LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+						LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 					end
 				end
 			end)
@@ -11420,7 +11632,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					LoseControlDB.frames[frame].categoriesEnabled.buff.enemy[cat] = self:GetChecked()
 					LCframes[frame].maxExpirationTime = 0
 					if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-						LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+						LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 					end
 				end
 			end)
@@ -11439,7 +11651,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					LoseControlDB.frames[frame].categoriesEnabled.debuff.enemy[cat] = self:GetChecked()
 					LCframes[frame].maxExpirationTime = 0
 					if LoseControlDB.frames[frame].enabled and not LCframes[frame].unlockMode then
-						LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+						LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 					end
 				end
 			end)
@@ -11457,7 +11669,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LoseControlDB.frames.player2.categoriesEnabled.interrupt.friendly = self:GetChecked()
 			LCframeplayer2.maxExpirationTime = 0
 			if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 			end
 		end)
 		tblinsert(CategoriesCheckButtonsPlayer2, { frame = FriendlyInterruptPlayer2, auraType = "interrupt", reaction = "friendly", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 310, yPos = 5 })
@@ -11469,7 +11681,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LoseControlDB.frames.player2.categoriesEnabled.buff.friendly[cat] = self:GetChecked()
 				LCframeplayer2.maxExpirationTime = 0
 				if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 				end
 			end)
 			tblinsert(CategoriesCheckButtonsPlayer2, { frame = FriendlyBuffPlayer2, auraType = "buff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 310, yPos = 5 })
@@ -11480,7 +11692,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LoseControlDB.frames.player2.categoriesEnabled.debuff.friendly[cat] = self:GetChecked()
 				LCframeplayer2.maxExpirationTime = 0
 				if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 				end
 			end)
 			tblinsert(CategoriesCheckButtonsPlayer2, { frame = FriendlyDebuffPlayer2, auraType = "debuff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 419, yPos = 5 })
@@ -11637,7 +11849,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 			end
 			if enable and not LCframeplayer2.unlockMode then
-				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 			elseif Unlock:GetChecked() then
 				Unlock:OnClick()
 			end
@@ -11664,7 +11876,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				AnchorPositionPartyDropDown:OnClick()
 			end
 			if enable and not LCframes.partyplayer.unlockMode then
-				LCframes.partyplayer:UNIT_AURA(LCframes.partyplayer.unitId, 0)
+				LCframes.partyplayer:UNIT_AURA(LCframes.partyplayer.unitId, true, nil, 0)
 			elseif Unlock:GetChecked() then
 				Unlock:OnClick()
 			end
@@ -11911,14 +12123,14 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			LCframes[frame].maxExpirationTime = 0
 			LCframes[frame]:RegisterUnitEvents(enable)
 			if enable and not LCframes[frame].unlockMode then
-				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, 0)
+				LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
 			end
 			if (frame == "player") then
 				LoseControlDB.frames.player2.enabled = enabled and LoseControlDB.duplicatePlayerPortrait
 				LCframeplayer2.maxExpirationTime = 0
 				LCframeplayer2:RegisterUnitEvents(enabled and LoseControlDB.duplicatePlayerPortrait)
 				if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
-					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+					LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 				end
 			end
 		end
@@ -12307,14 +12519,14 @@ function SlashCmd:enable(unitId)
 		end
 		if enabled and not LCframes[unitId].unlockMode then
 			LCframes[unitId].maxExpirationTime = 0
-			LCframes[unitId]:UNIT_AURA(LCframes[unitId].unitId, 0)
+			LCframes[unitId]:UNIT_AURA(LCframes[unitId].unitId, true, nil, 0)
 		end
 		if (unitId == "player") then
 			LoseControlDB.frames.player2.enabled = LoseControlDB.duplicatePlayerPortrait
 			LCframeplayer2:RegisterUnitEvents(LoseControlDB.duplicatePlayerPortrait)
 			if LCframeplayer2.frame.enabled and not LCframeplayer2.unlockMode then
 				LCframeplayer2.maxExpirationTime = 0
-				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, 0)
+				LCframeplayer2:UNIT_AURA(LCframeplayer2.unitId, true, nil, 0)
 			end
 		elseif (unitId == "partyplayer") then
 			LoseControlDB.showPartyplayerIcon = true
