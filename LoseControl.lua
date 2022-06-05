@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl TBC
--- Version: 2.04
+-- Version: 2.05
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -24,6 +24,7 @@ local GetInventoryItemID = GetInventoryItemID
 local GetTalentInfo = GetTalentInfo
 local GetSpellInfo = GetSpellInfo
 local GetTime = GetTime
+local GetCVarBool = GetCVarBool
 local SetPortraitToTexture = SetPortraitToTexture
 local ipairs = ipairs
 local pairs = pairs
@@ -47,6 +48,7 @@ local SetAlpha, SetPoint = SetAlpha, SetPoint
 local IsInInstance = IsInInstance
 local IsInRaid = IsInRaid
 local IsInGroup = IsInGroup
+local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 local playerGUID, playerClass
 local print = print
 local debug = false -- type "/lc debug on" if you want to see UnitAura info logged to the console
@@ -613,8 +615,6 @@ local spellIds = {
 	[12098]  = "CC",				-- Sleep
 	[20663]  = "CC",				-- Sleep
 	[20669]  = "CC",				-- Sleep
-	[20989]  = "CC",				-- Sleep
-	[24004]  = "CC",				-- Sleep
 	[8064]   = "CC",				-- Sleepy
 	[17446]  = "CC",				-- The Black Sleep
 	[29124]  = "CC",				-- Polymorph
@@ -906,13 +906,9 @@ local spellIds = {
 	[32736]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
 	[39595]  = "Other",				-- Mortal Cleave (healing effects reduced by 50%)
 	[40220]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
-	[43441]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
 	[44268]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
 	[34625]  = "Other",				-- Demolish (healing effects reduced by 75%)
 	[36513]  = "ImmunePhysical",	-- Intangible Presence (not immune, physical damage taken reduced by 40%)
-	[31731]  = "Immune",			-- Shield Wall (not immune, damage taken reduced by 60%)
-	[41104]  = "Immune",			-- Shield Wall (not immune, damage taken reduced by 60%)
-	[41196]  = "Immune",			-- Shield Wall (not immune, damage taken reduced by 75%)
 	[45954]  = "Immune",			-- Ahune's Shield (not immune, damage taken reduced by 75%)
 	[46416]  = "Immune",			-- Ahune Self Stun
 	[50279]  = "Immune",			-- Copy of Elemental Shield (not immune, damage taken reduced by 75%)
@@ -921,7 +917,6 @@ local spellIds = {
 	[42206]  = "Immune",			-- Protection
 	[33581]  = "Immune",			-- Divine Shield
 	[40733]  = "Immune",			-- Divine Shield
-	[41367]  = "Immune",			-- Divine Shield
 	[30972]  = "Immune",			-- Evocation
 	[31797]  = "Immune",			-- Banish Self
 	[34973]  = "Immune",			-- Ravandwyr's Ice Block
@@ -958,7 +953,6 @@ local spellIds = {
 	[36576]  = "ImmuneSpell",		-- Shaleskin (not immune, magic damage taken reduced by 50%)
 	[39804]  = "ImmuneSpell",		-- Damage Immunity: Magic
 	[39811]  = "ImmuneSpell",		-- Damage Immunity: Fire, Frost, Shadow, Nature, Arcane
-	[39666]  = "ImmuneSpell",		-- Cloak of Shadows
 	[32904]  = "CC",				-- Pacifying Dust
 	[37748]  = "CC",				-- Teron Gorefiend
 	[38177]  = "CC",				-- Blackwhelp Net
@@ -969,7 +963,6 @@ local spellIds = {
 	[33810]  = "CC",				-- Rock Shell
 	[37450]  = "CC",				-- Dimensius Feeding
 	[38318]  = "CC",				-- Transformation - Blackwhelp
-	[33390]  = "Silence",			-- Arcane Torrent
 	[30849]  = "Silence",			-- Spell Lock
 	[35892]  = "Silence",			-- Suppression
 	[34087]  = "Silence",			-- Chilling Words
@@ -982,7 +975,6 @@ local spellIds = {
 	[37323]  = "CC",				-- Crystal Control
 	[37221]  = "CC",				-- Crystal Control
 	[38774]  = "CC",				-- Incite Rage
-	[43550]  = "CC",				-- Mind Control
 	[33384]  = "CC",				-- Mass Charm
 	[36145]  = "CC",				-- Chains of Naberius
 	[42185]  = "CC",				-- Brewfest Control Piece
@@ -995,7 +987,6 @@ local spellIds = {
 	[36096]  = "ImmuneSpell",		-- Spell Reflection
 	[37885]  = "ImmuneSpell",		-- Spell Reflection
 	[38331]  = "ImmuneSpell",		-- Spell Reflection
-	[43443]  = "ImmuneSpell",		-- Spell Reflection
 	[28516]  = "Silence",			-- Sunwell Torrent (Sunwell Blade & Sunwell Orb items)
 	[33913]  = "Silence",			-- Soul Burn
 	[37031]  = "Silence",			-- Chaotic Temperament
@@ -1009,30 +1000,25 @@ local spellIds = {
 	[36510]  = "Disarm",			-- Enchanted Weapons
 	[39489]  = "Disarm",			-- Enchanted Weapons
 	[41053]  = "Disarm",			-- Whirling Blade
-	[41392]  = "Disarm",			-- Riposte
 	[47310]  = "Disarm",			-- Direbrew's Disarm
 	[30298]  = "CC",				-- Tree Disguise
-	[42695]  = "CC",				-- Holiday - Brewfest - Dark Iron Knock-down Power-up
 	[49750]  = "CC",				-- Honey Touched
 	[42380]  = "CC",				-- Conflagration
 	[42408]  = "CC",				-- Headless Horseman Climax - Head Stun
+	[42695]  = "CC",				-- Holiday - Brewfest - Dark Iron Knock-down Power-up
 	[42435]  = "CC",				-- Brewfest - Stun
 	[47718]  = "CC",				-- Direbrew Charge
+	[47442]  = "CC",				-- Barreled!
+	[51413]  = "CC",				-- Barreled!
 	[47340]  = "CC",				-- Dark Brewmaiden's Stun
 	[50093]  = "CC",				-- Chilled
 	[29044]  = "CC",				-- Hex
 	[30838]  = "CC",				-- Polymorph
-	[34654]  = "CC",				-- Blind
 	[35840]  = "CC",				-- Conflagration
-	[37289]  = "CC",				-- Dragon's Breath
 	[39293]  = "CC",				-- Conflagration
 	[40400]  = "CC",				-- Hex
-	[41397]  = "CC",				-- Confusion
 	[42805]  = "CC",				-- Dirty Trick
-	[43433]  = "CC",				-- Blind
 	[45665]  = "CC",				-- Encapsulate
-	[47442]  = "CC",				-- Barreled!
-	[51413]  = "CC",				-- Barreled!
 	[26661]  = "CC",				-- Fear
 	[31358]  = "CC",				-- Fear
 	[31404]  = "CC",				-- Shrill Cry
@@ -1059,13 +1045,10 @@ local spellIds = {
 	[40259]  = "CC",				-- Boar Charge
 	[40636]  = "CC",				-- Bellowing Roar
 	[40669]  = "CC",				-- Egbert
-	[41070]  = "CC",				-- Death Coil
 	[41436]  = "CC",				-- Panic
 	[42690]  = "CC",				-- Terrifying Roar
 	[42869]  = "CC",				-- Conflagration
-	[43432]  = "CC",				-- Psychic Scream
 	[44142]  = "CC",				-- Death Coil
-	[46283]  = "CC",				-- Death Coil
 	[50368]  = "CC",				-- Ethereal Liqueur Mutation
 	[27983]  = "CC",				-- Lightning Strike
 	[29516]  = "CC",				-- Dance Trance
@@ -1079,7 +1062,6 @@ local spellIds = {
 	[31274]  = "CC",				-- Knockdown
 	[31292]  = "CC",				-- Sleep
 	[31390]  = "CC",				-- Knockdown
-	[31408]  = "CC",				-- War Stomp
 	[31539]  = "CC",				-- Self Stun Forever
 	[31541]  = "CC",				-- Sleep
 	[31548]  = "CC",				-- Sleep
@@ -1096,7 +1078,6 @@ local spellIds = {
 	[32105]  = "CC",				-- Kick
 	[32150]  = "CC",				-- Infernal
 	[32416]  = "CC",				-- Hammer of Justice
-	[32588]  = "CC",				-- Concussion Blow
 	[32779]  = "CC",				-- Repentance
 	[32905]  = "CC",				-- Glare
 	[33128]  = "CC",				-- Stone Gaze
@@ -1146,7 +1127,6 @@ local spellIds = {
 	[37103]  = "CC",				-- Smash
 	[37417]  = "CC",				-- Warp Charge
 	[37493]  = "CC",				-- Feign Death
-	[37527]  = "CC",				-- Banish
 	[37592]  = "CC",				-- Knockdown
 	[37768]  = "CC",				-- Metamorphosis
 	[37833]  = "CC",				-- Banish
@@ -1154,9 +1134,7 @@ local spellIds = {
 	[38006]  = "CC",				-- World Breaker
 	[38009]  = "CC",				-- Banish
 	[38169]  = "CC",				-- Subservience
-	[38235]  = "CC",				-- Water Tomb
 	[38357]  = "CC",				-- Tidal Surge
-	[38461]  = "CC",				-- Charge
 	[38510]  = "CC",				-- Sablemane's Sleeping Powder
 	[38554]  = "CC",				-- Absorb Eye of Grillok
 	[38757]  = "CC",				-- Fel Reaver Freeze
@@ -1187,7 +1165,6 @@ local spellIds = {
 	[40858]  = "CC",				-- Ethereal Ring, Cannon Visual
 	[40951]  = "CC",				-- Stasis Field
 	[41182]  = "CC",				-- Concussive Throw
-	[41186]  = "CC",				-- Wyvern Sting
 	[41358]  = "CC",				-- Rizzle's Blackjack
 	[41421]  = "CC",				-- Brief Stun
 	[41528]  = "CC",				-- Mark of Stormrage
@@ -1197,8 +1174,6 @@ local spellIds = {
 	[42386]  = "CC",				-- Sleeping Sleep
 	[42621]  = "CC",				-- Fire Bomb
 	[42648]  = "CC",				-- Sleeping Sleep
-	[43448]  = "CC",				-- Freezing Trap
-	[43519]  = "CC",				-- Charge
 	[43528]  = "CC",				-- Cyclone
 	[44031]  = "CC",				-- Tackled!
 	[44138]  = "CC",				-- Rocket Launch
@@ -1206,7 +1181,6 @@ local spellIds = {
 	[44432]  = "CC",				-- Cube Ground State
 	[44836]  = "CC",				-- Banish
 	[44994]  = "CC",				-- Self Repair
-	[45270]  = "CC",				-- Shadowfury
 	[45574]  = "CC",				-- Water Tomb
 	[45676]  = "CC",				-- Juggle Torch (Quest, Missed)
 	[45889]  = "CC",				-- Scorchling Blast
@@ -1244,12 +1218,9 @@ local spellIds = {
 	[40525]  = "Root",				-- Rizzle's Frost Grenade
 	[40590]  = "Root",				-- Rizzle's Frost Grenade (Self
 	[40727]  = "Root",				-- Icy Leap
-	[40875]  = "Root",				-- Freeze
 	[41981]  = "Root",				-- Dust Field
 	[42716]  = "Root",				-- Self Root Forever (No Visual)
 	[43130]  = "Root",				-- Creeping Vines
-	[43150]  = "Root",				-- Claw Rage
-	[43426]  = "Root",				-- Frost Nova
 	[43585]  = "Root",				-- Entangle
 	[45255]  = "Root",				-- Rocket Chicken
 	[45905]  = "Root",				-- Frost Nova
@@ -1278,7 +1249,6 @@ local spellIds = {
 	[36518]  = "Snare",				-- Shadowsurge
 	[36839]  = "Snare",				-- Impairing Poison
 	[36843]  = "Snare",				-- Slow
-	[37276]  = "Snare",				-- Mind Flay
 	[37330]  = "Snare",				-- Mind Flay
 	[37359]  = "Snare",				-- Rush
 	[37554]  = "Snare",				-- Avenger's Shield
@@ -1289,7 +1259,6 @@ local spellIds = {
 	[38534]  = "Snare",				-- Frostbolt
 	[38536]  = "Snare",				-- Blast Wave
 	[38663]  = "Snare",				-- Slow
-	[38712]  = "Snare",				-- Blast Wave
 	[38767]  = "Snare",				-- Daze
 	[38771]  = "Snare",				-- Burning Rage
 	[38952]  = "Snare",				-- Frost Arrow
@@ -1305,8 +1274,6 @@ local spellIds = {
 	[41486]  = "Snare",				-- Frostbolt
 	[42396]  = "Snare",				-- Mind Flay
 	[42803]  = "Snare",				-- Frostbolt
-	[43428]  = "Snare",				-- Frostbolt
-	[43530]  = "Snare",				-- Piercing Howl
 	[43945]  = "Snare",				-- You're a ...! (Effects)
 	[43963]  = "Snare",				-- Retch!
 	[44289]  = "Snare",				-- Crippling Poison
@@ -1431,6 +1398,8 @@ local spellIds = {
 	[38946]  = "CC",				-- Frightening Shout
 	[38626]  = "CC",				-- Domination
 	[39002]  = "CC",				-- Spore Quake Knockdown
+	[37527]  = "CC",				-- Banish
+	[38461]  = "CC",				-- Charge
 	[38661]  = "Root",				-- Net
 	[39035]  = "Root",				-- Frost Nova
 	[39063]  = "Root",				-- Frost Nova
@@ -1446,6 +1415,7 @@ local spellIds = {
 	[39064]  = "Snare",				-- Frostbolt
 	[38516]  = "Snare",				-- Cyclone
 	-- -- Hydross the Unstable
+	[38235]  = "CC",				-- Water Tomb
 	[38246]  = "CC",				-- Vile Sludge (damage and healing dealt is reduced by 50%)
 	-- -- Leotheras the Blind
 	[37749]  = "CC",				-- Consuming Madness
@@ -1475,12 +1445,17 @@ local spellIds = {
 	[37135]  = "CC",				-- Domination
 	[37118]  = "CC",				-- Shell Shock
 	[39077]  = "CC",				-- Hammer of Justice
+	[37289]  = "CC",				-- Dragon's Breath
 	[37160]  = "Silence",			-- Silence
+	[38712]  = "Snare",				-- Blast Wave
 	[37262]  = "Snare",				-- Frostbolt Volley
 	[37265]  = "Snare",				-- Cone of Cold
 	[39087]  = "Snare",				-- Frost Attack
+	[37276]  = "Snare",				-- Mind Flay
 	-- -- Void Reaver
 	[34190]  = "Silence",			-- Arcane Orb
+	-- -- High Astromancer Solarian
+	[33390]  = "Silence",			-- Arcane Torrent
 	-- -- Kael'thas
 	[36834]  = "CC",				-- Arcane Disruption
 	[37018]  = "CC",				-- Conflagration
@@ -1508,14 +1483,25 @@ local spellIds = {
 	[41213]  = "CC",				-- Throw Shield
 	[40864]  = "CC",				-- Throbbing Stun
 	[41334]  = "CC",				-- Polymorph
+	[34654]  = "CC",				-- Blind
+	[41070]  = "CC",				-- Death Coil
+	[41186]  = "CC",				-- Wyvern Sting
+	[41397]  = "CC",				-- Confusion
 	[40099]  = "CC",				-- Vile Slime (damage and healing dealt reduced by 50%)
 	[40079]  = "CC",				-- Debilitating Spray (damage and healing dealt reduced by 50%)
 	[39584]  = "Root",				-- Sweeping Wing Clip
 	[40082]  = "Root",				-- Hooked Net
 	[41086]  = "Root",				-- Ice Trap
+	[40875]  = "Root",				-- Freeze
+	[41367]  = "Immune",			-- Divine Shield
+	[41104]  = "Immune",			-- Shield Wall (not immune, damage taken reduced by 60%)
+	[41196]  = "Immune",			-- Shield Wall (not immune, damage taken reduced by 75%)
+	[39666]  = "ImmuneSpell",		-- Cloak of Shadows
 	[41371]  = "ImmuneSpell",		-- Shell of Pain
 	[41381]  = "ImmuneSpell",		-- Shell of Life
 	[39667]  = "Immune",			-- Vanish
+	[41978]  = "Other",				-- Debilitating Poison (time between attacks increased and spell cast time increased by 50%)
+	[41392]  = "Disarm",			-- Riposte
 	[41062]  = "Disarm",			-- Disarm
 	[36139]  = "Disarm",			-- Disarm
 	[41084]  = "Silence",			-- Silencing Shot
@@ -1541,6 +1527,7 @@ local spellIds = {
 	-- -- Reliquary of the Lost
 	[41426]  = "CC",				-- Spirit Shock
 	[41376]  = "Immune",			-- Spite
+	[41377]  = "Immune",			-- Spite
 	--[41292]  = "Other",				-- Aura of Suffering (healing effects reduced by 100%)
 	-- -- Mother Shahraz
 	[40823]  = "Silence",			-- Silencing Shriek
@@ -1569,9 +1556,10 @@ local spellIds = {
 	[31537]  = "CC",				-- Cannibalize
 	[31302]  = "CC",				-- Inferno Effect
 	[31651]  = "CC",				-- Banshee Curse (chance to hit reduced by 66%)
+	[31731]  = "Immune",			-- Shield Wall (not immune, damage taken reduced by 60%)
+	[31662]  = "ImmuneSpell",		-- Anti-Magic Shell (not immune, very big magic shield)
 	[42201]  = "Silence",			-- Eternal Silence
 	[42205]  = "Silence",			-- Residue of Eternity
-	[31406]  = "Snare",				-- Cripple
 	[31622]  = "Snare",				-- Frostbolt
 	[31688]  = "Snare",				-- Frost Breath
 	[31741]  = "Snare",				-- Slow
@@ -1581,11 +1569,14 @@ local spellIds = {
 	[31257]  = "Snare",				-- Chilled
 	-- -- Anetheron
 	[31298]  = "CC",				-- Sleep
+	--[31306]  = "Other",				-- Carrion Swarm (healing done is reduced by 75%)
 	-- -- Kaz'rogal
 	[31480]  = "CC",				-- War Stomp
 	[31477]  = "Snare",				-- Cripple
 	-- -- Azgalor
+	[31408]  = "CC",				-- War Stomp
 	[31344]  = "Silence",			-- Howl of Azgalor
+	[31406]  = "Snare",				-- Cripple
 	-- -- Archimonde
 	[31970]  = "CC",				-- Fear
 	[32053]  = "Silence",			-- Soul Charge
@@ -1596,19 +1587,31 @@ local spellIds = {
 	[43356]  = "CC",				-- Pounce
 	[43361]  = "CC",				-- Domesticate
 	[42220]  = "CC",				-- Conflagration
-	[35011]  = "CC",				-- Knockdown
+	[43519]  = "CC",				-- Charge
 	[42479]  = "Immune",			-- Protective Ward
 	[43362]  = "Root",				-- Electrified Net
 	[43364]  = "Snare",				-- Tranquilizing Poison
 	[43524]  = "Snare",				-- Frost Shock
+	[43530]  = "Snare",				-- Piercing Howl
 	-- -- Akil'zon
 	[43648]  = "CC",				-- Electrical Storm
 	-- -- Nalorakk
 	[42398]  = "Silence",			-- Deafening Roar
 	-- -- Hex Lord Malacrass
 	[43590]  = "CC",				-- Psychic Wail
-	-- -- Daakara
+	[43432]  = "CC",				-- Psychic Scream
+	[43433]  = "CC",				-- Blind
+	[43550]  = "CC",				-- Mind Control
+	[43448]  = "CC",				-- Freezing Trap
+	[43426]  = "Root",				-- Frost Nova
+	[43443]  = "ImmuneSpell",		-- Spell Reflection
+	[43421]  = "Other",				-- Lifebloom (big heal hot)
+	[43430]  = "Other",				-- Avenging Wrath (damage increased by 50%)
+	[43441]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
+	[43428]  = "Snare",				-- Frostbolt
+	-- -- Zul'jin
 	[43437]  = "CC",				-- Paralyzed
+	[43150]  = "Root",				-- Claw Rage
 	------------------------
 	-- Sunwell Plateau Raid
 	-- -- Trash
@@ -1624,6 +1627,8 @@ local spellIds = {
 	[44872]  = "CC",				-- Frost Blast
 	[45201]  = "CC",				-- Frost Blast
 	[45203]  = "CC",				-- Frost Blast
+	[46283]  = "CC",				-- Death Coil
+	[45270]  = "CC",				-- Shadowfury
 	[46555]  = "Root",				-- Frost Nova
 	[46287]  = "Immune",			-- Infernal Defense (immune to most forms of damage, holy damage taken increased by 500%)
 	[46296]  = "Other",				-- Necrotic Poison (healing effects reduced by 75%)
@@ -1678,6 +1683,7 @@ local spellIds = {
 	[23601]  = "CC",				-- Scatter Shot
 	[30980]  = "CC",				-- Sap
 	[30986]  = "CC",				-- Cheap Shot
+	[32588]  = "CC",				-- Concussion Blow
 	[36023]  = "Other",				-- Deathblow (healing effects reduced by 50%)
 	[36054]  = "Other",				-- Deathblow (healing effects reduced by 50%)
 	[32587]  = "Other",				-- Shield Block (chance to block increased by 100%)
@@ -1788,6 +1794,7 @@ local spellIds = {
 	[35280]  = "CC",				-- Domination
 	[35049]  = "CC",				-- Pound
 	[35783]  = "CC",				-- Knockdown
+	[35011]  = "CC",				-- Knockdown
 	[36333]  = "CC",				-- Anesthetic
 	[35268]  = "CC",				-- Inferno
 	[35158]  = "ImmuneSpell",		-- Reflective Magic Shield
@@ -1964,6 +1971,7 @@ local spellIds = {
 	[24333]  = "CC",				-- Ravage
 	[6869]   = "CC",				-- Fall down
 	[24053]  = "CC",				-- Hex
+	[24004]  = "CC",				-- Sleep
 	[24021]  = "ImmuneSpell",		-- Anti-Magic Shield
 	[24674]  = "Other",				-- Veil of Shadow
 	[13737]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
@@ -2245,7 +2253,7 @@ local spellIds = {
 	[21331]  = "Root",				-- Entangling Roots
 	[21909]  = "Root",				-- Dust Field
 	[21793]  = "Snare",				-- Twisted Tranquility
-	[21808]  = "CC",				-- Summon Shardlings
+	[21808]  = "CC",				-- Landslide
 	[29419]  = "CC",				-- Flash Bomb
 	[22592]  = "CC",				-- Knockdown
 	[21869]  = "CC",				-- Repulsive Gaze
@@ -2267,8 +2275,8 @@ local spellIds = {
 	[12480]  = "CC",				-- Hex of Jammal'an
 	[12890]  = "CC",				-- Deep Slumber
 	[6607]   = "CC",				-- Lash
-	[33126]  = "Disarm",			-- Dropped Weapon
 	[25774]  = "CC",				-- Mind Shatter
+	[33126]  = "Disarm",			-- Dropped Weapon
 	[7992]   = "Snare",				-- Slowing Poison
 	-- -- Blackrock Depths
 	[8994]   = "CC",				-- Banish
@@ -2350,6 +2358,7 @@ local spellIds = {
 	[22924]  = "Root",				-- Grasping Vines
 	[22914]  = "Snare",				-- Concussive Shot
 	[22915]  = "CC",				-- Improved Concussive Shot
+	[20989]  = "CC",				-- Sleep
 	[22919]  = "Snare",				-- Mind Flay
 	[22909]  = "Snare",				-- Eye of Immol'thar
 	[28858]  = "Root",				-- Entangling Roots
@@ -2411,6 +2420,7 @@ local anchors = {
 	None = {}, -- empty but necessary
 	Blizzard = {
 		player       = "PlayerPortrait",
+		player2      = "PlayerPortrait",
 		pet          = "PetPortrait",
 		target       = "TargetFramePortrait",
 		targettarget = "TargetFrameToTPortrait",
@@ -2472,8 +2482,51 @@ local anchors = {
 		raid39       = "CompactRaidFrame39",
 		raid40       = "CompactRaidFrame40",
 	},
+	BlizzardNameplates = {
+		nameplate1   = "NamePlate1",
+		nameplate2   = "NamePlate2",
+		nameplate3   = "NamePlate3",
+		nameplate4   = "NamePlate4",
+		nameplate5   = "NamePlate5",
+		nameplate6   = "NamePlate6",
+		nameplate7   = "NamePlate7",
+		nameplate8   = "NamePlate8",
+		nameplate9   = "NamePlate9",
+		nameplate10  = "NamePlate10",
+		nameplate11  = "NamePlate11",
+		nameplate12  = "NamePlate12",
+		nameplate13  = "NamePlate13",
+		nameplate14  = "NamePlate14",
+		nameplate15  = "NamePlate15",
+		nameplate16  = "NamePlate16",
+		nameplate17  = "NamePlate17",
+		nameplate18  = "NamePlate18",
+		nameplate19  = "NamePlate19",
+		nameplate20  = "NamePlate20",
+		nameplate21  = "NamePlate21",
+		nameplate22  = "NamePlate22",
+		nameplate23  = "NamePlate23",
+		nameplate24  = "NamePlate24",
+		nameplate25  = "NamePlate25",
+		nameplate26  = "NamePlate26",
+		nameplate27  = "NamePlate27",
+		nameplate28  = "NamePlate28",
+		nameplate29  = "NamePlate29",
+		nameplate30  = "NamePlate30",
+		nameplate31  = "NamePlate31",
+		nameplate32  = "NamePlate32",
+		nameplate33  = "NamePlate33",
+		nameplate34  = "NamePlate34",
+		nameplate35  = "NamePlate35",
+		nameplate36  = "NamePlate36",
+		nameplate37  = "NamePlate37",
+		nameplate38  = "NamePlate38",
+		nameplate39  = "NamePlate39",
+		nameplate40  = "NamePlate40"
+	},
 	Perl = {
 		player       = "Perl_Player_PortraitFrame",
+		player2      = "Perl_Player_PortraitFrame",
 		pet          = "Perl_Player_Pet_PortraitFrame",
 		target       = "Perl_Target_PortraitFrame",
 		targettarget = "Perl_Target_Target_PortraitFrame",
@@ -2486,6 +2539,7 @@ local anchors = {
 	},
 	XPerl = {	-- and Z-Perl
 		player       = "XPerl_PlayerportraitFrameportrait",
+		player2      = "XPerl_PlayerportraitFrameportrait",
 		pet          = "XPerl_Player_PetportraitFrameportrait",
 		target       = "XPerl_TargetportraitFrameportrait",
 		targettarget = "XPerl_TargettargetportraitFrameportrait",
@@ -2498,6 +2552,7 @@ local anchors = {
 	},
 	LUI = {
 		player       = "oUF_LUI_player",
+		player2      = "oUF_LUI_player",
 		pet          = "oUF_LUI_pet",
 		target       = "oUF_LUI_target",
 		targettarget = "oUF_LUI_targettarget",
@@ -2517,6 +2572,7 @@ local anchors = {
 	},
 	SUF = {
 		player       = "SUFUnitplayer.portrait",
+		player2      = "SUFUnitplayer.portrait",
 		pet          = "SUFUnitpet.portrait",
 		target       = "SUFUnittarget.portrait",
 		targettarget = "SUFUnittargettarget.portrait",
@@ -2534,6 +2590,7 @@ local anchors = {
 	},
 	LUF = {
 		player       = "LUFUnitplayer.StatusPortrait.model",
+		player2      = "LUFUnitplayer.StatusPortrait.model",
 		pet          = "LUFUnitpet.StatusPortrait.model",
 		target       = "LUFUnittarget.StatusPortrait.model",
 		targettarget = "LUFUnittargettarget.StatusPortrait.model",
@@ -2551,6 +2608,7 @@ local anchors = {
 	},
 	PitBullUF = {
 		player       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player"]..".Portrait" or nil,
+		player2      = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player"]..".Portrait" or nil,
 		pet          = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player's pet"]..".Portrait" or nil,
 		target       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"]..".Portrait" or nil,
 		targettarget = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"])..".Portrait" or nil,
@@ -2563,6 +2621,7 @@ local anchors = {
 	},
 	SpartanUI_2D = {
 		player       = "SUI_UF_player.Portrait2D",
+		player2      = "SUI_UF_player.Portrait2D",
 		pet          = "SUI_UF_pet.Portrait2D",
 		target       = "SUI_UF_target.Portrait2D",
 		targettarget = "SUI_UF_targettarget.Portrait2D",
@@ -2571,6 +2630,7 @@ local anchors = {
 	},
 	SpartanUI_3D = {
 		player       = "SUI_UF_player.Portrait3D",
+		player2      = "SUI_UF_player.Portrait3D",
 		pet          = "SUI_UF_pet.Portrait3D",
 		target       = "SUI_UF_target.Portrait3D",
 		targettarget = "SUI_UF_targettarget.Portrait3D",
@@ -2578,6 +2638,7 @@ local anchors = {
 		focustarget  = "SUI_UF_focustarget.Portrait3D",
 	},
 	SpartanUI_2D_PlayerInParty = {
+		partyplayer  = "SUI_partyFrameHeaderUnitButton1.Portrait2D",
 		party1       = "SUI_partyFrameHeaderUnitButton2.Portrait2D",
 		party2       = "SUI_partyFrameHeaderUnitButton3.Portrait2D",
 		party3       = "SUI_partyFrameHeaderUnitButton4.Portrait2D",
@@ -2590,6 +2651,7 @@ local anchors = {
 		party4       = "SUI_partyFrameHeaderUnitButton4.Portrait2D",
 	},
 	SpartanUI_3D_PlayerInParty = {
+		partyplayer  = "SUI_partyFrameHeaderUnitButton1.Portrait3D",
 		party1       = "SUI_partyFrameHeaderUnitButton2.Portrait3D",
 		party2       = "SUI_partyFrameHeaderUnitButton3.Portrait3D",
 		party3       = "SUI_partyFrameHeaderUnitButton4.Portrait3D",
@@ -2603,6 +2665,7 @@ local anchors = {
 	},
 	GW2 = {
 		player       = "GwPlayerUnitFrame.portrait",
+		player2      = "GwPlayerUnitFrame.portrait",
 		pet          = "GwPlayerPetFrame.portrait",
 		target       = "GwTargetUnitFrame.portrait",
 		focus        = "GwFocusUnitFrame.portrait",
@@ -2613,6 +2676,7 @@ local anchors = {
 	},
 	nUI = {
 		player       = "nUI_PartyUnit_Player_Portrait",
+		player2      = "nUI_PartyUnit_Player_Portrait",
 		target       = "nUI_PartyUnit_Target_Portrait",
 		focus        = "nUI_PartyUnit_Focus_Portrait",
 		party1       = "nUI_PartyUnit_Party1_Portrait",
@@ -2622,10 +2686,12 @@ local anchors = {
 	},
 	Tukui = {
 		player       = "TukuiPlayerFrame.Portrait",
+		player2      = "TukuiPlayerFrame.Portrait",
 		target       = "TukuiTargetFrame.Portrait",
 	},
 	ElvUI = {
 		player       = "ElvUF_Player.Portrait",
+		player2      = "ElvUF_Player.Portrait",
 		pet          = "ElvUF_Pet.Portrait",
 		target       = "ElvUF_Target.Portrait",
 		targettarget = "ElvUF_TargetTarget.Portrait",
@@ -2633,6 +2699,7 @@ local anchors = {
 		focustarget  = "ElvUF_FocusTarget.Portrait",
 	},
 	ElvUI_PlayerInParty = {
+		partyplayer  = "ElvUF_PartyGroup1UnitButton1.Portrait",
 		party1       = "ElvUF_PartyGroup1UnitButton2.Portrait",
 		party2       = "ElvUF_PartyGroup1UnitButton3.Portrait",
 		party3       = "ElvUF_PartyGroup1UnitButton4.Portrait",
@@ -2641,8 +2708,8 @@ local anchors = {
 	ElvUI_NoPlayerInParty = {
 		party1       = "ElvUF_PartyGroup1UnitButton1.Portrait",
 		party2       = "ElvUF_PartyGroup1UnitButton2.Portrait",
-		party3       = "ElvUF_PartyGroup1UnitButton2.Portrait",
-		party4       = "ElvUF_PartyGroup1UnitButton3.Portrait",
+		party3       = "ElvUF_PartyGroup1UnitButton3.Portrait",
+		party4       = "ElvUF_PartyGroup1UnitButton4.Portrait",
 	},
 	Gladius = {
 		arena1       = "GladiusClassIconFramearena1",
@@ -2668,7 +2735,7 @@ local anchors = {
 -------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
-	version = 2.1, -- This is the settings version, not necessarily the same as the LoseControl version
+	version = 2.2, -- This is the settings version, not necessarily the same as the LoseControl version
 	noCooldownCount = false,
 	noBlizzardCooldownCount = true,
 	disablePartyInBG = true,
@@ -2689,6 +2756,7 @@ local DBdefaults = {
 	showNPCInterruptsFocus = true,
 	showNPCInterruptsTargetTarget = true,
 	showNPCInterruptsFocusTarget = true,
+	showNPCInterruptsNameplate = true,
 	duplicatePlayerPortrait = true,
 	showPartyplayerIcon = true,
 	customSpellIds = { },
@@ -2714,6 +2782,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "None",
 			categoriesEnabled = {
@@ -2736,6 +2805,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2758,6 +2828,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2780,6 +2851,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2805,6 +2877,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2830,6 +2903,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2855,6 +2929,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2880,6 +2955,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2902,6 +2978,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2924,6 +3001,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2946,6 +3024,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -2968,6 +3047,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "None",
 			categoriesEnabled = {
@@ -2990,6 +3070,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -3012,6 +3093,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -3034,6 +3116,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -3056,6 +3139,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -3078,6 +3162,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "Blizzard",
 			categoriesEnabled = {
@@ -3100,6 +3185,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3118,6 +3204,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3136,6 +3223,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3154,6 +3242,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3172,6 +3261,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3190,6 +3280,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3208,6 +3299,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3226,6 +3318,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3244,6 +3337,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3262,6 +3356,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3280,6 +3375,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3298,6 +3394,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3316,6 +3413,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3334,6 +3432,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3352,6 +3451,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3370,6 +3470,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3388,6 +3489,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3406,6 +3508,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3424,6 +3527,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3442,6 +3546,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3460,6 +3565,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3478,6 +3584,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3496,6 +3603,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3514,6 +3622,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3532,6 +3641,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3550,6 +3660,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3568,6 +3679,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3586,6 +3698,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3604,6 +3717,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3622,6 +3736,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3640,6 +3755,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3658,6 +3774,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3676,6 +3793,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3694,6 +3812,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3712,6 +3831,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3730,6 +3850,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3748,6 +3869,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3766,6 +3888,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3784,6 +3907,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3802,6 +3926,7 @@ local DBdefaults = {
 			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
 			interruptMiniIconsAlpha = 0.8,
 			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
 			frameLevel = 0,
 			anchor = "BlizzardRaidFrames",
 			x = 0,
@@ -3810,6 +3935,1086 @@ local DBdefaults = {
 				buff =      { friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = true } },
 				debuff =    { friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = true, Root = true, Snare = true } },
 				interrupt = { friendly = true }
+			}
+		},
+		nameplate1 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate2 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate3 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate4 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate5 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate6 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate7 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate8 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate9 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate10 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate11 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate12 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate13 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate14 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate15 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate16 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate17 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate18 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate19 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate20 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate21 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate22 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate23 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate24 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate25 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate26 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate27 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate28 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate29 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate30 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate31 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate32 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate33 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate34 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate35 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate36 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate37 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate38 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate39 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
+			}
+		},
+		nameplate40 = {
+			enabled = true,
+			size = 42,
+			alpha = 1,
+			interruptBackgroundAlpha = 0.7,
+			interruptBackgroundVertexColor = { r = 1, g = 1, b = 1 },
+			interruptMiniIconsAlpha = 0.8,
+			useSpellInsteadSchoolMiniIcon = false,
+			swipeAlpha = 0.8,
+			frameLevel = 0,
+			anchor = "BlizzardNameplates",
+			relativePoint ="RIGHT",
+			point = "LEFT",
+			x = 0,
+			y = 0,
+			categoriesEnabled = {
+				buff =      {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				debuff = {
+					friendly = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false },
+					enemy    = { PvE = true, Immune = true, ImmuneSpell = true, ImmunePhysical = true, CC = true, Silence = true, Disarm = true, Other = false, Root = true, Snare = false }
+				},
+				interrupt = { friendly = true, enemy = true }
 			}
 		},
 	},
@@ -4011,6 +5216,9 @@ function LoseControl:RegisterUnitEvents(enabled)
 		elseif unitId == "pet" then
 			self:RegisterUnitEvent("UNIT_AURA", unitId)
 			self:RegisterUnitEvent("UNIT_PET", "player")
+		elseif strfind(unitId, "nameplate") then
+			self:CheckNameplateAnchor()
+			self:RegisterUnitEvent("UNIT_AURA", unitId)
 		else
 			self:RegisterUnitEvent("UNIT_AURA", unitId)
 		end
@@ -4054,6 +5262,9 @@ function LoseControl:RegisterUnitEvents(enabled)
 		elseif unitId == "pet" then
 			self:UnregisterEvent("UNIT_AURA")
 			self:UnregisterEvent("UNIT_PET")
+		elseif strfind(unitId, "nameplate") then
+			self:UnregisterEvent("UNIT_AURA")
+			self:CheckNameplateAnchor()
 		else
 			self:UnregisterEvent("UNIT_AURA")
 		end
@@ -4151,7 +5362,8 @@ end
 local function SetInterruptIconsSize(iconFrame, iconSize)
 	local interruptIconSize = (iconSize * 0.88) / 3
 	local interruptIconOffset = (iconSize * 0.06)
-	if iconFrame.frame.anchor == "Blizzard" then
+	local frame = iconFrame.frame or LoseControlDB.frames[iconFrame.fakeUnitId or iconFrame.unitId]
+	if frame.anchor == "Blizzard" and not(iconFrame.useCompactPartyFrames) then
 		iconFrame.interruptIconOrderPos = {
 			[1] = {-interruptIconOffset-interruptIconSize, interruptIconOffset},						-- Center, Bottom
 			[2] = {-interruptIconOffset, interruptIconOffset+interruptIconSize},						-- Right, Center
@@ -4307,35 +5519,50 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 	if not name or not name:match("^Compact") then return end
 	if (key == nil or key == "unit") then
 		local anchorUnitId = value or compactRaidFrame.displayedUnit or compactRaidFrame.unit
-		if (anchorUnitId ~= nil and strfind(anchorUnitId, "raid")) then
-			local icon = LCframes[anchorUnitId]
-			if (icon ~= nil) then
-				local frame = icon.frame or LoseControlDB.frames[anchorUnitId]
-				if (frame ~= nil) then
-					anchors.BlizzardRaidFrames[anchorUnitId] = name
-					if (frame.anchor == "BlizzardRaidFrames") then
-						icon.anchor = compactRaidFrame
-						icon.parent:SetParent(icon.anchor:GetParent())
-						icon.defaultFrameStrata = icon:GetFrameStrata()
-						icon:ClearAllPoints()
-						icon:GetParent():ClearAllPoints()
-						icon:SetPoint(
-							frame.point or "CENTER",
-							icon.anchor,
-							frame.relativePoint or "CENTER",
-							frame.x or 0,
-							frame.y or 0
-						)
-						icon:GetParent():SetPoint(
-							frame.point or "CENTER",
-							icon.anchor,
-							frame.relativePoint or "CENTER",
-							frame.x or 0,
-							frame.y or 0
-						)
+		if (anchorUnitId ~= nil) then
+			if anchorUnitId == "player" then
+				anchorUnitId = "partyplayer"
+			end
+			local isPartyFrame = strfind(anchorUnitId, "party")
+			if (strfind(anchorUnitId, "raid") or isPartyFrame) then
+				local icon = LCframes[anchorUnitId]
+				if (icon ~= nil and (not(isPartyFrame) or icon.useCompactPartyFrames)) then
+					local frame = icon.frame or LoseControlDB.frames[anchorUnitId]
+					if (frame ~= nil) then
+						if isPartyFrame then
+							anchors.Blizzard[anchorUnitId] = name
+						else
+							anchors.BlizzardRaidFrames[anchorUnitId] = name
+						end
+						if (frame.anchor == "BlizzardRaidFrames" or (isPartyFrame and frame.anchor == "Blizzard")) then
+							icon.anchor = compactRaidFrame
+							icon.parent:SetParent(icon.anchor:GetParent())
+							icon.defaultFrameStrata = icon:GetFrameStrata()
+							icon:GetParent():ClearAllPoints()
+							icon:GetParent():SetPoint(
+								frame.point or "CENTER",
+								icon.anchor,
+								frame.relativePoint or "CENTER",
+								frame.x or 0,
+								frame.y or 0
+							)
+							local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+							if frameLevel < 0 then frameLevel = 0 end
+							icon:GetParent():SetFrameLevel(frameLevel)
+							icon:SetFrameLevel(frameLevel)
+						end
+						if (icon.frame and icon:GetEnabled() and (icon.frame.anchor == "BlizzardRaidFrames" or (isPartyFrame and frame.anchor == "Blizzard"))) then
+							icon:UNIT_AURA(icon.unitId, true, nil, -80)
+						end
 					end
-					if (icon.frame and icon.frame.anchor == "BlizzardRaidFrames") then
-						icon:UNIT_AURA(icon.unitId, true, nil, -80)
+				end
+			end
+			if (IsInRaid() and GetCVarBool("useCompactPartyFrames") and not(isPartyFrame) and strfind(anchorUnitId, "raid")) then
+				local partyframes = { "party1", "party2", "party3", "party4", "player" }
+				for _, v in ipairs(partyframes) do
+					if UnitIsUnit(anchorUnitId, v) then
+						UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, "unit", v)
+						break
 					end
 				end
 			end
@@ -4345,7 +5572,7 @@ end
 
 -- Function to hook the raid frame and anchors the LoseControl raid frames to their corresponding blizzard raid frame
 local function HookCompactRaidFrame(compactRaidFrame)
-	if (LCHookedCompactRaidFrames[compactRaidFrame] == nil) then
+	if not(LCHookedCompactRaidFrames[compactRaidFrame]) then
 		if compactRaidFrame:IsForbidden() then
 			LCHookedCompactRaidFrames[compactRaidFrame] = false
 		else
@@ -4366,33 +5593,67 @@ local function HookCompactRaidFrame(compactRaidFrame)
 	end
 end
 
+-- Function to update all the Blizzard anchors of the raid icons with their corresponding CompactRaidFrame
+local function UpdateAllRaidIconsAnchorCompactRaidFrame()
+	for i = 1, 40 do
+		local compactRaidFrame = _G["CompactRaidFrame"..i]
+		if (compactRaidFrame ~= nil) then
+			UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame)
+		end
+	end
+	for i = 1, 8 do
+		for j = 1, 5 do
+			local compactRaidFrame = _G["CompactRaidGroup"..i.."Member"..j]
+			if (compactRaidFrame ~= nil) then
+				UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame)
+			end
+		end
+	end
+end
+
+-- Function to update and hook the Blizzard anchors of the raid icons with their corresponding CompactRaidFrame
+local function UpdateAndHookAllRaidIconsAnchorCompactRaidFrame()
+	for i = 1, 40 do
+		local compactRaidFrame = _G["CompactRaidFrame"..i]
+		if (compactRaidFrame ~= nil) then
+			HookCompactRaidFrame(compactRaidFrame)
+			UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame)
+		end
+	end
+	for i = 1, 8 do
+		for j = 1, 5 do
+			local compactRaidFrame = _G["CompactRaidGroup"..i.."Member"..j]
+			if (compactRaidFrame ~= nil) then
+				HookCompactRaidFrame(compactRaidFrame)
+				UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame)
+			end
+		end
+	end
+end
+
 -- Function to hook the raid frames and anchors the LoseControl raid frames to their corresponding blizzard raid frame
 local function MainHookCompactRaidFrames()
 	if not LoseControlCompactRaidFramesHooked then
-		local someRaidEnabledAndBlizzAnchored = false
+		local somePartyRaidEnabledAndBlizzAnchored = false
 		for i = 1, 40 do
 			if LoseControlDB.frames["raid"..i].enabled and LoseControlDB.frames["raid"..i].anchor == "BlizzardRaidFrames" then
-				someRaidEnabledAndBlizzAnchored = true
+				somePartyRaidEnabledAndBlizzAnchored = true
 				break
 			end
 		end
-		if someRaidEnabledAndBlizzAnchored then
-			for i = 1, 40 do
-				local compactRaidFrame = _G["CompactRaidFrame"..i]
-				if (compactRaidFrame ~= nil) then
-					HookCompactRaidFrame(compactRaidFrame)
-					UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame)
+		if GetCVarBool("useCompactPartyFrames") then
+			for i = 1, 4 do
+				if LoseControlDB.frames["party"..i].enabled and LoseControlDB.frames["party"..i].anchor == "Blizzard" then
+					somePartyRaidEnabledAndBlizzAnchored = true
+					break
 				end
 			end
-			for i = 1, 8 do
-				for j = 1, 5 do
-					local compactRaidFrame = _G["CompactRaidGroup"..i.."Member"..j]
-					if (compactRaidFrame ~= nil) then
-						HookCompactRaidFrame(compactRaidFrame)
-						UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame)
-					end
-				end
+			if LoseControlDB.frames.partyplayer.enabled and LoseControlDB.frames.partyplayer.anchor == "Blizzard" then
+				somePartyRaidEnabledAndBlizzAnchored = true
 			end
+		end
+		if somePartyRaidEnabledAndBlizzAnchored then
+			UpdateAndHookAllRaidIconsAnchorCompactRaidFrame()
 			hooksecurefunc("CompactUnitFrame_OnLoad", function(self)
 				HookCompactRaidFrame(self)
 				UpdateRaidIconsAnchorCompactRaidFrame(self)
@@ -4448,7 +5709,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "2.04"
+		self.VERSION = "2.05"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		if (LoseControlDB.duplicatePlayerPortrait and LoseControlDB.frames.player.anchor == "Blizzard") then
@@ -4472,11 +5733,10 @@ function LoseControl:ADDON_LOADED(arg1)
 		self:UpdateSpellIdsTableWithCustomSpellIds()
 		playerGUID = UnitGUID("player")
 		_, _, playerClass = UnitClass("player")
-		MainHookCompactRaidFrames()
 		if Masque then
 			for _, v in pairs(LCframes) do
 				v.MasqueGroup = Masque:Group(addonName, (v.fakeUnitId or v.unitId))
-				if (LoseControlDB.frames[(v.fakeUnitId or v.unitId)].anchor ~= "Blizzard") then
+				if (LoseControlDB.frames[(v.fakeUnitId or v.unitId)].anchor ~= "Blizzard" or v.useCompactPartyFrames) then
 					v.MasqueGroup:AddButton(v:GetParent(), {
 						FloatingBG = false,
 						Icon = v.texture,
@@ -4530,25 +5790,66 @@ end
 
 LoseControl:RegisterEvent("ADDON_LOADED")
 
+function LoseControl:CheckNameplateAnchor()
+	local newAnchor = GetNamePlateForUnit(self.unitId, false)
+	if ((newAnchor ~= nil) and not(newAnchor:IsForbidden())) then
+		if (self.anchor ~= newAnchor) then
+			local name = newAnchor:GetName()
+			if not name or not name:match("^NamePlate") then return end
+			anchors.BlizzardNameplates[self.unitId] = name
+			local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
+			if (frame.anchor == "BlizzardNameplates") then
+				self.anchor = newAnchor
+				self.parent:SetParent(self.anchor)
+				self.defaultFrameStrata = self:GetFrameStrata()
+				self:GetParent():ClearAllPoints()
+				self:GetParent():SetPoint(
+					frame.point or "CENTER",
+					self.anchor,
+					frame.relativePoint or "CENTER",
+					frame.x or 0,
+					frame.y or 0
+				)
+			end
+		end
+	else
+		anchors.BlizzardNameplates[self.unitId] = "UIParent"
+		local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
+		if (frame.anchor == "BlizzardNameplates") then
+			self.anchor = UIParent
+			self.parent:SetParent(nil)
+			self.defaultFrameStrata = self:GetFrameStrata()
+			self:GetParent():ClearAllPoints()
+			self:GetParent():SetPoint(
+				frame.point or "CENTER",
+				self.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+		end
+	end
+end
+
 function LoseControl:CheckAnchor(forceCheck)
 	if (strfind((self.fakeUnitId or self.unitId), "raid")) then return end
 	if ((self.frame.anchor ~= "None") and (forceCheck or self.anchor == UIParent or self.anchor == nil)) then
 		local anchorObj = anchors[self.frame.anchor]
 		if anchorObj ~= nil then
 			local updateFrame = false
-			local newAnchor = _G[anchorObj[self.unitId]]
+			local newAnchor = _G[anchorObj[self.fakeUnitId or self.unitId]]
 			if (newAnchor and self.anchor ~= newAnchor) then
 				self.anchor = newAnchor
 				updateFrame = true
 			end
-			if (type(anchorObj[self.unitId])=="string") then
-				newAnchor = _GF(anchorObj[self.unitId])
+			if (type(anchorObj[self.fakeUnitId or self.unitId])=="string") then
+				newAnchor = _GF(anchorObj[self.fakeUnitId or self.unitId])
 				if (newAnchor and self.anchor ~= newAnchor) then
 					self.anchor = newAnchor
 					updateFrame = true
 				end
-			elseif (type(anchorObj[self.unitId])=="table") then
-				newAnchor = anchorObj[self.unitId]
+			elseif (type(anchorObj[self.fakeUnitId or self.unitId])=="table") then
+				newAnchor = anchorObj[self.fakeUnitId or self.unitId]
 				if (newAnchor and self.anchor ~= newAnchor) then
 					self.anchor = newAnchor
 					updateFrame = true
@@ -4558,15 +5859,7 @@ function LoseControl:CheckAnchor(forceCheck)
 				local frame = self.frame
 				self.parent:SetParent(self.anchor:GetParent())
 				self.defaultFrameStrata = self:GetFrameStrata()
-				self:ClearAllPoints()
 				self:GetParent():ClearAllPoints()
-				self:SetPoint(
-					frame.point or "CENTER",
-					self.anchor,
-					frame.relativePoint or "CENTER",
-					frame.x or 0,
-					frame.y or 0
-				)
 				self:GetParent():SetPoint(
 					frame.point or "CENTER",
 					self.anchor,
@@ -4575,24 +5868,28 @@ function LoseControl:CheckAnchor(forceCheck)
 					frame.y or 0
 				)
 				local PositionXEditBox, PositionYEditBox, FrameLevelEditBox
-				if strfind(self.unitId, "party") then
+				if strfind(self.fakeUnitId or self.unitId, "party") then
 					if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'])) then
 						PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
 						PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
 						FrameLevelEditBox = _G['LoseControlOptionsPanelpartyFrameLevelEditBox']
 					end
-				elseif strfind(self.unitId, "arena") then
+				elseif strfind(self.fakeUnitId or self.unitId, "arena") then
 					if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelarenaAnchorPositionArenaDropDown'])) then
 						PositionXEditBox = _G['LoseControlOptionsPanelarenaPositionXEditBox']
 						PositionYEditBox = _G['LoseControlOptionsPanelarenaPositionYEditBox']
 						FrameLevelEditBox = _G['LoseControlOptionsPanelarenaFrameLevelEditBox']
 					end
-				elseif strfind(self.unitId, "raid") then
+				elseif strfind(self.fakeUnitId or self.unitId, "raid") then
 					if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'])) then
 						PositionXEditBox = _G['LoseControlOptionsPanelraidPositionXEditBox']
 						PositionYEditBox = _G['LoseControlOptionsPanelraidPositionYEditBox']
 						FrameLevelEditBox = _G['LoseControlOptionsPanelraidFrameLevelEditBox']
 					end
+				elseif strfind(self.fakeUnitId or self.unitId, "nameplate") then
+					PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
+					PositionYEditBox = _G['LoseControlOptionsPanelnameplatePositionYEditBox']
+					FrameLevelEditBox = _G['LoseControlOptionsPanelnameplateFrameLevelEditBox']
 				elseif self.fakeUnitId ~= "player2" then
 					PositionXEditBox = _G['LoseControlOptionsPanel'..self.unitId..'PositionXEditBox']
 					PositionYEditBox = _G['LoseControlOptionsPanel'..self.unitId..'PositionYEditBox']
@@ -4602,7 +5899,7 @@ function LoseControl:CheckAnchor(forceCheck)
 					PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 					PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 					FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
-					if (frame.anchor ~= "Blizzard") then
+					if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
 						if frame.enabled then
 							PositionXEditBox:Enable()
 							PositionYEditBox:Enable()
@@ -4621,7 +5918,7 @@ function LoseControl:CheckAnchor(forceCheck)
 					self:GetParent():SetFrameStrata(frame.frameStrata)
 					self:SetFrameStrata(frame.frameStrata)
 				end
-				local frameLevel = (self.anchor:GetParent() and (self.anchor:GetParent() and (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel()) or self.anchor:GetFrameLevel()) or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
+				local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
 				if frameLevel < 0 then frameLevel = 0 end
 				self:GetParent():SetFrameLevel(frameLevel)
 				self:SetFrameLevel(frameLevel)
@@ -4640,7 +5937,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		self:CheckAnchor(true)
 	end)
 	self.unitGUID = UnitGUID(unitId)
-	self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="string") and _GF(anchors[frame.anchor][unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="table") and anchors[frame.anchor][unitId] or UIParent))
+	self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][self.fakeUnitId or unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or unitId])=="string") and _GF(anchors[frame.anchor][self.fakeUnitId or unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or unitId])=="table") and anchors[frame.anchor][self.fakeUnitId or unitId] or UIParent))
 	self.parent:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
 	self.defaultFrameStrata = self:GetFrameStrata()
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
@@ -4651,13 +5948,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	self:GetParent():SetHeight(frame.size)
 	self:RegisterUnitEvents(enabled)
 	
-	self:SetPoint(
-		frame.point or "CENTER",
-		self.anchor,
-		frame.relativePoint or "CENTER",
-		frame.x or 0,
-		frame.y or 0
-	)
+	self:SetPoint("CENTER", self:GetParent(), "CENTER", 0, 0)
 	self:GetParent():SetPoint(
 		frame.point or "CENTER",
 		self.anchor,
@@ -4684,6 +5975,10 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 			PositionYEditBox = _G['LoseControlOptionsPanelraidPositionYEditBox']
 			FrameLevelEditBox = _G['LoseControlOptionsPanelraidFrameLevelEditBox']
 		end
+	elseif strfind((self.fakeUnitId or unitId), "nameplate") then
+		PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
+		PositionYEditBox = _G['LoseControlOptionsPanelnameplatePositionYEditBox']
+		FrameLevelEditBox = _G['LoseControlOptionsPanelnameplateFrameLevelEditBox']
 	elseif self.fakeUnitId ~= "player2" then
 		PositionXEditBox = _G['LoseControlOptionsPanel'..(self.fakeUnitId or unitId)..'PositionXEditBox']
 		PositionYEditBox = _G['LoseControlOptionsPanel'..(self.fakeUnitId or unitId)..'PositionYEditBox']
@@ -4701,7 +5996,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		self:GetParent():SetFrameStrata(frame.frameStrata)
 		self:SetFrameStrata(frame.frameStrata)
 	end
-	local frameLevel = (self.anchor:GetParent() and (self.anchor:GetParent() and (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel()) or self.anchor:GetFrameLevel()) or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
+	local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
 	if frameLevel < 0 then frameLevel = 0 end
 	self:GetParent():SetFrameLevel(frameLevel)
 	self:SetFrameLevel(frameLevel)
@@ -4720,18 +6015,23 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		v:SetAlpha(frame.interruptMiniIconsAlpha)
 	end
 	
-	if frame.anchor == "Blizzard" then
+	if strfind((self.fakeUnitId or unitId), "party") then
+		self:CheckStatusPartyFrameChange()
+	end
+	C_Timer.After(0.01, MainHookCompactRaidFrames)	-- execute in some close next frame
+	
+	if frame.anchor == "Blizzard" and not(self.useCompactPartyFrames) then
 		if self.textureicon then
 			SetPortraitToTexture(self.texture, self.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
 		end
 		self:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
-		self:SetSwipeColor(0, 0, 0, 0.6)
+		self:SetSwipeColor(0, 0, 0, frame.swipeAlpha*0.75)
 		self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
 	else
 		if self.textureicon then
 			self.texture:SetTexture(self.textureicon)
 		end
-		self:SetSwipeColor(0, 0, 0, 0.8)
+		self:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 		self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 	end
 	
@@ -4755,7 +6055,10 @@ function LoseControl:GROUP_ROSTER_UPDATE()
 	self:RegisterUnitEvents(enabled)
 	self.unitGUID = UnitGUID(unitId)
 	if (self.fakeUnitId ~= "partyplayer") then
-		self:CheckAnchor(frame.anchor ~= "Blizzard")
+		self:CheckAnchor(frame.anchor ~= "Blizzard" or self.useCompactPartyFrames)
+	end
+	if (enabled and IsInRaid() and (frame.anchor == "Blizzard") and (self.useCompactPartyFrames) and strfind(self.fakeUnitId or self.unitId, "party") and GetCVarBool("useCompactPartyFrames") and UnitExists(self.unitId)) then
+		UpdateAllRaidIconsAnchorCompactRaidFrame()
 	end
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
@@ -4769,6 +6072,47 @@ end
 
 function LoseControl:GROUP_LEFT()
 	self:GROUP_ROSTER_UPDATE()
+end
+
+function LoseControl:NAME_PLATE_UNIT_ADDED(unitId)
+	if (unitId == self.unitId) then
+		local enabled = self:GetEnabled()
+		if enabled then
+			self.unitGUID = UnitGUID(unitId)
+			self:CheckNameplateAnchor()
+			if not self.unlockMode then
+				self.maxExpirationTime = 0
+				if (UnitExists(unitId)) then
+					self:UNIT_AURA(unitId, true, nil, 0)
+				else
+					local timeCombatLogAuraEvent = GetTime()
+					C_Timer.After(0.01, function()	-- execute in some close next frame to depriorize this event
+						if (not(self.unlockMode) and (self.lastTimeUnitAuraEvent == nil or self.lastTimeUnitAuraEvent < timeCombatLogAuraEvent)) then
+							self.unitGUID = UnitGUID(unitId)
+							self:CheckNameplateAnchor()
+							self:UNIT_AURA(unitId, true, nil, 3)
+						end
+					end)
+				end
+			end
+		end
+	end
+end
+
+function LoseControl:NAME_PLATE_UNIT_REMOVED(unitId)
+	if (unitId == self.unitId) then
+		local enabled = self:GetEnabled()
+		if enabled then
+			self.unitGUID = nil
+			self:CheckNameplateAnchor()
+			self.maxExpirationTime = 0
+			if self.iconInterruptBackground:IsShown() then
+				self.iconInterruptBackground:Hide()
+			end
+			self:Hide()
+			self:GetParent():Hide()
+		end
+	end
 end
 
 local function UpdateUnitAuraByUnitGUID(unitGUID, typeUpdate)
@@ -4798,6 +6142,234 @@ function LoseControl:ARENA_OPPONENT_UPDATE()
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
 		self:UNIT_AURA(unitId, true, nil, 0)
+	end
+end
+
+-- Function to hide the default skin of button frame
+local function HideTheButtonDefaultSkin(bt)
+	if bt:GetPushedTexture() ~= nil then bt:GetPushedTexture():SetAlpha(0) bt:GetPushedTexture():Hide() end
+	if bt:GetNormalTexture() ~= nil then bt:GetNormalTexture():SetAlpha(0) bt:GetNormalTexture():Hide() end
+	if bt:GetDisabledTexture() ~= nil then bt:GetDisabledTexture():SetAlpha(0) bt:GetDisabledTexture():Hide() end
+	if bt:GetHighlightTexture() ~= nil then bt:GetHighlightTexture():SetAlpha(0) bt:GetHighlightTexture():Hide() end
+	if (bt:GetName() ~= nil) then
+		if _G[bt:GetName().."Shine"] ~= nil then _G[bt:GetName().."Shine"]:SetAlpha(0) _G[bt:GetName().."Shine"]:Hide() end
+		if _G[bt:GetName().."Count"] ~= nil then _G[bt:GetName().."Count"]:SetAlpha(0) _G[bt:GetName().."Count"]:Hide() end
+		if _G[bt:GetName().."HotKey"] ~= nil then _G[bt:GetName().."HotKey"]:SetAlpha(0) _G[bt:GetName().."HotKey"]:Hide() end
+		if _G[bt:GetName().."Flash"] ~= nil then _G[bt:GetName().."Flash"]:SetAlpha(0) _G[bt:GetName().."Flash"]:Hide() end
+		if _G[bt:GetName().."Name"] ~= nil then _G[bt:GetName().."Name"]:SetAlpha(0) _G[bt:GetName().."Name"]:Hide() end
+		if _G[bt:GetName().."Border"] ~= nil then _G[bt:GetName().."Border"]:SetAlpha(0) _G[bt:GetName().."Border"]:Hide() end
+		if _G[bt:GetName().."Icon"] ~= nil then _G[bt:GetName().."Icon"]:SetAlpha(0) _G[bt:GetName().."Icon"]:Hide() end
+	end
+end
+
+function LoseControl:CheckStatusPartyFrameChange(value)
+	if (value == nil) then value = GetCVarBool("useCompactPartyFrames") end
+	if (value ~= self.useCompactPartyFrames) then
+		local unitId = self.fakeUnitId or self.unitId
+		if not(strfind(unitId, "party")) then return end
+		self.useCompactPartyFrames = value
+		local frame = self.frame or LoseControlDB.frames[unitId]
+		if (frame.anchor == "Blizzard") or (unitId == "partyplayer") then
+			if (value) then
+				MainHookCompactRaidFrames()
+				anchors.Blizzard[unitId] = nil
+				UpdateAllRaidIconsAnchorCompactRaidFrame()
+				if not(frame.noCompactFrame) then
+					frame.noCompactFrame = { 
+						["point"] = frame.point,
+						["relativePoint"] = frame.relativePoint,
+						["frameStrata"] = frame.frameStrata,
+						["frameLevel"] = frame.frameLevel,
+						["x"] = frame.x,
+						["y"] = frame.y,
+						["size"] = frame.size
+					}
+					if (unitId == "partyplayer") then frame.noCompactFrame.anchor = frame.anchor end
+				end
+				if frame.compactFrame then
+					frame.point = frame.compactFrame.point
+					frame.relativePoint = frame.compactFrame.relativePoint
+					frame.frameStrata = frame.compactFrame.frameStrata
+					frame.frameLevel = frame.compactFrame.frameLevel
+					frame.x = frame.compactFrame.x
+					frame.y = frame.compactFrame.y
+					frame.size = frame.compactFrame.size
+					if (unitId == "partyplayer") then frame.anchor = frame.compactFrame.anchor or "Blizzard" end
+					frame.compactFrame = nil
+				else
+					if (unitId == "partyplayer") then frame.anchor = "Blizzard" end
+				end
+			else
+				local numId = -1
+				if (unitId == "party1") then
+					numId = 1
+				elseif (unitId == "party2") then
+					numId = 2
+				elseif (unitId == "party3") then
+					numId = 3
+				elseif (unitId == "party4") then
+					numId = 4
+				elseif (unitId == "partyplayer") then
+					numId = 0
+				end
+				if (numId <= 0) then
+					anchors.Blizzard[unitId] = nil
+				else
+					anchors.Blizzard[unitId] = "PartyMemberFrame" .. numId .. "Portrait"
+				end
+				if not(frame.compactFrame) then
+					frame.compactFrame = { 
+						["point"] = frame.point,
+						["relativePoint"] = frame.relativePoint,
+						["frameStrata"] = frame.frameStrata,
+						["frameLevel"] = frame.frameLevel,
+						["x"] = frame.x,
+						["y"] = frame.y,
+						["size"] = frame.size
+					}
+					if (unitId == "partyplayer") then frame.compactFrame.anchor = frame.anchor end
+				end
+				frame.point = (frame.noCompactFrame and frame.noCompactFrame.point) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].point) or nil
+				frame.relativePoint = (frame.noCompactFrame and frame.noCompactFrame.relativePoint) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].relativePoint) or nil
+				frame.frameStrata = (frame.noCompactFrame and frame.noCompactFrame.frameStrata) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameStrata) or nil
+				frame.frameLevel = (frame.noCompactFrame and frame.noCompactFrame.frameLevel) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameLevel) or 0
+				frame.x = (frame.noCompactFrame and frame.noCompactFrame.x) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].x) or nil
+				frame.y = (frame.noCompactFrame and frame.noCompactFrame.y) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].y) or nil
+				frame.size = (frame.noCompactFrame and frame.noCompactFrame.size) or 36
+				if (unitId == "partyplayer") then frame.anchor = (frame.noCompactFrame and frame.noCompactFrame.anchor) or "None" end
+				frame.noCompactFrame = nil
+			end
+			self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="string") and _GF(anchors[frame.anchor][unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="table") and anchors[frame.anchor][unitId] or UIParent))
+			self.parent:SetParent(self.anchor:GetParent())
+			self.defaultFrameStrata = self:GetFrameStrata()
+			self:GetParent():ClearAllPoints()
+			self:GetParent():SetPoint(
+				frame.point or "CENTER",
+				self.anchor,
+				frame.relativePoint or "CENTER",
+				frame.x or 0,
+				frame.y or 0
+			)
+			if (frame.frameStrata ~= nil) then
+				self:GetParent():SetFrameStrata(frame.frameStrata)
+				self:SetFrameStrata(frame.frameStrata)
+			end
+			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+			if frameLevel < 0 then frameLevel = 0 end
+			self:GetParent():SetFrameLevel(frameLevel)
+			self:SetFrameLevel(frameLevel)
+			self:SetWidth(frame.size)
+			self:SetHeight(frame.size)
+			self:GetParent():SetWidth(frame.size)
+			self:GetParent():SetHeight(frame.size)
+			if (frame.anchor == "Blizzard" and not(self.useCompactPartyFrames)) then
+				SetPortraitToTexture(self.texture, self.textureicon)
+				self:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
+				self:SetSwipeColor(0, 0, 0, frame.swipeAlpha*0.75)
+				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
+				if self.MasqueGroup then
+					self.MasqueGroup:RemoveButton(self:GetParent())
+					HideTheButtonDefaultSkin(self:GetParent())
+				end
+				SetInterruptIconsSize(self, frame.size)
+			else
+				self.texture:SetTexture(self.textureicon)
+				self:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
+				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
+				if self.MasqueGroup then
+					self.MasqueGroup:RemoveButton(self:GetParent())
+					HideTheButtonDefaultSkin(self:GetParent())
+					self.MasqueGroup:AddButton(self:GetParent(), {
+						FloatingBG = false,
+						Icon = self.texture,
+						Cooldown = self,
+						Flash = _G[self:GetParent():GetName().."Flash"],
+						Pushed = self:GetParent():GetPushedTexture(),
+						Normal = self:GetParent():GetNormalTexture(),
+						Disabled = self:GetParent():GetDisabledTexture(),
+						Checked = false,
+						Border = _G[self:GetParent():GetName().."Border"],
+						AutoCastable = false,
+						Highlight = self:GetParent():GetHighlightTexture(),
+						Hotkey = _G[self:GetParent():GetName().."HotKey"],
+						Count = _G[self:GetParent():GetName().."Count"],
+						Name = _G[self:GetParent():GetName().."Name"],
+						Duration = false,
+						Shine = _G[self:GetParent():GetName().."Shine"],
+					}, "Button", true)
+				end
+				SetInterruptIconsSize(self, frame.size)
+			end
+			if unitId == "party1" then
+				if _G['LoseControlOptionsPanelpartyIconSizeSlider'] then
+					local SizeSlider = _G['LoseControlOptionsPanelpartyIconSizeSlider']
+					SizeSlider:SetValue(frame.size)
+					SizeSlider.editbox:SetText(frame.size)
+					SizeSlider.editbox:SetCursorPosition(0)
+				end
+			end
+			if (_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'] ~= nil and unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'])) then
+				local PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
+				local PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
+				local FrameLevelEditBox = _G['LoseControlOptionsPanelpartyFrameLevelEditBox']
+				if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+					PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
+					PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
+					FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
+					if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
+						PositionXEditBox:Enable()
+						PositionYEditBox:Enable()
+						FrameLevelEditBox:Enable()
+					else
+						PositionXEditBox:Disable()
+						PositionYEditBox:Disable()
+						FrameLevelEditBox:Disable()
+					end
+					PositionXEditBox:SetCursorPosition(0)
+					PositionYEditBox:SetCursorPosition(0)
+					FrameLevelEditBox:SetCursorPosition(0)
+					PositionXEditBox:ClearFocus()
+					PositionYEditBox:ClearFocus()
+					FrameLevelEditBox:ClearFocus()
+				end
+				local AnchorPointDropDown = _G['LoseControlOptionsPanelpartyAnchorPointDropDown']
+				if (AnchorPointDropDown) then
+					UIDropDownMenu_Initialize(AnchorPointDropDown, AnchorPointDropDown.initialize)
+					UIDropDownMenu_SetSelectedValue(AnchorPointDropDown, frame.relativePoint or "CENTER")
+					if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
+						UIDropDownMenu_EnableDropDown(AnchorPointDropDown)
+					else
+						UIDropDownMenu_DisableDropDown(AnchorPointDropDown)
+					end
+				end
+				local AnchorIconPointDropDown = _G['LoseControlOptionsPanelpartyAnchorIconPointDropDown']
+				if (AnchorIconPointDropDown) then
+					UIDropDownMenu_Initialize(AnchorIconPointDropDown, AnchorIconPointDropDown.initialize)
+					UIDropDownMenu_SetSelectedValue(AnchorIconPointDropDown, frame.point or "CENTER")
+					if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
+						UIDropDownMenu_EnableDropDown(AnchorIconPointDropDown)
+					else
+						UIDropDownMenu_DisableDropDown(AnchorIconPointDropDown)
+					end
+				end
+				local AnchorFrameStrataDropDown = _G['LoseControlOptionsPanelpartyAnchorFrameStrataDropDown']
+				if (AnchorFrameStrataDropDown) then
+					UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
+					UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
+					if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
+						UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
+					else
+						UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
+					end
+				end
+			end
+		end
+	end
+end
+
+function LoseControl:CVAR_UPDATE(eventName, value)
+	if (eventName == "USE_RAID_STYLE_PARTY_FRAMES") then
+		self:CheckStatusPartyFrameChange()
 	end
 end
 
@@ -4925,7 +6497,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 	local forceEventUnitAuraAtEnd = false
 	self.lastTimeUnitAuraEvent = GetTime()
 
-	if ((self.anchor ~= nil and self.anchor:IsVisible() and (self.anchor ~= UIParent or self.frame.anchor == "None")) or (self.frame.anchor ~= "None" and self.frame.anchor ~= "Blizzard" and self.frame.anchor ~= "BlizzardRaidFrames" and self.anchor ~= UIParent)) and UnitExists(self.unitId) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetPlayerTargetTarget) or not(UnitIsUnit("player", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetTarget) or not(UnitIsUnit("targettarget", "player")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetTargetTarget) or not(UnitIsUnit("targettarget", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetDeadTargetTarget) or (UnitHealth("target") > 0))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusPlayerFocusTarget) or not(UnitIsUnit("player", "focus") and UnitIsUnit("player", "focustarget")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusTarget) or not(UnitIsUnit("focustarget", "player")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusFocusTarget) or not(UnitIsUnit("focustarget", "focus")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusDeadFocusTarget) or (UnitHealth("focus") > 0))) then
+	if ((self.anchor ~= nil and self.anchor:IsVisible() and (self.anchor ~= UIParent or self.frame.anchor == "None")) or (self.frame.anchor ~= "None" and self.frame.anchor ~= "Blizzard" and self.frame.anchor ~= "BlizzardRaidFrames" and self.frame.anchor ~= "BlizzardNameplates" and self.anchor ~= UIParent)) and UnitExists(self.unitId) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetPlayerTargetTarget) or not(UnitIsUnit("player", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetTarget) or not(UnitIsUnit("targettarget", "player")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetTargetTarget) or not(UnitIsUnit("targettarget", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetDeadTargetTarget) or (UnitHealth("target") > 0))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusPlayerFocusTarget) or not(UnitIsUnit("player", "focus") and UnitIsUnit("player", "focustarget")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusTarget) or not(UnitIsUnit("focustarget", "player")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusFocusTarget) or not(UnitIsUnit("focustarget", "focus")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusDeadFocusTarget) or (UnitHealth("focus") > 0))) then
 		local reactionToPlayer = (strfind(self.unitId, "arena") or ((self.unitId == "target" or self.unitId == "focus" or self.unitId == "targettarget" or self.unitId == "focustarget") and UnitCanAttack("player", unitId))) and "enemy" or "friendly"
 		-- Check debuffs
 		for i = 1, 120 do
@@ -5006,7 +6578,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 		end
 		
 		-- Check interrupts
-		if ((self.unitGUID ~= nil) and (priority.Interrupt > 0) and self.frame.categoriesEnabled.interrupt[reactionToPlayer] and (UnitIsPlayer(self.unitId) or (((self.unitId ~= "target") or (LoseControlDB.showNPCInterruptsTarget)) and ((self.unitId ~= "focus") or (LoseControlDB.showNPCInterruptsFocus)) and ((self.unitId ~= "targettarget") or (LoseControlDB.showNPCInterruptsTargetTarget)) and ((self.unitId ~= "focustarget") or (LoseControlDB.showNPCInterruptsFocusTarget))))) then
+		if ((self.unitGUID ~= nil) and (priority.Interrupt > 0) and self.frame.categoriesEnabled.interrupt[reactionToPlayer] and (UnitIsPlayer(self.unitId) or (((self.unitId ~= "target") or (LoseControlDB.showNPCInterruptsTarget)) and ((self.unitId ~= "focus") or (LoseControlDB.showNPCInterruptsFocus)) and ((self.unitId ~= "targettarget") or (LoseControlDB.showNPCInterruptsTargetTarget)) and ((self.unitId ~= "focustarget") or (LoseControlDB.showNPCInterruptsFocusTarget)) and (not(strfind(self.unitId, "nameplate")) or (LoseControlDB.showNPCInterruptsNameplate))))) then
 			if (self.frame.useSpellInsteadSchoolMiniIcon) then
 				local spellQueueInterruptList = { }
 				if (InterruptAuras[self.unitGUID] ~= nil) then
@@ -5171,7 +6743,12 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 	if maxExpirationTime == 0 then -- no (de)buffs found
 		self.maxExpirationTime = 0
 		if self.anchor ~= UIParent and self.drawlayer then
-			self.anchor:SetDrawLayer(self.drawlayer) -- restore the original draw layer
+			if self.drawanchor == self.anchor and self.anchor.GetDrawLayer and self.anchor.SetDrawLayer then
+				self.anchor:SetDrawLayer(self.drawlayer) -- restore the original draw layer
+			else
+				self.drawlayer = nil
+				self.drawanchor = nil
+			end
 		end
 		if self.iconInterruptBackground:IsShown() then
 			self.iconInterruptBackground:Hide()
@@ -5181,19 +6758,20 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
 		self.maxExpirationTime = maxExpirationTime
 		if self.anchor ~= UIParent then
-			local frameLevel = (self.anchor:GetParent() and (self.anchor:GetParent() and (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel()) or self.anchor:GetFrameLevel()) or self.anchor:GetFrameLevel())+((self.frame.anchor ~= "Blizzard") and (12 + self.frame.frameLevel) or 0) -- must be dynamic, frame level changes all the time
+			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((self.frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + self.frame.frameLevel) or 0) -- must be dynamic, frame level changes all the time
 			if frameLevel < 0 then frameLevel = 0 end
 			self:GetParent():SetFrameLevel(frameLevel)
 			self:SetFrameLevel(frameLevel)
-			if not self.drawlayer and self.anchor.GetDrawLayer then
+			if (not(self.drawlayer) or (self.drawanchor ~= self.anchor)) and self.anchor.GetDrawLayer and self.anchor.SetDrawLayer then
 				self.drawlayer = self.anchor:GetDrawLayer() -- back up the current draw layer
+				self.drawanchor = self.anchor
 			end
-			if self.drawlayer and self.anchor.SetDrawLayer then
+			if self.drawlayer and self.anchor.GetDrawLayer and self.anchor.SetDrawLayer then
 				self.anchor:SetDrawLayer("BACKGROUND") -- Temporarily put the portrait texture below the debuff texture. This is the only reliable method I've found for keeping the debuff texture visible with the cooldown spiral on top of it.
 			end
 		end
 		if maxPriorityIsInterrupt then
-			if self.frame.anchor == "Blizzard" then
+			if self.frame.anchor == "Blizzard" and not(self.useCompactPartyFrames) then
 				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
 			else
 				self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
@@ -5207,13 +6785,13 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 			end
 		end
 		self.textureicon = Icon
-		if self.frame.anchor == "Blizzard" then
+		if self.frame.anchor == "Blizzard" and not(self.useCompactPartyFrames) then
 			SetPortraitToTexture(self.texture, Icon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
 			self:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
-			self:SetSwipeColor(0, 0, 0, 0.6)	-- Adjust the alpha of this mask to similar levels of the normal swipe cooldown texture
+			self:SetSwipeColor(0, 0, 0, self.frame.swipeAlpha*0.75)	-- Adjust the alpha of this mask to similar levels of the normal swipe cooldown texture
 		else
 			self.texture:SetTexture(Icon)
-			self:SetSwipeColor(0, 0, 0, 0.8)	-- This is the default alpha of the normal swipe cooldown texture
+			self:SetSwipeColor(0, 0, 0, self.frame.swipeAlpha)	-- This is the default alpha of the normal swipe cooldown texture
 		end
 		if forceEventUnitAuraAtEnd and maxExpirationTime > 0 and Duration > 0 then
 			local nextTimerUpdate = maxExpirationTime - GetTime() + 0.10
@@ -5289,34 +6867,18 @@ function LoseControl:UNIT_PET(unitId)
 	end
 end
 
--- Function to hide the default skin of button frame
-local function HideTheButtonDefaultSkin(bt)
-	if bt:GetPushedTexture() ~= nil then bt:GetPushedTexture():SetAlpha(0) bt:GetPushedTexture():Hide() end
-	if bt:GetNormalTexture() ~= nil then bt:GetNormalTexture():SetAlpha(0) bt:GetNormalTexture():Hide() end
-	if bt:GetDisabledTexture() ~= nil then bt:GetDisabledTexture():SetAlpha(0) bt:GetDisabledTexture():Hide() end
-	if bt:GetHighlightTexture() ~= nil then bt:GetHighlightTexture():SetAlpha(0) bt:GetHighlightTexture():Hide() end
-	if (bt:GetName() ~= nil) then
-		if _G[bt:GetName().."Shine"] ~= nil then _G[bt:GetName().."Shine"]:SetAlpha(0) _G[bt:GetName().."Shine"]:Hide() end
-		if _G[bt:GetName().."Count"] ~= nil then _G[bt:GetName().."Count"]:SetAlpha(0) _G[bt:GetName().."Count"]:Hide() end
-		if _G[bt:GetName().."HotKey"] ~= nil then _G[bt:GetName().."HotKey"]:SetAlpha(0) _G[bt:GetName().."HotKey"]:Hide() end
-		if _G[bt:GetName().."Flash"] ~= nil then _G[bt:GetName().."Flash"]:SetAlpha(0) _G[bt:GetName().."Flash"]:Hide() end
-		if _G[bt:GetName().."Name"] ~= nil then _G[bt:GetName().."Name"]:SetAlpha(0) _G[bt:GetName().."Name"]:Hide() end
-		if _G[bt:GetName().."Border"] ~= nil then _G[bt:GetName().."Border"]:SetAlpha(0) _G[bt:GetName().."Border"]:Hide() end
-		if _G[bt:GetName().."Icon"] ~= nil then _G[bt:GetName().."Icon"]:SetAlpha(0) _G[bt:GetName().."Icon"]:Hide() end
-	end
-end
-
 -- Handle mouse dragging StartMoving
 hooksecurefunc(LoseControl, "StartMoving", function(self)
-	if (self.frame.anchor == "Blizzard") then
+	if (self.frame.anchor == "Blizzard" and not(self.useCompactPartyFrames)) then
 		self.texture:SetTexture(self.textureicon)
-		self:SetSwipeColor(0, 0, 0, 0.8)
+		self:SetSwipeColor(0, 0, 0, self.frame.swipeAlpha)
 		self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 	end
 end)
 
 -- Handle mouse dragging StopMoving
 function LoseControl:StopMoving()
+	self:StopMovingOrSizing()
 	local frame = LoseControlDB.frames[self.fakeUnitId or self.unitId]
 	frame.point, frame.anchor, frame.relativePoint, frame.x, frame.y = self:GetPoint()
 	if not frame.anchor then
@@ -5349,18 +6911,12 @@ function LoseControl:StopMoving()
 			}, "Button", true)
 		end
 	end
-	self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][self.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.unitId])=="string") and _GF(anchors[frame.anchor][self.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.unitId])=="table") and anchors[frame.anchor][self.unitId] or UIParent))
+	self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][self.fakeUnitId or self.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or self.unitId])=="string") and _GF(anchors[frame.anchor][self.fakeUnitId or self.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or self.unitId])=="table") and anchors[frame.anchor][self.fakeUnitId or self.unitId] or UIParent))
 	self.parent:SetParent(self.anchor:GetParent())
 	self.defaultFrameStrata = self:GetFrameStrata()
 	self:ClearAllPoints()
 	self:GetParent():ClearAllPoints()
-	self:SetPoint(
-		frame.point or "CENTER",
-		self.anchor,
-		frame.relativePoint or "CENTER",
-		frame.x or 0,
-		frame.y or 0
-	)
+	self:SetPoint("CENTER", self:GetParent(), "CENTER", 0, 0)
 	self:GetParent():SetPoint(
 		frame.point or "CENTER",
 		self.anchor,
@@ -5396,6 +6952,13 @@ function LoseControl:StopMoving()
 			AnchorIconPointDropDown = _G['LoseControlOptionsPanelraidAnchorIconPointDropDown']
 			AnchorFrameStrataDropDown = _G['LoseControlOptionsPanelraidAnchorFrameStrataDropDown']
 		end
+	elseif strfind((self.fakeUnitId or self.unitId), "nameplate") then
+		PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
+		PositionYEditBox = _G['LoseControlOptionsPanelnameplatePositionYEditBox']
+		FrameLevelEditBox = _G['LoseControlOptionsPanelnameplateFrameLevelEditBox']
+		AnchorPointDropDown = _G['LoseControlOptionsPanelnameplateAnchorPointDropDown']
+		AnchorIconPointDropDown = _G['LoseControlOptionsPanelnameplateAnchorIconPointDropDown']
+		AnchorFrameStrataDropDown = _G['LoseControlOptionsPanelnameplateAnchorFrameStrataDropDown']
 	elseif self.fakeUnitId ~= "player2" then
 		PositionXEditBox = _G['LoseControlOptionsPanel'..(self.fakeUnitId or self.unitId)..'PositionXEditBox']
 		PositionYEditBox = _G['LoseControlOptionsPanel'..(self.fakeUnitId or self.unitId)..'PositionYEditBox']
@@ -5408,7 +6971,7 @@ function LoseControl:StopMoving()
 		PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 		PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 		FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
-		if (frame.anchor ~= "Blizzard") then
+		if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
 			PositionXEditBox:Enable()
 			PositionYEditBox:Enable()
 			FrameLevelEditBox:Enable()
@@ -5420,28 +6983,27 @@ function LoseControl:StopMoving()
 	if (AnchorPointDropDown) then
 		UIDropDownMenu_Initialize(AnchorPointDropDown, AnchorPointDropDown.initialize)
 		UIDropDownMenu_SetSelectedValue(AnchorPointDropDown, frame.relativePoint or "CENTER")
-		if (frame.anchor ~= "Blizzard") then
+		if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
 			UIDropDownMenu_EnableDropDown(AnchorPointDropDown)
 		end
 	end
 	if (AnchorIconPointDropDown) then
 		UIDropDownMenu_Initialize(AnchorIconPointDropDown, AnchorIconPointDropDown.initialize)
 		UIDropDownMenu_SetSelectedValue(AnchorIconPointDropDown, frame.point or "CENTER")
-		if (frame.anchor ~= "Blizzard") then
+		if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
 			UIDropDownMenu_EnableDropDown(AnchorIconPointDropDown)
 		end
 	end
 	if (AnchorFrameStrataDropDown) then
 		UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 		UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-		if (frame.anchor ~= "Blizzard") then
+		if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
 			UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
 		end
 	end
 	if self.MasqueGroup then
 		self.MasqueGroup:ReSkin()
 	end
-	self:StopMovingOrSizing()
 end
 
 -- Constructor method
@@ -5566,10 +7128,21 @@ function LoseControl:new(unitId)
 	o:SetScript("OnDragStop", self.StopMoving) -- this is a custom function
 
 	o:RegisterEvent("PLAYER_ENTERING_WORLD")
-	o:RegisterEvent("GROUP_ROSTER_UPDATE")
-	o:RegisterEvent("GROUP_JOINED")
-	o:RegisterEvent("GROUP_LEFT")
-	o:RegisterEvent("ARENA_OPPONENT_UPDATE")
+	if (strfind(o.fakeUnitId or o.unitId, "party") or strfind(o.fakeUnitId or o.unitId, "raid")) then
+		o:RegisterEvent("GROUP_ROSTER_UPDATE")
+		o:RegisterEvent("GROUP_JOINED")
+		o:RegisterEvent("GROUP_LEFT")
+	end
+	if (strfind(o.unitId, "arena")) then
+		o:RegisterEvent("ARENA_OPPONENT_UPDATE")
+	end
+	if (strfind(o.unitId, "nameplate")) then
+		o:RegisterEvent("NAME_PLATE_UNIT_ADDED")
+		o:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
+	end
+	if (strfind(o.fakeUnitId or o.unitId, "party")) then
+		o:RegisterEvent("CVAR_UPDATE")
+	end
 
 	return o
 end
@@ -5618,6 +7191,9 @@ local function CreateSlider(text, parent, low, high, step, width, createBox, glo
 				self:SetText(val)
 				self:GetParent():SetValue(val)
 				self:ClearFocus()
+				if self:GetParent().Func then
+					self:GetParent():Func(val)
+				end
 			else
 				self:SetText(mathfloor(self:GetParent():GetValue()+0.5))
 				self:ClearFocus()
@@ -5706,67 +7282,69 @@ function Unlock:OnClick()
 			tinsert(keys, k)
 		end
 		for k, v in pairs(LCframes) do
-			v.maxExpirationTime = 0
-			v.unlockMode = true
-			local frame = LoseControlDB.frames[k]
-			if frame.enabled and ((anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][k]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][k])=="string") and _GF(anchors[frame.anchor][k]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][k])=="table") and anchors[frame.anchor][k] or frame.anchor == "None"))) then -- only unlock frames whose anchor exists
-				v:RegisterUnitEvents(false)
-				v.textureicon = select(3, GetSpellInfo(keys[random(#keys)]))
-				if frame.anchor == "Blizzard" then
-					SetPortraitToTexture(v.texture, v.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
-					v:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
-					v:SetSwipeColor(0, 0, 0, 0.6)
-					v.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
+			if not(strfind(k, "nameplate")) then
+				v.maxExpirationTime = 0
+				v.unlockMode = true
+				local frame = LoseControlDB.frames[k]
+				if frame.enabled and ((anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][k]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][k])=="string") and _GF(anchors[frame.anchor][k]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][k])=="table") and anchors[frame.anchor][k] or frame.anchor == "None"))) then -- only unlock frames whose anchor exists
+					v:RegisterUnitEvents(false)
+					v.textureicon = select(3, GetSpellInfo(keys[random(#keys)]))
+					if frame.anchor == "Blizzard" and not(v.useCompactPartyFrames) then
+						SetPortraitToTexture(v.texture, v.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
+						v:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
+						v:SetSwipeColor(0, 0, 0, frame.swipeAlpha*0.75)
+						v.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
+					else
+						v.texture:SetTexture(v.textureicon)
+						v:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
+						v.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
+					end
+					v.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
+					if (frame.frameStrata ~= nil) then
+						v:GetParent():SetFrameStrata(frame.frameStrata)
+						v:SetFrameStrata(frame.frameStrata)
+					end
+					local frameLevel = (v.anchor:GetParent() and v.anchor:GetParent():GetFrameLevel() or v.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or v.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+					if frameLevel < 0 then frameLevel = 0 end
+					v:GetParent():SetFrameLevel(frameLevel)
+					v:SetFrameLevel(frameLevel)
+					v.text:Show()
+					v:Show()
+					v:GetParent():Show()
+					v:SetDrawSwipe(true)
+					v:SetCooldown( GetTime(), 30 )
+					if (onlyOneUnlockLoop) then
+						self.nextUnlockLoopTime = GetTime()+30
+						C_Timer.After(30, Unlock.LoopFunction)
+						onlyOneUnlockLoop = false
+					end
+					v:GetParent():SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
+					v:SetMovable(true)
+					v:RegisterForDrag("LeftButton")
+					v:EnableMouse(true)
 				else
-					v.texture:SetTexture(v.textureicon)
-					v:SetSwipeColor(0, 0, 0, 0.8)
-					v.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
+					v:EnableMouse(false)
+					v:RegisterForDrag()
+					v:SetMovable(false)
+					v.text:Hide()
+					v:PLAYER_ENTERING_WORLD()
 				end
-				v.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
-				if (frame.frameStrata ~= nil) then
-					v:GetParent():SetFrameStrata(frame.frameStrata)
-					v:SetFrameStrata(frame.frameStrata)
-				end
-				local frameLevel = (v.anchor:GetParent() and v.anchor:GetParent():GetFrameLevel() or v.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
-				if frameLevel < 0 then frameLevel = 0 end
-				v:GetParent():SetFrameLevel(frameLevel)
-				v:SetFrameLevel(frameLevel)
-				v.text:Show()
-				v:Show()
-				v:GetParent():Show()
-				v:SetDrawSwipe(true)
-				v:SetCooldown( GetTime(), 30 )
-				if (onlyOneUnlockLoop) then
-					self.nextUnlockLoopTime = GetTime()+30
-					C_Timer.After(30, Unlock.LoopFunction)
-					onlyOneUnlockLoop = false
-				end
-				v:GetParent():SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
-				v:SetMovable(true)
-				v:RegisterForDrag("LeftButton")
-				v:EnableMouse(true)
-			else
-				v:EnableMouse(false)
-				v:RegisterForDrag()
-				v:SetMovable(false)
-				v.text:Hide()
-				v:PLAYER_ENTERING_WORLD()
 			end
 		end
 		LCframeplayer2.maxExpirationTime = 0
 		LCframeplayer2.unlockMode = true
 		local frame = LoseControlDB.frames.player2
-		if frame.enabled and ((anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframeplayer2.unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframeplayer2.unitId])=="string") and _GF(anchors[frame.anchor][LCframeplayer2.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframeplayer2.unitId])=="table") and anchors[frame.anchor][LCframeplayer2.unitId] or frame.anchor == "None"))) then -- only unlock frames whose anchor exists
+		if frame.enabled and ((anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId])=="string") and _GF(anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId])=="table") and anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId] or frame.anchor == "None"))) then -- only unlock frames whose anchor exists
 			LCframeplayer2:RegisterUnitEvents(false)
 			LCframeplayer2.textureicon = select(3, GetSpellInfo(keys[random(#keys)]))
-			if frame.anchor == "Blizzard" then
+			if frame.anchor == "Blizzard" and not(LCframeplayer2.useCompactPartyFrames) then
 				SetPortraitToTexture(LCframeplayer2.texture, LCframeplayer2.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
 				LCframeplayer2:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
-				LCframeplayer2:SetSwipeColor(0, 0, 0, 0.6)
+				LCframeplayer2:SetSwipeColor(0, 0, 0, frame.swipeAlpha*0.75)
 				LCframeplayer2.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
 			else
 				LCframeplayer2.texture:SetTexture(LCframeplayer2.textureicon)
-				LCframeplayer2:SetSwipeColor(0, 0, 0, 0.8)
+				LCframeplayer2:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 				LCframeplayer2.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 			end
 			LCframeplayer2.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
@@ -5790,13 +7368,15 @@ function Unlock:OnClick()
 		end
 	else
 		_G[O.."UnlockText"]:SetText(L["Unlock"])
-		for _, v in pairs(LCframes) do
-			v.unlockMode = false
-			v:EnableMouse(false)
-			v:RegisterForDrag()
-			v:SetMovable(false)
-			v.text:Hide()
-			v:PLAYER_ENTERING_WORLD()
+		for k, v in pairs(LCframes) do
+			if not(strfind(k, "nameplate")) then
+				v.unlockMode = false
+				v:EnableMouse(false)
+				v:RegisterForDrag()
+				v:SetMovable(false)
+				v.text:Hide()
+				v:PLAYER_ENTERING_WORLD()
+			end
 		end
 		LCframeplayer2.unlockMode = false
 		LCframeplayer2.text:Hide()
@@ -5846,7 +7426,7 @@ PriorityDescription:SetJustifyH("LEFT")
 local PrioritySlider = {}
 for k in pairs(DBdefaults.priority) do
 	PrioritySlider[k] = CreateSlider(L[k], OptionsPanel.container, 0, 100, 5, 160, false, "Priority"..k.."Slider")
-	PrioritySlider[k]:SetScript("OnValueChanged", function(self, value)
+	PrioritySlider[k]:SetScript("OnValueChanged", function(self, value, userInput)
 		value = mathfloor(value/5)*5
 		_G[self:GetName() .. "Text"]:SetText(L[k] .. " (" .. value .. ")")
 		LoseControlDB.priority[k] = value
@@ -5912,7 +7492,7 @@ InterfaceOptions_AddCategory(OptionsPanel)
 
 -------------------------------------------------------------------------------
 -- Create sub-option frames
-for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena", "raid" }) do
+for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena", "raid", "nameplate" }) do
 	local OptionsPanelFrame = CreateFrame("Frame", O..v)
 	OptionsPanelFrame.parent = addonName
 	OptionsPanelFrame.name = L[v]
@@ -6021,6 +7601,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, unitId in ipairs(frames) do
 			local frame = LoseControlDB.frames[unitId]
@@ -6028,9 +7610,13 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (unitId ~= "partyplayer") then
 				frame.anchor = self.value
 			else
-				frame.anchor = "None"
+				if (GetCVarBool("useCompactPartyFrames")) then
+					frame.anchor = self.value
+				else
+					frame.anchor = "None"
+				end
 			end
-			icon.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][icon.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.unitId])=="string") and _GF(anchors[frame.anchor][icon.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.unitId])=="table") and anchors[frame.anchor][icon.unitId] or UIParent))
+			icon.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][icon.fakeUnitId or icon.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="string") and _GF(anchors[frame.anchor][icon.fakeUnitId or icon.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="table") and anchors[frame.anchor][icon.fakeUnitId or icon.unitId] or UIParent))
 			icon.parent:SetParent(icon.anchor:GetParent())
 			icon.defaultFrameStrata = icon:GetFrameStrata()
 			if frame.anchor ~= "None" then -- reset the frame position so it centers on the anchor frame
@@ -6041,7 +7627,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				frame.x = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].x) or nil
 				frame.y = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].y) or nil
 			end
-			if frame.anchor == "Blizzard" then
+			if frame.anchor == "Blizzard" and not(icon.useCompactPartyFrames) then
 				local portrSizeValue = 36
 				if (unitId == "player" or unitId == "target" or unitId == "focus") then
 					portrSizeValue = 56
@@ -6062,18 +7648,20 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				icon:GetParent():SetHeight(portrSizeValue)
 				SetPortraitToTexture(icon.texture, icon.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
 				icon:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
-				icon:SetSwipeColor(0, 0, 0, 0.6)
+				icon:SetSwipeColor(0, 0, 0, frame.swipeAlpha*0.75)
 				icon.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
 				if icon.MasqueGroup then
 					icon.MasqueGroup:RemoveButton(icon:GetParent())
 					HideTheButtonDefaultSkin(icon:GetParent())
 				end
-				_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"]:SetValue(portrSizeValue)
-				_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"].editbox:SetText(portrSizeValue)
-				_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"].editbox:SetCursorPosition(0)
+				if (v ~= "party" or unitId == "party1") and (v ~= "arena" or unitId == "arena1") and (v ~= "raid" or unitId == "raid1") and (v ~= "nameplate" or unitId == "nameplate1") then
+					_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"]:SetValue(portrSizeValue)
+					_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"].editbox:SetText(portrSizeValue)
+					_G[OptionsPanelFrame:GetName() .. "IconSizeSlider"].editbox:SetCursorPosition(0)
+				end
 			else
 				icon.texture:SetTexture(icon.textureicon)
-				icon:SetSwipeColor(0, 0, 0, 0.8)
+				icon:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 				icon.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 				if icon.MasqueGroup then
 					icon.MasqueGroup:RemoveButton(icon:GetParent())
@@ -6099,15 +7687,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 			end
 			SetInterruptIconsSize(icon, frame.size)
-			icon:ClearAllPoints() -- if we don't do this then the frame won't always move
 			icon:GetParent():ClearAllPoints()
-			icon:SetPoint(
-				frame.point or "CENTER",
-				icon.anchor,
-				frame.relativePoint or "CENTER",
-				frame.x or 0,
-				frame.y or 0
-			)
 			icon:GetParent():SetPoint(
 				frame.point or "CENTER",
 				icon.anchor,
@@ -6143,6 +7723,13 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					AnchorIconPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorIconPointDropDown']
 					AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..v..'AnchorFrameStrataDropDown']
 				end
+			elseif v == "nameplate" then
+				PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
+				PositionYEditBox = _G['LoseControlOptionsPanelnameplatePositionYEditBox']
+				FrameLevelEditBox = _G['LoseControlOptionsPanelnameplateFrameLevelEditBox']
+				AnchorPointDropDown = _G['LoseControlOptionsPanelnameplateAnchorPointDropDown']
+				AnchorIconPointDropDown = _G['LoseControlOptionsPanelnameplateAnchorIconPointDropDown']
+				AnchorFrameStrataDropDown = _G['LoseControlOptionsPanelnameplateAnchorFrameStrataDropDown']
 			else
 				PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
 				PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
@@ -6155,7 +7742,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 				FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
-				if (frame.anchor ~= "Blizzard") then
+				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					PositionXEditBox:Enable()
 					PositionYEditBox:Enable()
 					FrameLevelEditBox:Enable()
@@ -6174,7 +7761,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorPointDropDown) then
 				UIDropDownMenu_Initialize(AnchorPointDropDown, AnchorPointDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorPointDropDown, frame.relativePoint or "CENTER")
-				if (frame.anchor ~= "Blizzard") then
+				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					UIDropDownMenu_EnableDropDown(AnchorPointDropDown)
 				else
 					UIDropDownMenu_DisableDropDown(AnchorPointDropDown)
@@ -6184,7 +7771,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorIconPointDropDown) then
 				UIDropDownMenu_Initialize(AnchorIconPointDropDown, AnchorIconPointDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorIconPointDropDown, frame.point or "CENTER")
-				if (frame.anchor ~= "Blizzard") then
+				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					UIDropDownMenu_EnableDropDown(AnchorIconPointDropDown)
 				else
 					UIDropDownMenu_DisableDropDown(AnchorIconPointDropDown)
@@ -6194,7 +7781,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorFrameStrataDropDown) then
 				UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-				if (frame.anchor ~= "Blizzard") then
+				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
 				else
 					UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
@@ -6205,7 +7792,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				icon:GetParent():SetFrameStrata(frame.frameStrata)
 				icon:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
+			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
 			if frameLevel < 0 then frameLevel = 0 end
 			icon:GetParent():SetFrameLevel(frameLevel)
 			icon:SetFrameLevel(frameLevel)
@@ -6213,6 +7800,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				icon.MasqueGroup:ReSkin()
 			end
 			if v == "raid" and frame.anchor == "BlizzardRaidFrames" then
+				MainHookCompactRaidFrames()
+			elseif v == "party" and frame.anchor == "Blizzard" and GetCVarBool("useCompactPartyFrames") then
 				MainHookCompactRaidFrames()
 			end
 			if icon:GetEnabled() and not icon.unlockMode then
@@ -6230,7 +7819,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			local frame = LoseControlDB.frames.player2
 			local icon = LCframeplayer2
 			frame.anchor = self.value
-			icon.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframes.player.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.unitId])=="string") and _GF(anchors[frame.anchor][LCframes.player.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.unitId])=="table") and anchors[frame.anchor][LCframes.player.unitId] or UIParent))
+			icon.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][icon.fakeUnitId or icon.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="string") and _GF(anchors[frame.anchor][icon.fakeUnitId or icon.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="table") and anchors[frame.anchor][icon.fakeUnitId or icon.unitId] or UIParent))
 			icon.parent:SetParent(icon.anchor:GetParent())
 			icon.defaultFrameStrata = icon:GetFrameStrata()
 			if frame.anchor ~= "None" then -- reset the frame position so it centers on the anchor frame
@@ -6241,7 +7830,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				frame.x = (DBdefaults.frames.player2 and frame.anchor == DBdefaults.frames.player2.anchor and DBdefaults.frames.player2.x) or nil
 				frame.y = (DBdefaults.frames.player2 and frame.anchor == DBdefaults.frames.player2.anchor and DBdefaults.frames.player2.y) or nil
 			end
-			if frame.anchor == "Blizzard" then
+			if frame.anchor == "Blizzard" and not(icon.useCompactPartyFrames) then
 				local portrSizeValue = 56
 				frame.size = portrSizeValue
 				icon:SetWidth(portrSizeValue)
@@ -6250,7 +7839,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				icon:GetParent():SetHeight(portrSizeValue)
 				SetPortraitToTexture(icon.texture, icon.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
 				icon:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
-				icon:SetSwipeColor(0, 0, 0, 0.6)
+				icon:SetSwipeColor(0, 0, 0, frame.swipeAlpha*0.75)
 				icon.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
 				if icon.MasqueGroup then
 					icon.MasqueGroup:RemoveButton(icon:GetParent())
@@ -6261,7 +7850,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				_G[OptionsPanelFrame:GetName() .. "IconSizeSlider2"].editbox:SetCursorPosition(0)
 			else
 				icon.texture:SetTexture(icon.textureicon)
-				icon:SetSwipeColor(0, 0, 0, 0.8)
+				icon:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 				icon.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 				if icon.MasqueGroup then
 					icon.MasqueGroup:RemoveButton(icon:GetParent())
@@ -6287,15 +7876,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 			end
 			SetInterruptIconsSize(icon, frame.size)
-			icon:ClearAllPoints() -- if we don't do this then the frame won't always move
 			icon:GetParent():ClearAllPoints()
-			icon:SetPoint(
-				frame.point or "CENTER",
-				icon.anchor,
-				frame.relativePoint or "CENTER",
-				frame.x or 0,
-				frame.y or 0
-			)
 			icon:GetParent():SetPoint(
 				frame.point or "CENTER",
 				icon.anchor,
@@ -6307,7 +7888,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				icon:GetParent():SetFrameStrata(frame.frameStrata)
 				icon:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
+			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
 			if frameLevel < 0 then frameLevel = 0 end
 			icon:GetParent():SetFrameLevel(frameLevel)
 			icon:SetFrameLevel(frameLevel)
@@ -6329,6 +7910,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			UIDropDownMenu_SetSelectedValue(AnchorPositionPartyDropDown, value)
 			local unitId = value
 			local frame = LoseControlDB.frames[unitId]
+			local icon = LCframes[unitId]
 			local PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
 			local PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
 			local FrameLevelEditBox = _G['LoseControlOptionsPanel'..v..'FrameLevelEditBox']
@@ -6336,7 +7918,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 				FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
-				if (frame.anchor ~= "Blizzard") then
+				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					PositionXEditBox:Enable()
 					PositionYEditBox:Enable()
 					FrameLevelEditBox:Enable()
@@ -6356,7 +7938,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorPointDropDown) then
 				UIDropDownMenu_Initialize(AnchorPointDropDown, AnchorPointDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorPointDropDown, frame.relativePoint or "CENTER")
-				if (frame.anchor ~= "Blizzard") then
+				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					UIDropDownMenu_EnableDropDown(AnchorPointDropDown)
 				else
 					UIDropDownMenu_DisableDropDown(AnchorPointDropDown)
@@ -6367,7 +7949,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorIconPointDropDown) then
 				UIDropDownMenu_Initialize(AnchorIconPointDropDown, AnchorIconPointDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorIconPointDropDown, frame.point or "CENTER")
-				if (frame.anchor ~= "Blizzard") then
+				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					UIDropDownMenu_EnableDropDown(AnchorIconPointDropDown)
 				else
 					UIDropDownMenu_DisableDropDown(AnchorIconPointDropDown)
@@ -6378,7 +7960,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorFrameStrataDropDown) then
 				UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-				if (frame.anchor ~= "Blizzard") then
+				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
 				else
 					UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
@@ -6524,43 +8106,39 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	PositionXEditBox.labelObj = PositionXEditBoxLabel
 	PositionXEditBox:SetScript("OnEnterPressed", function(self, value)
 		local val = self:GetText()
-		local unitId = v
+		local frames = { v }
 		if v == "party" then
-			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown'])
+			frames = { UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown']) }
 		elseif v == "arena" then
-			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown'])
+			frames = { UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown']) }
 		elseif v == "raid" then
-			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown'])
+			frames = { UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown']) }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
-		local frame = LoseControlDB.frames[unitId]
-		local icon = LCframes[unitId]
-		if tonumber(val) then
-			val = mathfloor(val+0.5)
-			self:SetText(val)
-			frame.x = val
-			icon:ClearAllPoints()
-			icon:GetParent():ClearAllPoints()
-			icon:SetPoint(
-				frame.point or "CENTER",
-				icon.anchor,
-				frame.relativePoint or "CENTER",
-				frame.x or 0,
-				frame.y or 0
-			)
-			icon:GetParent():SetPoint(
-				frame.point or "CENTER",
-				icon.anchor,
-				frame.relativePoint or "CENTER",
-				frame.x or 0,
-				frame.y or 0
-			)
-			if icon.MasqueGroup then
-				icon.MasqueGroup:ReSkin()
+		for _, unitId in ipairs(frames) do
+			local frame = LoseControlDB.frames[unitId]
+			local icon = LCframes[unitId]
+			if tonumber(val) then
+				val = mathfloor(val+0.5)
+				self:SetText(val)
+				frame.x = val
+				icon:GetParent():ClearAllPoints()
+				icon:GetParent():SetPoint(
+					frame.point or "CENTER",
+					icon.anchor,
+					frame.relativePoint or "CENTER",
+					frame.x or 0,
+					frame.y or 0
+				)
+				if icon.MasqueGroup then
+					icon.MasqueGroup:ReSkin()
+				end
+				self:ClearFocus()
+			else
+				self:SetText(mathfloor((frame.x or 0)+0.5))
+				self:ClearFocus()
 			end
-			self:ClearFocus()
-		else
-			self:SetText(mathfloor((frame.x or 0)+0.5))
-			self:ClearFocus()
 		end
 	end)
 	PositionXEditBox:SetScript("OnDisable", function(self)
@@ -6576,43 +8154,39 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	PositionYEditBox.labelObj = PositionYEditBoxLabel
 	PositionYEditBox:SetScript("OnEnterPressed", function(self, value)
 		local val = self:GetText()
-		local unitId = v
+		local frames = { v }
 		if v == "party" then
-			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown'])
+			frames = { UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown']) }
 		elseif v == "arena" then
-			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown'])
+			frames = { UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown']) }
 		elseif v == "raid" then
-			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown'])
+			frames = { UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown']) }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
-		local frame = LoseControlDB.frames[unitId]
-		local icon = LCframes[unitId]
-		if tonumber(val) then
-			val = mathfloor(val+0.5)
-			self:SetText(val)
-			frame.y = val
-			icon:ClearAllPoints()
-			icon:GetParent():ClearAllPoints()
-			icon:SetPoint(
-				frame.point or "CENTER",
-				icon.anchor,
-				frame.relativePoint or "CENTER",
-				frame.x or 0,
-				frame.y or 0
-			)
-			icon:GetParent():SetPoint(
-				frame.point or "CENTER",
-				icon.anchor,
-				frame.relativePoint or "CENTER",
-				frame.x or 0,
-				frame.y or 0
-			)
-			if icon.MasqueGroup then
-				icon.MasqueGroup:ReSkin()
+		for _, unitId in ipairs(frames) do
+			local frame = LoseControlDB.frames[unitId]
+			local icon = LCframes[unitId]
+			if tonumber(val) then
+				val = mathfloor(val+0.5)
+				self:SetText(val)
+				frame.y = val
+				icon:GetParent():ClearAllPoints()
+				icon:GetParent():SetPoint(
+					frame.point or "CENTER",
+					icon.anchor,
+					frame.relativePoint or "CENTER",
+					frame.x or 0,
+					frame.y or 0
+				)
+				if icon.MasqueGroup then
+					icon.MasqueGroup:ReSkin()
+				end
+				self:ClearFocus()
+			else
+				self:SetText(mathfloor((frame.y or 0)+0.5))
+				self:ClearFocus()
 			end
-			self:ClearFocus()
-		else
-			self:SetText(mathfloor((frame.y or 0)+0.5))
-			self:ClearFocus()
 		end
 	end)
 	PositionYEditBox:SetScript("OnDisable", function(self)
@@ -6634,6 +8208,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, unitId in ipairs(frames) do
 			local frame = LoseControlDB.frames[unitId]
@@ -6662,15 +8238,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				if (AnchorIconPointDropDown) then
 					frame.point = self.value
 				end
-				icon:ClearAllPoints()
 				icon:GetParent():ClearAllPoints()
-				icon:SetPoint(
-					frame.point or "CENTER",
-					icon.anchor,
-					frame.relativePoint or "CENTER",
-					frame.x or 0,
-					frame.y or 0
-				)
 				icon:GetParent():SetPoint(
 					frame.point or "CENTER",
 					icon.anchor,
@@ -6697,6 +8265,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, unitId in ipairs(frames) do
 			local frame = LoseControlDB.frames[unitId]
@@ -6718,15 +8288,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 			if (frame and icon) then
 				frame.point = self.value
-				icon:ClearAllPoints()
 				icon:GetParent():ClearAllPoints()
-				icon:SetPoint(
-					frame.point or "CENTER",
-					icon.anchor,
-					frame.relativePoint or "CENTER",
-					frame.x or 0,
-					frame.y or 0
-				)
 				icon:GetParent():SetPoint(
 					frame.point or "CENTER",
 					icon.anchor,
@@ -6748,6 +8310,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, unitId in ipairs(frames) do
 			local frame = LoseControlDB.frames[unitId]
@@ -6776,7 +8340,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					icon:GetParent():SetFrameStrata(frame.frameStrata)
 					icon:SetFrameStrata(frame.frameStrata)
 				end
-				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
+				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
 				if frameLevel < 0 then frameLevel = 0 end
 				icon:GetParent():SetFrameLevel(frameLevel)
 				icon:SetFrameLevel(frameLevel)
@@ -6788,28 +8352,32 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	FrameLevelEditBox.labelObj = FrameLevelEditBoxLabel
 	FrameLevelEditBox:SetScript("OnEnterPressed", function(self, value)
 		local val = self:GetText()
-		local unitId = v
+		local frames = { v }
 		if v == "party" then
-			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown'])
+			frames = { UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown']) }
 		elseif v == "arena" then
-			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown'])
+			frames = { UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown']) }
 		elseif v == "raid" then
-			unitId = UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown'])
+			frames = { UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown']) }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
-		local frame = LoseControlDB.frames[unitId]
-		local icon = LCframes[unitId]
-		if tonumber(val) then
-			val = mathfloor(val+0.5)
-			self:SetText(val)
-			frame.frameLevel = val
-			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
-			if frameLevel < 0 then frameLevel = 0 end
-			icon:GetParent():SetFrameLevel(frameLevel)
-			icon:SetFrameLevel(frameLevel)
-			self:ClearFocus()
-		else
-			self:SetText(mathfloor((frame.frameLevel or 0)+0.5))
-			self:ClearFocus()
+		for _, unitId in ipairs(frames) do
+			local frame = LoseControlDB.frames[unitId]
+			local icon = LCframes[unitId]
+			if tonumber(val) then
+				val = mathfloor(val+0.5)
+				self:SetText(val)
+				frame.frameLevel = val
+				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+				if frameLevel < 0 then frameLevel = 0 end
+				icon:GetParent():SetFrameLevel(frameLevel)
+				icon:SetFrameLevel(frameLevel)
+				self:ClearFocus()
+			else
+				self:SetText(mathfloor((frame.frameLevel or 0)+0.5))
+				self:ClearFocus()
+			end
 		end
 	end)
 	FrameLevelEditBox:SetScript("OnDisable", function(self)
@@ -6822,10 +8390,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	end)
 
 	local SizeSlider = CreateSlider(L["Icon Size"], OptionsPanelFrame.container, 4, 256, 1, 160, true, OptionsPanelFrame:GetName() .. "IconSizeSlider")
-	SizeSlider:SetScript("OnValueChanged", function(self, value)
-		value = mathfloor(value+0.5)
-		_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
-		self.editbox:SetText(value)
+	SizeSlider.Func = function(self, value)
+		if value == nil then value = self:GetValue() end
 		local frames = { v }
 		if v == "party" then
 			frames = { "party1", "party2", "party3", "party4", "partyplayer" }
@@ -6833,27 +8399,39 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, frame in ipairs(frames) do
-			LoseControlDB.frames[frame].size = value
-			LCframes[frame]:SetWidth(value)
-			LCframes[frame]:SetHeight(value)
-			LCframes[frame]:GetParent():SetWidth(value)
-			LCframes[frame]:GetParent():SetHeight(value)
-			if LCframes[frame].MasqueGroup then
-				LCframes[frame].MasqueGroup:ReSkin()
+			if (v ~= "party" or GetCVarBool("useCompactPartyFrames") or not(LoseControlDB.showPartyplayerIcon) or frame == "partyplayer") then
+				LoseControlDB.frames[frame].size = value
+				LCframes[frame]:SetWidth(value)
+				LCframes[frame]:SetHeight(value)
+				LCframes[frame]:GetParent():SetWidth(value)
+				LCframes[frame]:GetParent():SetHeight(value)
+				if LCframes[frame].MasqueGroup then
+					LCframes[frame].MasqueGroup:ReSkin()
+				end
+				if (LCframes[frame].frame and LCframes[frame].unitId) then
+					SetInterruptIconsSize(LCframes[frame], value)
+				end
 			end
-			SetInterruptIconsSize(LCframes[frame], value)
+		end
+	end
+	SizeSlider:SetScript("OnValueChanged", function(self, value, userInput)
+		value = mathfloor(value+0.5)
+		_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
+		self.editbox:SetText(value)
+		if userInput and self.Func then
+			self:Func(value)
 		end
 	end)
 	
 	local SizeSlider2
 	if v == "player" then
 		SizeSlider2 = CreateSlider(L["Icon Size"], OptionsPanelFrame.container, 4, 256, 1, 160, true, OptionsPanelFrame:GetName() .. "IconSizeSlider2")
-		SizeSlider2:SetScript("OnValueChanged", function(self, value)
-			value = mathfloor(value+0.5)
-			_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
-			self.editbox:SetText(value)
+		SizeSlider2.Func = function(self, value)
+			if value == nil then value = self:GetValue() end
 			if v == "player" then
 				LoseControlDB.frames.player2.size = value
 				LCframeplayer2:SetWidth(value)
@@ -6865,14 +8443,20 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 				SetInterruptIconsSize(LCframeplayer2, value)
 			end
+		end
+		SizeSlider2:SetScript("OnValueChanged", function(self, value, userInput)
+			value = mathfloor(value+0.5)
+			_G[self:GetName() .. "Text"]:SetText(L["Icon Size"] .. " (" .. value .. "px)")
+			self.editbox:SetText(value)
+			if v == "player" and userInput and self.Func then
+				self:Func(value)
+			end
 		end)
 	end
 
 	local AlphaSlider = CreateSlider(L["Opacity"], OptionsPanelFrame.container, 0, 100, 1, 160, true, OptionsPanelFrame:GetName() .. "OpacitySlider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
-	AlphaSlider:SetScript("OnValueChanged", function(self, value)
-		value = mathfloor(value+0.5)
-		_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
-		self.editbox:SetText(value)
+	AlphaSlider.Func = function(self, value)
+		if value == nil then value = self:GetValue() end
 		local frames = { v }
 		if v == "party" then
 			frames = { "party1", "party2", "party3", "party4", "partyplayer" }
@@ -6880,23 +8464,39 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].alpha = value / 100 -- the real alpha value
 			LCframes[frame]:GetParent():SetAlpha(value / 100)
+		end
+	end
+	AlphaSlider:SetScript("OnValueChanged", function(self, value, userInput)
+		value = mathfloor(value+0.5)
+		_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
+		self.editbox:SetText(value)
+		if userInput and self.Func then
+			self:Func(value)
 		end
 	end)
 
 	local AlphaSlider2
 	if v == "player" then
 		AlphaSlider2 = CreateSlider(L["Opacity"], OptionsPanelFrame.container, 0, 100, 1, 160, true, OptionsPanelFrame:GetName() .. "Opacity2Slider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
-		AlphaSlider2:SetScript("OnValueChanged", function(self, value)
-			value = mathfloor(value+0.5)
-			_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
-			self.editbox:SetText(value)
+		AlphaSlider2.Func = function(self, value)
+			if value == nil then value = self:GetValue() end
 			if v == "player" then
 				LoseControlDB.frames.player2.alpha = value / 100 -- the real alpha value
 				LCframeplayer2:GetParent():SetAlpha(value / 100)
+			end
+		end
+		AlphaSlider2:SetScript("OnValueChanged", function(self, value, userInput)
+			value = mathfloor(value+0.5)
+			_G[self:GetName() .. "Text"]:SetText(L["Opacity"] .. " (" .. value .. "%)")
+			self.editbox:SetText(value)
+			if v == "player" and userInput and self.Func then
+				self:Func(value)
 			end
 		end)
 	end
@@ -7001,10 +8601,10 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	end
 
 	local ShowNPCInterrupts
-	if v == "target" or v == "focus" or v == "targettarget" or v == "focustarget"  then
+	if v == "target" or v == "focus" or v == "targettarget" or v == "focustarget" or v == "nameplate" then
 		ShowNPCInterrupts = CreateFrame("CheckButton", O..v.."ShowNPCInterrupts", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
 		_G[O..v.."ShowNPCInterruptsText"]:SetText(L["ShowNPCInterrupts"])
-		ShowNPCInterrupts:SetScript("OnClick", function(self)
+		ShowNPCInterrupts:SetScript("OnClick", function(self)		
 			if v == "target" then
 				LoseControlDB.showNPCInterruptsTarget = self:GetChecked()
 			elseif v == "focus" then
@@ -7013,12 +8613,20 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				LoseControlDB.showNPCInterruptsTargetTarget = self:GetChecked()
 			elseif v == "focustarget" then
 				LoseControlDB.showNPCInterruptsFocusTarget = self:GetChecked()
+			elseif v == "nameplate" then
+				LoseControlDB.showNPCInterruptsNameplate = self:GetChecked()
 			end
-			local enable = LoseControlDB.frames[v].enabled and LCframes[v]:GetEnabled()
-			LCframes[v].maxExpirationTime = 0
-			LCframes[v]:RegisterUnitEvents(enable)
-			if enable and not LCframes[v].unlockMode then
-				LCframes[v]:UNIT_AURA(LCframes[v].unitId, true, nil, 0)
+			local frames = { v }
+			if v == "nameplate" then
+				frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
+			end
+			for _, frame in ipairs(frames) do
+				local enable = LoseControlDB.frames[frame].enabled and LCframes[frame]:GetEnabled()
+				LCframes[frame].maxExpirationTime = 0
+				LCframes[frame]:RegisterUnitEvents(enable)
+				if enable and not LCframes[frame].unlockMode then
+					LCframes[frame]:UNIT_AURA(LCframes[frame].unitId, true, nil, 0)
+				end
 			end
 		end)
 	end
@@ -7133,10 +8741,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	end
 
 	local AlphaSliderBackgroundInterrupt = CreateSlider(L["InterruptBackgroundOpacity"], OptionsPanelFrame.container, 0, 100, 1, 200, true, OptionsPanelFrame:GetName() .. "InterruptBackgroundOpacitySlider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
-	AlphaSliderBackgroundInterrupt:SetScript("OnValueChanged", function(self, value)
-		value = mathfloor(value+0.5)
-		_G[self:GetName() .. "Text"]:SetText(L["InterruptBackgroundOpacity"] .. " (" .. value .. "%)")
-		self.editbox:SetText(value)
+	AlphaSliderBackgroundInterrupt.Func = function(self, value)
+		if value == nil then value = self:GetValue() end
 		local frames = { v }
 		if v == "party" then
 			frames = { "party1", "party2", "party3", "party4", "partyplayer" }
@@ -7144,6 +8750,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].interruptBackgroundAlpha = value / 100 -- the real alpha value
@@ -7173,13 +8781,19 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 			end
 		end
+	end
+	AlphaSliderBackgroundInterrupt:SetScript("OnValueChanged", function(self, value, userInput)
+		value = mathfloor(value+0.5)
+		_G[self:GetName() .. "Text"]:SetText(L["InterruptBackgroundOpacity"] .. " (" .. value .. "%)")
+		self.editbox:SetText(value)
+		if userInput and self.Func then
+			self:Func(value)
+		end
 	end)
 	
 	local AlphaSliderInterruptMiniIcons = CreateSlider(L["InterruptMiniIconsOpacity"], OptionsPanelFrame.container, 0, 100, 1, 200, true, OptionsPanelFrame:GetName() .. "InterruptMiniIconsOpacitySlider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
-	AlphaSliderInterruptMiniIcons:SetScript("OnValueChanged", function(self, value)
-		value = mathfloor(value+0.5)
-		_G[self:GetName() .. "Text"]:SetText(L["InterruptMiniIconsOpacity"] .. " (" .. value .. "%)")
-		self.editbox:SetText(value)
+	AlphaSliderInterruptMiniIcons.Func = function(self, value)
+		if value == nil then value = self:GetValue() end
 		local frames = { v }
 		if v == "party" then
 			frames = { "party1", "party2", "party3", "party4", "partyplayer" }
@@ -7187,6 +8801,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].interruptMiniIconsAlpha = value / 100 -- the real alpha value
@@ -7230,6 +8846,14 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 			end
 		end
+	end
+	AlphaSliderInterruptMiniIcons:SetScript("OnValueChanged", function(self, value, userInput)
+		value = mathfloor(value+0.5)
+		_G[self:GetName() .. "Text"]:SetText(L["InterruptMiniIconsOpacity"] .. " (" .. value .. "%)")
+		self.editbox:SetText(value)
+		if userInput and self.Func then
+			self:Func(value)
+		end
 	end)
 	
 	local ColorPickerBackgroundInterrupt = CreateFrame("Button", OptionsPanelFrame:GetName() .. "ColorPickerBackgroundInterrupt", OptionsPanelFrame.container, "GlowBoxTemplate")
@@ -7246,6 +8870,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		self.texture.frames = frames
 		self.texture.pframe = v
@@ -7275,6 +8901,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, unitId in ipairs(frames) do
 			local frame = LoseControlDB.frames[unitId]
@@ -7338,6 +8966,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, unitId in ipairs(frames) do
 			local frame = LoseControlDB.frames[unitId]
@@ -7401,6 +9031,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, unitId in ipairs(frames) do
 			local frame = LoseControlDB.frames[unitId]
@@ -7473,6 +9105,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, frame in ipairs(frames) do
 			LoseControlDB.frames[frame].useSpellInsteadSchoolMiniIcon = self:GetChecked()
@@ -7505,6 +9139,46 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		UseSpellInsteadSchoolMiniIcon:Check(self:GetChecked())
 	end)
 
+	local AlphaSliderSwipeCooldown = CreateSlider(L["SwipeCooldownOpacity"], OptionsPanelFrame.container, 0, 100, 1, 200, true, OptionsPanelFrame:GetName() .. "SwipeCooldownOpacitySlider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
+	AlphaSliderSwipeCooldown.Func = function(self, value)
+		if value == nil then value = self:GetValue() end
+		local frames = { v }
+		if v == "party" then
+			frames = { "party1", "party2", "party3", "party4", "partyplayer" }
+		elseif v == "arena" then
+			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+		elseif v == "raid" then
+			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
+		end
+		for _, frame in ipairs(frames) do
+			LoseControlDB.frames[frame].swipeAlpha = value / 100 -- the real alpha value
+			if (LoseControlDB.frames[frame].anchor == "Blizzard" and not(LCframes[frame].useCompactPartyFrames)) then
+				LCframes[frame]:SetSwipeColor(0, 0, 0, (value / 100)*0.75)
+			else
+				LCframes[frame]:SetSwipeColor(0, 0, 0, value / 100)
+			end
+			
+			if (frame == "player") then
+				LoseControlDB.frames.player2.swipeAlpha = value / 100 -- the real alpha value
+				if (LoseControlDB.frames.player2.anchor == "Blizzard" and not(LCframes[frame].useCompactPartyFrames)) then
+					LCframeplayer2:SetSwipeColor(0, 0, 0, (value / 100)*0.75)
+				else
+					LCframeplayer2:SetSwipeColor(0, 0, 0, value / 100)
+				end
+			end
+		end
+	end
+	AlphaSliderSwipeCooldown:SetScript("OnValueChanged", function(self, value, userInput)
+		value = mathfloor(value+0.5)
+		_G[self:GetName() .. "Text"]:SetText(L["SwipeCooldownOpacity"] .. " (" .. value .. "%)")
+		self.editbox:SetText(value)
+		if userInput and self.Func then
+			self:Func(value)
+		end
+	end)
+
 	local catListEnChecksButtons = { "PvE", "Immune", "ImmuneSpell", "ImmunePhysical", "CC", "Silence", "Disarm", "Root", "Snare", "Other" }
 	local CategoriesCheckButtons = { }
 	if v ~= "arena" then
@@ -7517,6 +9191,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				frames = { "party1", "party2", "party3", "party4", "partyplayer" }
 			elseif v == "raid" then
 				frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+			elseif v == "nameplate" then
+				frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 			end
 			for _, frame in ipairs(frames) do
 				LoseControlDB.frames[frame].categoriesEnabled.interrupt.friendly = self:GetChecked()
@@ -7528,7 +9204,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		end)
 		tblinsert(CategoriesCheckButtons, { frame = FriendlyInterrupt, auraType = "interrupt", reaction = "friendly", categoryType = "Interrupt", anchorPos = CategoryEnabledInterruptLabel, xPos = 140, yPos = 5 })
 	end
-	if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or v == "arena" then
+	if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or v == "arena" or v == "nameplate" then
 		local EnemyInterrupt = CreateFrame("CheckButton", O..v.."EnemyInterrupt", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
 		EnemyInterrupt:SetHitRectInsets(0, -36, 0, 0)
 		_G[O..v.."EnemyInterruptText"]:SetText(L["CatEnemy"])
@@ -7536,6 +9212,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			local frames = { v }
 			if v == "arena" then
 				frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+			elseif v == "nameplate" then
+				frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 			end
 			for _, frame in ipairs(frames) do
 				LoseControlDB.frames[frame].categoriesEnabled.interrupt.enemy = self:GetChecked()
@@ -7558,6 +9236,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					frames = { "party1", "party2", "party3", "party4", "partyplayer" }
 				elseif v == "raid" then
 					frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+				elseif v == "nameplate" then
+					frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 				end
 				for _, frame in ipairs(frames) do
 					LoseControlDB.frames[frame].categoriesEnabled.buff.friendly[cat] = self:GetChecked()
@@ -7579,6 +9259,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					frames = { "party1", "party2", "party3", "party4", "partyplayer" }
 				elseif v == "raid" then
 					frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+				elseif v == "nameplate" then
+					frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 				end
 				for _, frame in ipairs(frames) do
 					LoseControlDB.frames[frame].categoriesEnabled.debuff.friendly[cat] = self:GetChecked()
@@ -7590,7 +9272,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end)
 			tblinsert(CategoriesCheckButtons, { frame = FriendlyDebuff, auraType = "debuff", reaction = "friendly", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = 205, yPos = 5 })
 		end
-		if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or v == "arena" then
+		if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or v == "arena" or v == "nameplate" then
 			local EnemyBuff = CreateFrame("CheckButton", O..v.."Enemy"..cat.."Buff", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
 			EnemyBuff:SetHitRectInsets(0, -36, 0, 0)
 			_G[O..v.."Enemy"..cat.."BuffText"]:SetText(L["CatEnemyBuff"])
@@ -7598,6 +9280,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				local frames = { v }
 				if v == "arena" then
 					frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+				elseif v == "nameplate" then
+					frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 				end
 				for _, frame in ipairs(frames) do
 					LoseControlDB.frames[frame].categoriesEnabled.buff.enemy[cat] = self:GetChecked()
@@ -7609,7 +9293,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end)
 			tblinsert(CategoriesCheckButtons, { frame = EnemyBuff, auraType = "buff", reaction = "enemy", categoryType = cat, anchorPos = CategoriesLabels[cat], xPos = (v ~= "arena" and 270 or 140), yPos = 5 })
 		end
-		if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or v == "arena" then
+		if v == "target" or v == "targettarget" or v == "focus" or v == "focustarget" or v == "arena" or v == "nameplate" then
 			local EnemyDebuff = CreateFrame("CheckButton", O..v.."Enemy"..cat.."Debuff", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
 			EnemyDebuff:SetHitRectInsets(0, -36, 0, 0)
 			_G[O..v.."Enemy"..cat.."DebuffText"]:SetText(L["CatEnemyDebuff"])
@@ -7617,6 +9301,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				local frames = { v }
 				if v == "arena" then
 					frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
+				elseif v == "nameplate" then
+					frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 				end
 				for _, frame in ipairs(frames) do
 					LoseControlDB.frames[frame].categoriesEnabled.debuff.enemy[cat] = self:GetChecked()
@@ -7725,7 +9411,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					UIDropDownMenu_SetSelectedValue(AnchorDropDown, frame.anchor)
 				end
 				LCframes.player.texture:SetTexture(LCframes.player.textureicon)
-				LCframes.player:SetSwipeColor(0, 0, 0, 0.8)
+				LCframes.player:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 				LCframes.player.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 				if LCframes.player.MasqueGroup then
 					LCframes.player.MasqueGroup:RemoveButton(LCframes.player:GetParent())
@@ -7749,17 +9435,10 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 						Shine = _G[LCframes.player:GetParent():GetName().."Shine"],
 					}, "Button", true)
 				end
-				LCframes.player.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframes.player.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.unitId])=="string") and _GF(anchors[frame.anchor][LCframes.player.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.unitId])=="table") and anchors[frame.anchor][LCframes.player.unitId] or UIParent))
+				LCframes.player.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId])=="string") and _GF(anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId])=="table") and anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId] or UIParent))
 				LCframes.player.parent:SetParent(LCframes.player.anchor:GetParent())
 				LCframes.player.defaultFrameStrata = LCframes.player:GetFrameStrata()
-				LCframes.player:ClearAllPoints()
-				LCframes.player:SetPoint(
-					"CENTER",
-					LCframes.player.anchor,
-					"CENTER",
-					0,
-					0
-				)
+				LCframes.player:GetParent():ClearAllPoints()
 				LCframes.player:GetParent():SetPoint(
 					"CENTER",
 					LCframes.player.anchor,
@@ -7857,7 +9536,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		end)
 	end
 
-	local function EnableInterfaceFrames(frame)
+	local function EnableInterfaceFrames(icon, frame)
 		if DisableInBG then BlizzardOptionsPanel_CheckButton_Enable(DisableInBG) end
 		if DisableInArena then BlizzardOptionsPanel_CheckButton_Enable(DisableInArena) end
 		if DisableInRaid then BlizzardOptionsPanel_CheckButton_Enable(DisableInRaid) end
@@ -7905,6 +9584,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
 		BlizzardOptionsPanel_Slider_Enable(AlphaSliderBackgroundInterrupt)
 		BlizzardOptionsPanel_Slider_Enable(AlphaSliderInterruptMiniIcons)
+		BlizzardOptionsPanel_Slider_Enable(AlphaSliderSwipeCooldown)
 		ColorPickerBackgroundInterrupt:Enable()
 		ColorPickerBackgroundInterruptREditBox:Enable()
 		ColorPickerBackgroundInterruptGEditBox:Enable()
@@ -7913,6 +9593,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		AlphaSlider.editbox:Enable()
 		AlphaSliderBackgroundInterrupt.editbox:Enable()
 		AlphaSliderInterruptMiniIcons.editbox:Enable()
+		AlphaSliderSwipeCooldown.editbox:Enable()
 		UIDropDownMenu_EnableDropDown(AnchorDropDown)
 		if LoseControlDB.duplicatePlayerPortrait then
 			if AlphaSlider2 then
@@ -7939,7 +9620,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		if AnchorPositionArenaDropDown then UIDropDownMenu_EnableDropDown(AnchorPositionArenaDropDown) end
 		if AnchorPositionRaidDropDown then UIDropDownMenu_EnableDropDown(AnchorPositionRaidDropDown) end
 		if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
-			if (frame.anchor ~= "Blizzard") then
+			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 				PositionXEditBox:Enable()
 				PositionYEditBox:Enable()
 				FrameLevelEditBox:Enable()
@@ -7950,21 +9631,21 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 		if (AnchorPointDropDown) then
-			if (frame.anchor ~= "Blizzard") then
+			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 				UIDropDownMenu_EnableDropDown(AnchorPointDropDown)
 			else
 				UIDropDownMenu_DisableDropDown(AnchorPointDropDown)
 			end
 		end
 		if (AnchorIconPointDropDown) then
-			if (frame.anchor ~= "Blizzard") then
+			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 				UIDropDownMenu_EnableDropDown(AnchorIconPointDropDown)
 			else
 				UIDropDownMenu_DisableDropDown(AnchorIconPointDropDown)
 			end
 		end
 		if (AnchorFrameStrataDropDown) then
-			if (frame.anchor ~= "Blizzard") then
+			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 				UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
 			else
 				UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
@@ -8014,6 +9695,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
 		BlizzardOptionsPanel_Slider_Disable(AlphaSliderBackgroundInterrupt)
 		BlizzardOptionsPanel_Slider_Disable(AlphaSliderInterruptMiniIcons)
+		BlizzardOptionsPanel_Slider_Disable(AlphaSliderSwipeCooldown)
 		ColorPickerBackgroundInterrupt:Disable()
 		ColorPickerBackgroundInterruptREditBox:Disable()
 		ColorPickerBackgroundInterruptGEditBox:Disable()
@@ -8023,6 +9705,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		AlphaSlider.editbox:Disable()
 		AlphaSliderBackgroundInterrupt.editbox:Disable()
 		AlphaSliderInterruptMiniIcons.editbox:Disable()
+		AlphaSliderSwipeCooldown.editbox:Disable()
 		UIDropDownMenu_DisableDropDown(AnchorDropDown)
 		if AlphaSlider2 then
 			BlizzardOptionsPanel_Slider_Disable(AlphaSlider2)
@@ -8062,8 +9745,10 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				unitIdSel = (AnchorPositionArenaDropDown ~= nil) and UIDropDownMenu_GetSelectedValue(AnchorPositionArenaDropDown) or "arena1"
 			elseif (v == "raid") then
 				unitIdSel = (AnchorPositionRaidDropDown ~= nil) and UIDropDownMenu_GetSelectedValue(AnchorPositionRaidDropDown) or "raid1"
+			elseif (v == "nameplate") then
+				unitIdSel = "nameplate1"
 			end
-			EnableInterfaceFrames(LoseControlDB.frames[unitIdSel])
+			EnableInterfaceFrames(LCframes[unitIdSel], LoseControlDB.frames[unitIdSel])
 		else
 			DisableInterfaceFrames()
 		end
@@ -8074,6 +9759,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "arena1", "arena2", "arena3", "arena4", "arena5" }
 		elseif v == "raid" then
 			frames = { "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10", "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20", "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30", "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40" }
+		elseif v == "nameplate" then
+			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, frame in ipairs(frames) do
 			if (frame == "partyplayer") then
@@ -8096,7 +9783,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				end
 			end
 		end
-		if (v == "raid" and enabled) then
+		if ((v == "raid" or v == "party") and enabled) then
 			MainHookCompactRaidFrames()
 		end
 		if Unlock:GetChecked() then
@@ -8161,6 +9848,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	ColorPickerBackgroundInterruptBEditBoxLabel:SetPoint("TOPLEFT", ColorPickerBackgroundInterrupt, "BOTTOMLEFT", 142, 20)
 	ColorPickerBackgroundInterruptBEditBox:SetPoint("TOPLEFT", ColorPickerBackgroundInterrupt, "BOTTOMLEFT", 160, 26)
 	AlphaSliderInterruptMiniIcons:SetPoint("TOPLEFT", AdditionalOptionsLabel, "BOTTOMLEFT", 310, -20)
+	AlphaSliderSwipeCooldown:SetPoint("TOPLEFT", AdditionalOptionsLabel, "BOTTOMLEFT", 20, -120)
 	UseSpellInsteadSchoolMiniIcon:SetPoint("TOPLEFT", AdditionalOptionsLabel, "BOTTOMLEFT", 280, -50)
 	if SizeSlider2 then SizeSlider2:SetPoint("TOPLEFT", Enabled, "BOTTOMLEFT", 300, -32) end
 	if AlphaSlider2 then AlphaSlider2:SetPoint("TOPLEFT", SizeSlider2, "BOTTOMLEFT", 0, -32) end
@@ -8215,6 +9903,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			DisableInBG:SetChecked(LoseControlDB.disableRaidInBG)
 			DisableInArena:SetChecked(LoseControlDB.disableRaidInArena)
 			unitId = "raid1"
+		elseif unitId == "nameplate" then
+			ShowNPCInterrupts:SetChecked(LoseControlDB.showNPCInterruptsNameplate)
+			unitId = "nameplate1"
 		end
 		LCframes[unitId]:CheckAnchor(true)
 		UseSpellInsteadSchoolMiniIcon:SetChecked(LoseControlDB.frames[unitId].useSpellInsteadSchoolMiniIcon)
@@ -8237,7 +9928,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		local frame = LoseControlDB.frames[unitId]
 		Enabled:SetChecked(frame.enabled)
 		if frame.enabled then
-			EnableInterfaceFrames(frame)
+			EnableInterfaceFrames(LCframes[unitId], frame)
 		else
 			DisableInterfaceFrames()
 		end
@@ -8257,6 +9948,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		AlphaSliderInterruptMiniIcons.timerEnabled = true
 		AlphaSliderInterruptMiniIcons.editbox:SetText(frame.interruptMiniIconsAlpha * 100)
 		AlphaSliderInterruptMiniIcons.editbox:SetCursorPosition(0)
+		AlphaSliderSwipeCooldown:SetValue(frame.swipeAlpha * 100)
+		AlphaSliderSwipeCooldown.editbox:SetText(frame.swipeAlpha * 100)
+		AlphaSliderSwipeCooldown.editbox:SetCursorPosition(0)
 		ColorPickerBackgroundInterrupt.texture:UpdateColor(frame)
 		if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
 			PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
@@ -8270,11 +9964,14 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			FrameLevelEditBox:ClearFocus()
 		end
 		UIDropDownMenu_Initialize(AnchorDropDown, function() -- called on refresh and also every time the drop down menu is opened
-			AddItem(AnchorDropDown, L["None"], "None")
-			if not(strfind(unitId, "raid")) then
-				AddItem(AnchorDropDown, "Blizzard", "Blizzard")
-			else
+			if strfind(unitId, "raid") then
+				AddItem(AnchorDropDown, L["None"], "None")
 				AddItem(AnchorDropDown, "Blizzard", "BlizzardRaidFrames")
+			elseif strfind(unitId, "nameplate") then
+				AddItem(AnchorDropDown, "Blizzard", "BlizzardNameplates")
+			else
+				AddItem(AnchorDropDown, L["None"], "None")
+				AddItem(AnchorDropDown, "Blizzard", "Blizzard")
 			end
 			if _G[anchors["Perl"][unitId]] or (type(anchors["Perl"][unitId])=="table" and anchors["Perl"][unitId]) or (type(anchors["Perl"][unitId])=="string" and _GF(anchors["Perl"][unitId])) then AddItem(AnchorDropDown, "Perl", "Perl") end
 			if _G[anchors["XPerl"][unitId]] or (type(anchors["XPerl"][unitId])=="table" and anchors["XPerl"][unitId]) or (type(anchors["XPerl"][unitId])=="string" and _GF(anchors["XPerl"][unitId])) then AddItem(AnchorDropDown, "XPerl", "XPerl") end
@@ -8411,7 +10108,7 @@ function SlashCmd:help()
 	print("    customspells list")
 	print("    customspells wipe")
 	print("    customspells checkandclean")
-	print("<unit> can be: player, pet, target, focus, targettarget, focustarget, party1 ... party4, arena1 ... arena5, raid1 ... raid40")
+	print("<unit> can be: player, pet, target, focus, targettarget, focustarget, party1 ... party4, arena1 ... arena5, raid1 ... raid40, nameplate")
 	print("<category> can be: none, pve, immune, immunespell, immunephysical, cc, silence, interrupt, disarm, other, root, snare")
 end
 function SlashCmd:debug(value)
@@ -8444,6 +10141,12 @@ function SlashCmd:reset(unitId)
 			LCframes[v]:PLAYER_ENTERING_WORLD()
 			print(L["LoseControl reset."].." "..v)
 		end
+	elseif unitId == "nameplate" then
+		for _, v in ipairs({"nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40"}) do
+			LoseControlDB.frames[v] = CopyTable(DBdefaults.frames[v])
+			LCframes[v]:PLAYER_ENTERING_WORLD()
+			print(L["LoseControl reset."].." "..v)
+		end
 	elseif LoseControlDB.frames[unitId] and unitId ~= "player2" then
 		LoseControlDB.frames[unitId] = CopyTable(DBdefaults.frames[unitId])
 		LCframes[unitId]:PLAYER_ENTERING_WORLD()
@@ -8455,7 +10158,7 @@ function SlashCmd:reset(unitId)
 	end
 	Unlock:OnClick()
 	OptionsPanel.refresh()
-	for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena", "raid" }) do
+	for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focustarget", "party", "arena", "raid", "nameplate" }) do
 		_G[O..v].refresh()
 	end
 end
@@ -8474,7 +10177,7 @@ function SlashCmd:enable(unitId)
 		LoseControlDB.frames[unitId].enabled = true
 		local enabled = LCframes[unitId]:GetEnabled()
 		LCframes[unitId]:RegisterUnitEvents(enabled)
-		if strfind(unitId, "raid") then
+		if strfind(unitId, "raid") or strfind(unitId, "party") then
 			MainHookCompactRaidFrames()
 		end
 		if enabled and not LCframes[unitId].unlockMode then
