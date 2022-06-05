@@ -1,7 +1,7 @@
-## Interface: 90200
+## Interface: 90205
 ## Title: LoseControl
 ## Author: millanzarreta, Kouri
-## Version: 7.09
+## Version: 7.10
 ## Notes: Displays the duration of CC effects on your character
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su carácter
