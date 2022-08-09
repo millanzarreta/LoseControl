@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 7.10
+-- Version: 7.11
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -73,7 +73,6 @@ local LCAddon = {
 	Bartender4 = {
 		IsPresent = false,
 		ButtonsTable = {}
-		
 	},
 	ConsolePort = {
 		IsPresent = false,
@@ -393,7 +392,7 @@ local interruptsIds = {
 	[162232] = 1,		-- Interrupting Shout
 	[162617] = {
 		{1.5, 0},
-		{6, 8}
+		{3, 8}
 	},					-- Slam
 	[162638] = 3,		-- Avenger's Shield
 	[166637] = 2,		-- Sweep
@@ -604,7 +603,7 @@ local spellIds = {
 	[188501] = "Other",				-- Spectral Sight
 	[209426] = "Immune",			-- Darkness (not immune, 20%/50% chance to avoid all damage in PvE/PvP) (Immune category on PvP (50%), Other on PvE (20%))
 	[354610] = "Immune",			-- Glimpse (not immune, damage taken reduced by 75% and immune to loss of control effects)
-	
+
 	----------------
 	-- Death Knight
 	----------------
@@ -649,7 +648,7 @@ local spellIds = {
 	[356518] = "Snare",				-- Doomburst (pvp talent)
 	[279303] = "Snare",				-- Frostwyrm's Fury
 	[334693] = "CC",				-- Absolute Zero (Legendary)
-	
+
 		----------------
 		-- Death Knight Ghoul
 		----------------
@@ -661,7 +660,7 @@ local spellIds = {
 		[91797]  = "CC",				-- Monstrous Blow (Dark Transformation)
 		[91807]  = "Root",				-- Shambling Rush (Dark Transformation)
 		[212540] = "Root",				-- Flesh Hook (Abomination)
-	
+
 	----------------
 	-- Druid
 	----------------
@@ -698,7 +697,6 @@ local spellIds = {
 	[102558] = "Other",				-- Incarnation: Guardian of Ursoc
 	[102560] = "Other",				-- Incarnation: Chosen of Elune
 	[117679] = "Other",				-- Incarnation: Tree of Life
-	[236696] = "Other",				-- Thorns
 	[29166]  = "Other",				-- Innervate
 	[22812]  = "Other",				-- Barkskin
 	[102342] = "Other",				-- Ironbark
@@ -706,7 +704,7 @@ local spellIds = {
 	[202244] = "CC",				-- Overrun (pvp talent)
 	[209749] = "Disarm",			-- Faerie Swarm (pvp talent)
 	[329042] = "CC",				-- Emerald Slumber (pvp talent)
-	
+
 	----------------
 	-- Hunter
 	----------------
@@ -719,7 +717,6 @@ local spellIds = {
 	[128405] = "Root",				-- Narrow Escape
 	[136634] = "Root",				-- Narrow Escape
 	[201158] = "Root",				-- Super Sticky Tar (root)
-	[111735] = "Snare",				-- Tar
 	[135299] = "Snare",				-- Tar Trap
 	[5116]   = "Snare",				-- Concussive Shot
 	[194279] = "Snare",				-- Caltrops
@@ -749,7 +746,7 @@ local spellIds = {
 	[356723] = "Snare",				-- Scorpid Venom (pvp talent)
 	[356727] = "Silence",			-- Spider Venom (pvp talent)
 	[355596] = "Silence",			-- Wailing Arrow (Rae'shalare, Death's Whisper legendary bow)
-	
+
 		----------------
 		-- Hunter Pets
 		----------------
@@ -1012,7 +1009,7 @@ local spellIds = {
 	[204437] = "CC",				-- Lightning Lasso
 	[197214] = "CC",				-- Sundering
 	[207654] = "Immune",			-- Servant of the Queen (not immune, 80% damage reduction - artifact trait)
-	
+
 		----------------
 		-- Shaman Pets
 		----------------
@@ -1029,7 +1026,7 @@ local spellIds = {
 	[22703]  = "CC",				-- Infernal Awakening
 	[6789]   = "CC",				-- Mortal Coil
 	[30283]  = "CC",				-- Shadowfury
-	[43523]  = "Silence",			-- Unstable Affliction
+	[31117]  = "Silence",			-- Unstable Affliction
 	[65813]  = "Silence",			-- Unstable Affliction
 	[196364] = "Silence",			-- Unstable Affliction
 	[285155] = "Silence",			-- Unstable Affliction
@@ -1097,7 +1094,7 @@ local spellIds = {
 	[356356] = "Root",				-- Warbringer (pvp talent)
 	[236236] = "Disarm",			-- Disarm (pvp talent - protection)
 	[236077] = "Disarm",			-- Disarm (pvp talent)
-	
+
 	----------------
 	-- Shadowlands Covenant Spells
 	----------------
@@ -1139,7 +1136,7 @@ local spellIds = {
 	[353472] = "Snare",				-- Cunning Dreams
 	[352448] = "Snare",				-- Viscous Coating
 	[352451] = "Snare",				-- Viscous Coating
-	
+
 	----------------
 	-- Other
 	----------------
@@ -1199,7 +1196,10 @@ local spellIds = {
 	[299109] = "CC",				-- Scrap Grenade
 	[302880] = "Silence",			-- Sharkbit (G99.99 Landshark)
 	[299577] = "CC",				-- Scroll of Bursting Power
+	[222419] = "CC",				-- Solar Flash
 	[296273] = "CC",				-- Mirror Charm
+	[296114] = "CC",				-- Boot Slap
+	[296135] = "Snare",				-- Netted
 	[304705] = "CC",				-- Razorshell
 	[304706] = "CC",				-- Razorshell
 	[299802] = "CC",				-- Eel Trap
@@ -1266,7 +1266,7 @@ local spellIds = {
 	[176813] = "Snare",				-- Itchy Spores
 	[298356] = "CC",				-- Tidal Blast
 	[121548] = "Immune",			-- Ice Block
-	[129032] = "Snare",				-- Frostbolt	
+	[129032] = "Snare",				-- Frostbolt
 	[121547] = "CC",				-- Polymorph: Sheep
 	[278575] = "CC",				-- Steel-Toed Boots
 	[58729]  = "Immune",			-- Spiritual Immunity
@@ -1322,6 +1322,8 @@ local spellIds = {
 	[228318] = "Other",				-- Enrage
 	[79872]  = "CC",				-- Shockwave
 	[190329] = "CC",				-- Charge
+	[167954] = "CC",				-- Blinding Flash
+	[175628] = "CC",				-- Flash Bomb
 	[341945] = "CC",				-- Defiling Horror
 	[311079] = "CC",				-- Deep Introspection
 	[327430] = "CC",				-- Touch of the Maw
@@ -1608,8 +1610,8 @@ local spellIds = {
 	[363523] = "CC",				-- Blinding Light
 	[368785] = "CC",				-- Intrusive Thoughtcage (Intrusive Thoughtcage trinket)
 	[367787] = "CC",				-- Brandish Ranseur
-	[373391] = "CC",				-- Nightmare
 	[371051] = "CC",				-- Motion Sick Peon's Magical Elixir
+	[354330] = "CC",				-- Disoriented
 	[325706] = "Silence",			-- Call to Chaos
 	[337064] = "Silence",			-- Forgotten Voice
 	[345340] = "Silence",			-- Dead Quiet
@@ -1671,7 +1673,7 @@ local spellIds = {
 	[367651] = "Immune",			-- Tenacity of the Survivor (not immune, damage taken reduced by 99%)
 	[367966] = "Immune",			-- Primed (not immune, damage taken reduced by 50%)
 	[362574] = "Immune",			-- Progenitor Growth (not immune, damage taken reduced by 50%)
-	[373233] = "Immune",			-- Reconfiguration Emitter
+	[373233] = "Immune",			-- Reconfiguration Emitter (fated raid affix)
 	[343046] = "ImmuneSpell",		-- Magic Shell (magic damage taken reduced by 70%)
 	[320401] = "ImmuneSpell",		-- Lucky Dust
 	[357956] = "ImmuneSpell",		-- Magebane Ward
@@ -1679,6 +1681,7 @@ local spellIds = {
 	[343062] = "ImmunePhysical",	-- Iron Shell
 	[328286] = "ImmunePhysical",	-- Nimble Dodge (increased dodge chance by 100%)
 	[340398] = "ImmunePhysical",	-- Aura of Protection
+	[372298] = "ImmunePhysical",	-- Aegis of Protection (not immune, physical damage taken reduced by 80%)
 	[63861]  = "Root",				-- Chains of Law
 	[311077] = "Root",				-- Deep Introspection
 	[311068] = "Root",				-- Deep Introspection
@@ -1784,7 +1787,6 @@ local spellIds = {
 	[357856] = "Snare",				-- Wake of Ashes
 	[171858] = "Snare",				-- Frostbolt
 	[357458] = "Snare",				-- Oil Slicked Spin Out
-	[361180] = "Snare",				-- Observe Weakness
 	[363996] = "Snare",				-- Cosmic Tremor
 	[360096] = "Snare",				-- Disabling Howl
 	[359940] = "Snare",				-- Divergent Energy
@@ -2053,7 +2055,6 @@ local spellIds = {
 	[12943]  = "Silence",			-- Fell Curse Effect
 	[23417]  = "Silence",			-- Smother
 	[10851]  = "Disarm",			-- Grab Weapon
-	[27581]  = "Disarm",			-- Disarm
 	[25057]  = "Disarm",			-- Dropped Weapon
 	[25655]  = "Disarm",			-- Dropped Weapon
 	[14180]  = "Disarm",			-- Sticky Tar
@@ -2562,7 +2563,7 @@ local spellIds = {
 	[368936] = "Immune",			-- Terminal Barrier (not immune, damage taken reduced by 50%)
 	[364312] = "Immune",			-- Ephemeral Barrier (not immune, damage taken reduced by 50%)
 	[368809] = "Immune",			-- Ephemeral Barrier (not immune, damage taken reduced by 50%)
-	[363356] = "ImmuneMagic",		-- Protoform Disalignment (not immune, only cosmic damage taken reduced by 90%)
+	[363356] = "ImmuneSpell",		-- Protoform Disalignment (not immune, only cosmic damage taken reduced by 90%)
 	-- -- Halondrus the Reclaimer
 	[364231] = "CC",				-- Lightshatter Beam
 	[369884] = "Other",				-- Berserk
@@ -2709,7 +2710,7 @@ local spellIds = {
 	[343325] = "Snare",				-- Curse of Sindrel
 	-- -- Shriekwing
 	[343024] = "CC",				-- Horrified
-	[328921] = "Immune",			-- Blood Shroud 
+	[328921] = "Immune",			-- Blood Shroud
 	-- -- Sun King's Salvation
 	[333145] = "CC",				-- Return to Stone
 	-- -- Artificer Xy'mox
@@ -2728,6 +2729,7 @@ local spellIds = {
 	-- -- The Council of Blood
 	[346694] = "Immune",			-- Unyielding Shield
 	[335775] = "Immune",			-- Unyielding Shield (not immune, damage taken reduced by 90%)
+	[330959] = "Immune",			-- Danse Macabre
 	[327619] = "CC",				-- Waltz of Blood
 	[328334] = "CC",				-- Tactical Advance
 	[331706] = "CC",				-- Scarlet Letter
@@ -2761,7 +2763,7 @@ local spellIds = {
 	[339040] = "Other",				-- Withered Winds (melee and ranged chance to hit reduced by 30%)
 	[339023] = "Snare",				-- Dirge of the Fallen Sanctum
 	------------------------
-	-- Shadowlands Mythics
+	-- Shadowlands Dungeons
 	-- -- Common
 	[342494] = "CC",				-- Belligerent Boast
 	[355802] = "Snare",				-- Lumbering Might
@@ -2777,6 +2779,11 @@ local spellIds = {
 	[357826] = "Other",				-- Vial of Desperation (damage taken reduced by 50%)
 	[361180] = "Snare",				-- Observe Weakness
 	[366288] = "CC",				-- Force Slam
+	[373391] = "CC",				-- Nightmare
+	[373570] = "CC",				-- Hypnosis (not real CC, hostile to allies but can control character, dying fast)
+	--[373607] = "CC",				-- Shadowy Barrier
+	[373429] = "Other",				-- Carrion Swarm (healing received reduced by 50%)
+	[373513] = "Other",				-- Shadow Eruption (healing received reduced by 70%)
 	-- -- Tazavesh, the Veiled Market
 	[348006] = "CC",				-- Containment Cell
 	[345770] = "CC",				-- Impound Contraband
@@ -2809,10 +2816,7 @@ local spellIds = {
 	[355915] = "Snare",				-- Glyph of Restraint
 	[357229] = "Snare",				-- Chronolight Enhancer
 	-- -- De Other Side
-	[201441] = "Immune",			-- Thorium Plating
-	[201581] = "Immune",			-- Mega Miniaturization Turbo-Beam (Chance to be hit by attacks and spells reduced by 95%)
 	[344739] = "Immune",			-- Spectral
-	[202310] = "CC",				-- Hyper Zap-o-matic Ultimate Mark III
 	[228626] = "CC",				-- Haunted Urn
 	[330434] = "Root",				-- Buzz-Saw
 	[331847] = "CC",				-- W-00F
@@ -3585,6 +3589,7 @@ local spellIds = {
 	[276807] = "Root",				-- Crude Net
 	[276806] = "Root",				-- Stoutthistle
 	[255311] = "Root",				-- Hurl Spear
+	[244845] = "CC",				-- Shank
 	[276991] = "CC",				-- Backhand
 	[280061] = "CC",				-- Brainsmasher Brew
 	[280062] = "CC",				-- Unluckydo
@@ -3726,7 +3731,7 @@ local spellIds = {
 	[245386] = "Other",				-- Darkest Darkness (healing taken reduced by 99%)
 	[274972] = "Other",				-- Breath of Darkness (healing taken reduced by 75%)
 	------------------------
-	-- BfA Mythics
+	-- BfA Dungeons
 	-- -- Common
 	[314483] = "CC",				-- Cascading Terror
 	[314411] = "Other",				-- Lingering Doubt (casting speed reduced by 70%)
@@ -4092,7 +4097,26 @@ local spellIds = {
 	[245822] = "CC",				-- Inescapable Nightmare
 	[245126] = "Silence",			-- Soul Burn
 	------------------------
-	-- Legion Mythics
+	-- Legion Dungeons
+	-- -- Assault on Violet Hold
+	[201441] = "Immune",			-- Thorium Plating
+	[201581] = "Immune",			-- Mega Miniaturization Turbo-Beam (Chance to be hit by attacks and spells reduced by 95%)
+	[202310] = "CC",				-- Hyper Zap-o-matic Ultimate Mark III
+	[202804] = "CC",				-- Uncontrollable Frenzy
+	[202676] = "CC",				-- Vampyr's Kiss
+	[201146] = "CC",				-- Hysteria
+	[202037] = "CC",				-- Frozen
+	[205097] = "CC",				-- Fel Blind
+	[224615] = "CC",				-- Crushing Shadows
+	[205233] = "Root",				-- Execution
+	[205265] = "Root",				-- Impact
+	[202409] = "Root",				-- Impact
+	[224449] = "Root",				-- Web Wrap
+	[201753] = "Other",				-- Necrotic Aura
+	[202217] = "Other",				-- Mandible Strike
+	[201121] = "Other",				-- Shadow Crash
+	[205115] = "Snare",				-- Destructive Whirlwind
+	[202065] = "Snare",				-- Chill
 	-- -- The Arcway
 	[195804] = "CC",				-- Quarantine
 	[203649] = "CC",				-- Exterminate
@@ -4226,6 +4250,374 @@ local spellIds = {
 	[245706] = "CC",				-- Ruinous Strike
 	[248133] = "CC",				-- Stygian Blast
 	------------------------
+	---- PVE WOD
+	------------------------
+	-- WoD Dungeons
+	------------------------
+	-- -- Upper Blackrock Spire Dungeon
+	[167203] = "Immune",			-- Swirling Winds (not immune, vision of the target is obscured)
+	[166169] = "CC",				-- Power Conduit Hangover
+	[155056] = "CC",				-- Engulfing Fire
+	[161203] = "Other",				-- Rejuvenating Serum
+	[155498] = "Other",				-- Rejuvenating Serum
+	[155586] = "Other",				-- Veil of Shadow
+	[167259] = "CC",				-- Intimidating Shout
+	[154827] = "CC",				-- Intimidating Roar
+	[157428] = "CC",				-- Terrifying Roar
+	[165954] = "CC",				-- Shockwave
+	[155572] = "CC",				-- Smash
+	[155037] = "CC",				-- Eruption
+	[155136] = "CC",				-- Captivity Chains
+	[77787]  = "CC",				-- Hammer of Justice
+	[155589] = "Root",				-- Frost Nova
+	-- -- Bloodmaul Slag Mines
+	[150023] = "CC",				-- Slag Smash
+	[149941] = "CC",				-- Rough Smash
+	[153679] = "CC",				-- Earth Crush
+	[152843] = "CC",				-- Fiery Boulder
+	[150751] = "Root",				-- Crushing Leap
+	[164597] = "Immune",			-- Stone Bulwark (not immune, 45% damage reduction)
+	[151446] = "CC",				-- Crush
+	[151697] = "CC",				-- Subjugate
+	[152235] = "CC",				-- Frightening Roar
+	[150813] = "CC",				-- Shattered Will
+	[151566] = "Other",				-- Molten Binding (movement speed and haste reduced by 70%)
+	[151638] = "Silence",			-- Suppression Field
+	[152089] = "Snare",				-- Shock Bola
+	-- -- Shadowmoon Burial Grounds
+	[162652] = "Immune",			-- Lunar Purity (not immune, 80% damage reduction)
+	[154442] = "CC",				-- Malevolence (damage dealt reduced by 50%)
+	[158061] = "CC",				-- Blessed Waters of Purity
+	[153692] = "Snare",				-- Necrotic Pitch
+	[152819] = "Snare",				-- Shadow Word: Frailty
+	-- -- Auchindoun
+	[154617] = "CC",				-- Shattering
+	[154218] = "CC",				-- Arbiter's Hammer
+	[154018] = "CC",				-- Conflagration
+	[177763] = "Immune",			-- Shadow Ward
+	[164841] = "Snare",				-- Curse of Exhaustion
+	[157234] = "Immune",			-- Void Shell
+	[169631] = "Immune",			-- Divine Shield
+	[176655] = "Immune",			-- Defense (not immune, 99% damage reduction)
+	[154840] = "CC",				-- Void Stasis
+	[174223] = "CC",				-- Void Stasis
+	[154359] = "CC",				-- Psychic Terrors
+	[154356] = "CC",				-- Psychic Terrors
+	[157797] = "CC",				-- Arbiter's Hammer
+	[154527] = "CC",				-- Bend Will
+	[156956] = "Silence",			-- Unstable Affliction
+	[154263] = "Root",				-- Warden's Chain
+	[176511] = "Snare",				-- Avenger's Shield
+	[157165] = "Snare",				-- Sever Tendon
+	-- -- Skyreach
+	[154055] = "Immune",			-- Shielding (not immune, damage taken reduced by 99%)
+	[152975] = "Immune",			-- Protective Barrier (not immune, damage taken reduced by 90%)
+	[160066] = "CC",				-- Flash Bang
+	[88010]  = "CC",				-- Cyclone
+	-- -- The Everbloom
+	[168041] = "Immune",			-- Briarskin (not immune, damage taken reduced by 75%)
+	[164275] = "CC",				-- Brittle Bark
+	[169179] = "CC",				-- Colossal Blow
+	[164965] = "CC",				-- Choking Vines
+	[169850] = "CC",				-- Frozen Snap
+	[169844] = "CC",				-- Dragon's Breath
+	[169249] = "CC",				-- Consume
+	[169495] = "CC",				-- Living Leaves
+	[170016] = "CC",				-- Glowbulb Pollen
+	[170033] = "CC",				-- Golden Lion's Bloom
+	[170132] = "CC",				-- Entanglement
+	[169240] = "CC",				-- Entanglement
+	[170028] = "Snare",				-- Frostbolt
+	[167977] = "Snare",				-- Bramble Patch
+	-- -- Grimrail Depot
+	[162572] = "Immune",			-- Missile Smoke (not immune, vision of the target is obscured)
+	[176025] = "Silence",			-- Lava Wreath
+	[163947] = "CC",				-- Recovering
+	[162057] = "CC",				-- Spinning Spear
+	[162065] = "Root",				-- Freezing Snare
+	[164192] = "CC",				-- 50,000 Volts
+	-- -- Iron Docks
+	[164504] = "CC",				-- Intimidated
+	[172631] = "CC",				-- Knocked Down
+	[168227] = "CC",				-- Gronn Smash
+	[173455] = "Disarm",			-- Pit Fighter
+	[162415] = "Root",				-- Time to Feed
+	[163689] = "Other",				-- Sanguine Sphere
+	[164837] = "Snare",				-- Savage Mauling
+	[167240] = "Snare",				-- Leg Shot
+	[173324] = "Snare",				-- Jagged Caltrops
+	------------------------
+	---- PVE MOP
+	------------------------
+	-- MoP Dungeons
+	-- -- Mogu'shan Palace
+	[118960] = "Immune",			-- Iron Defense (not immune, damage taken reduced by 50%)
+	[118963] = "CC",				-- Shank
+	[120160] = "CC",				-- Conflagrate
+	[123655] = "Other",				-- Traumatic Blow
+	[123646] = "CC",				-- Intimidation
+	[69222]  = "CC",				-- Throw Shield
+	-- -- Temple of the Jade Serpent
+	[106062] = "Immune",			-- Water Bubble
+	[117665] = "Immune",			-- Bounds of Reality
+	[113309] = "Immune",			-- Ultimate Power
+	[114826] = "CC",				-- Songbird Serenade
+	[145883] = "Snare",				-- Noodled
+	--[110125] = "CC",				-- Shattered Resolve (reduces all damage and healing done by 25%/35%/75% (nm/hc/challenge))
+	--[88023]  = "ImmuneSpell",		-- Shroud of Gold (reflect 30%/100% (all/challenge) of the next spell cast)
+	-- -- Shado-Pan Monastery
+	[123496] = "Immune",			-- Lightning Shielded
+	[110945] = "Immune",			-- Charging Soul
+	[112060] = "Immune",			-- Apparitions
+	[106422] = "CC",				-- Quivering Palm
+	[106872] = "CC",				-- Disorienting Smash
+	[115509] = "CC",				-- Thundering Fist
+	[107087] = "CC",				-- Haze of Hate
+	[107200] = "CC",				-- Meditate
+	[106844] = "Other",				-- Parry Stance (attacks from the front will be counter attacked)
+	[106447] = "Other",				-- Parry Stance (attacks from the front will be parried or resisted)
+	[127576] = "Other",				-- Parting Smoke (next attack or spell will critically strike for 100% more damage than usual)
+	[126115] = "Root",				-- Ice Arrow
+	[131521] = "Snare",				-- Ring of Malice
+	[112932] = "Snare",				-- Ring of Malice
+	[115010] = "Snare",				-- Grip of Hate
+	-- -- Stormstout Brewery
+	[106808] = "CC",				-- Ground Pound
+	[106857] = "CC",				-- Blackout Drunk
+	[114386] = "CC",				-- Carbonation
+	[114466] = "CC",				-- Wall of Suds
+	[110189] = "Immune",			-- Watery Shield
+	[110198] = "Immune",			-- Watery Shield
+	[116170] = "CC",				-- Carbonation
+	[114291] = "CC",				-- Explosive Brew
+	[107205] = "CC",				-- Spicy Explosion
+	[112954] = "CC",				-- Brew Spew
+	[107022] = "CC",				-- Sleep
+	[114381] = "CC",				-- Gushing Brew (chance to hit reduced by 100%)
+	[110182] = "Immune",			-- Slippery (dodge percent increased by 100% and deflect spells)
+	[107046] = "Snare",				-- Water Strike
+	-- -- Siege of Niuzao Temple
+	[121448] = "CC",				-- Encased in Resin
+	[121116] = "CC",				-- Encased in Resin
+	[122246] = "CC",				-- Crystallized Pitch
+	[120955] = "Immune",			-- Resin Shell (not immune, damage taken reduced by 90%)
+	[126336] = "Snare",				-- Caustic Pitch
+	[121443] = "Snare",				-- Caustic Pitch
+	[123032] = "Snare",				-- Carrying Caustic Tar
+	[120593] = "Snare",				-- Sap Puddle
+	[128358] = "Snare",				-- Slowed
+	[120270] = "Snare",				-- Slowed
+	-- -- Gate of the Setting Sun
+	[107118] = "Immune",			-- Impervious Carapace (not immune, damage taken reduced by 99%)
+	[106933] = "CC",				-- Prey Time
+	[130772] = "CC",				-- Battering Headbutt
+	[107146] = "Other",				-- Broken Carapace (increases damage taken by 300%)
+	[111742] = "Snare",				-- Broken Carapace
+	[115419] = "Snare",				-- Gale Force
+	[111735] = "Snare",				-- Tar
+	------------------------
+	---- PVE CATACLYSM
+	------------------------
+	-- Cataclysm Dungeons
+	-- -- Blackrock Caverns
+	[79725]  = "CC",				-- High-Security Shadow Prison
+	[75823]  = "CC",				-- Dark Command
+	[75732]  = "CC",				-- Twilight Evolution
+	[76522]  = "CC",				-- Force Blast
+	[76274]  = "CC",				-- Transformation
+	[76028]  = "CC",				-- Terrifying Roar
+	[75054]  = "CC",				-- Shadowy Corruption
+	[76185]  = "CC",				-- Stone Blow
+	[75590]  = "CC",				-- Inflict Pain
+	[76582]  = "CC",				-- Gouge
+	[95315]  = "Root",				-- Chains of Woe
+	[82192]  = "Root",				-- Chains of Woe
+	[75608]  = "Immune",			-- Kneeling in Supplication (not immune, damage taken reduced by 99%)
+	[76242]  = "Immune",			-- Transformation
+	[76164]  = "Immune",			-- Shadow of Obsidius
+	[75842]  = "Immune",			-- Quicksilver Armor
+	[82395]  = "Other",				-- Berserk
+	[76509]  = "Root",				-- Frost Nova
+	[76186]  = "Snare",				-- Thunderclap
+	[76508]  = "Snare",				-- Frostbolt
+	[76473]  = "Snare",				-- Blast Wave
+	-- -- The Stonecore
+	[92426]  = "CC",				-- Paralyze
+	[95341]  = "CC",				-- Paralyze
+	[79351]  = "CC",				-- Force Grip
+	[81442]  = "CC",				-- Fear
+	[81441]  = "CC",				-- Shadowfury
+	[78939]  = "ImmuneSpell",		-- Elementium Bulwark
+	[79050]  = "Immune",			-- Energy Shield (not immune, damage taken reduced by 75%)
+	[82858]  = "Immune",			-- Energy Shield (not immune, damage taken reduced by 75%)
+	[81216]  = "Immune",			-- Blur
+	-- -- Throne of the Tides
+	[76026]  = "CC",				-- Squeeze
+	[95463]  = "CC",				-- Squeeze
+	[90479]  = "CC",				-- Waterspout
+	[76207]  = "CC",				-- Enslave
+	[76230]  = "CC",				-- Mind Fog
+	[83463]  = "CC",				-- Entangling Grasp
+	[76609]  = "CC",				-- Void Rip
+	[76820]  = "CC",				-- Hex
+	[75683]  = "Immune",			-- Waterspout
+	[76307]  = "ImmuneSpell",		-- Absorb Magic
+	[83926]  = "Other",				-- Veil of Shadow
+	[76094]  = "Snare",				-- Curse of Fatigue
+	-- -- Grim Batol
+	[74634]  = "CC",				-- Ground Siege
+	[74909]  = "CC",				-- Glancing Blows (damage done reduced by 99%)
+	[75321]  = "CC",				-- Valiona's Flame
+	[76514]  = "CC",				-- Confounding Flames
+	[76409]  = "CC",				-- Crimson Shockwave
+	[76151]  = "CC",				-- Beguile
+	[76415]  = "CC",				-- Dizzy
+	[76826]  = "CC",				-- Polymorph
+	[76303]  = "Immune",			-- Twilight Protection (not immune, damage taken reduced by 90%)
+	[75328]  = "Immune",			-- Twilight Shift
+	[76596]  = "Immune",			-- Stone Skin (not immune, damage taken reduced by 30%/75% (nm/hc))
+	[75861]  = "Root",				-- Binding Shadows
+	[76766]  = "Root",				-- Flame Conduit
+	[79377]  = "Root",				-- Net
+	[76679]  = "Disarm",			-- Disarming Blaze
+	[90170]  = "Other",				-- Modgud's Malice (increases damage done by 100%)
+	[75007]  = "Other",				-- Encumbered
+	[75664]  = "Other",				-- Shadow Gale (increases damage taken by 100%)
+	-- -- The Vortex Pinnacle
+	[87759]  = "CC",				-- Shockwave
+	[87930]  = "CC",				-- Charge
+	[87772]  = "ImmunePhysical",	-- Hand of Protection
+	[87618]  = "Root",				-- Static Cling
+	[88075]  = "Snare",				-- Typhoon
+	[86292]  = "Snare",				-- Cyclone Shield
+	[87474]  = "ImmuneSpell",		-- Grounding Field
+	[87726]  = "ImmuneSpell",		-- Grounding Field
+	[85267]  = "Other",				-- Feign Death
+	-- -- Lost City of the Tol'vir
+	[83776]  = "CC",				-- Dragon's Breath
+	[81673]  = "CC",				-- Dust Flail (chance to hit with melee and ranged attacks reduced by 50%)
+	[84768]  = "CC",				-- Smoke Bomb
+	[84797]  = "CC",				-- Smoke Bomb
+	[91409]  = "CC",				-- Smoke Bomb
+	[81947]  = "CC",				-- Repentance
+	[82760]  = "CC",				-- Hex
+	[82750]  = "CC",				-- Serum of Torment
+	[82670]  = "CC",				-- Skull Crack
+	[83785]  = "CC",				-- Shockwave
+	[82320]  = "Immune",			-- Repentance
+	[84589]  = "Immune",			-- Deflecting Winds (not immune, damage taken decreased by 90% and spell deflection increased by 90%)
+	[82744]  = "Silence",			-- Branded Tongue
+	[83089]  = "Snare",				-- Wailing Winds
+	-- -- Halls of Origination
+	[75369]  = "CC",				-- Consume
+	[89839]  = "CC",				-- Consume
+	[74137]  = "CC",				-- Supernova
+	[75718]  = "CC",				-- Consume Life Energy
+	[79766]  = "CC",				-- Consume Life Energy
+	[79767]  = "CC",				-- Consume Life Energy
+	[79768]  = "CC",				-- Consume Life Energy
+	[80968]  = "CC",				-- Consume Life Energy
+	[77336]  = "CC",				-- Bubble Bound
+	[77235]  = "CC",				-- Impale
+	[75241]  = "CC",				-- Reverberating Stomp
+	[73963]  = "CC",				-- Blinding Toxin
+	[74938]  = "Immune",			-- Shield of Light
+	[76959]  = "Immune",			-- Void Barrier (not immune, damage taken decreased by 90%)
+	[74133]  = "Immune",			-- Veil of Sky (not immune, losing mana instead of health)
+	[74372]  = "Immune",			-- Veil of Sky (not immune, losing mana instead of health)
+	[74373]  = "Immune",			-- Veil of Sky (not immune, losing mana instead of health)
+	[76903]  = "ImmuneSpell",		-- Anti-Magic Prison
+	[75961]  = "Root",				-- Entangling Shot
+	[76355]  = "Other",				-- Blessing of the Sun
+	[76043]  = "Snare",				-- Wither
+	[75623]  = "Snare",				-- Omega Stance
+	[77357]  = "Snare",				-- Curse of Exhaustion
+	[75548]  = "Snare",				-- Quicksand
+	[89648]  = "Snare",				-- Quicksand
+	-- -- Zul'Gurub Dungeon
+	[96653]  = "CC",				-- Venom Withdrawal
+	[96757]  = "CC",				-- Waking Nightmare
+	[96654]  = "CC",				-- Sleep
+	[97002]  = "CC",				-- Vanish
+	[96640]  = "CC",				-- Ambush
+	[96446]  = "CC",				-- Dark Slumber
+	[96331]  = "CC",				-- Frostburn Formula
+	[96449]  = "CC",				-- Frostburn Formula
+	[80382]  = "CC",				-- Dirt Toss
+	[88840]  = "Immune",			-- Vanish
+	[97417]  = "Immune",			-- Brittle Barrier
+	[97016]  = "Immune",			-- Big Bad Voodoo
+	[97977]  = "Immune",			-- Blessing of Zandalar
+	[97600]  = "ImmuneSpell",		-- Deadzone (magic damage taken reduced by 90%)
+	[97170]  = "ImmuneSpell",		-- Deadzone (magic damage taken reduced by 90%)
+	[96633]  = "Root",				-- Entangling Roots
+	[96618]  = "Other",				-- Avatar
+	[97320]  = "Other",				-- Sunder Rift
+	[96802]  = "Other",				-- Bethekk's Blessing
+	[97226]  = "Snare",				-- Frost Breath
+	[96340]  = "Snare",				-- Thunderclap
+	[96332]  = "Snare",				-- Hypothermia
+	[98037]  = "Snare",				-- Sigil Shatter
+	-- -- Zul'Aman Dungeon
+	[97524]  = "CC",				-- Heroic Leap
+	[97644]  = "CC",				-- Smoke Bomb (chance to hit reduced by 75%)
+	-- -- End Time
+	[101602] = "CC",				-- Throw Totem
+	[101603] = "CC",				-- Throw Totem
+	[101337] = "CC",				-- Frost Blades
+	[102149] = "CC",				-- Moonlance
+	[102183] = "Silence",			-- Piercing Gaze of Elune
+	[101591] = "Immune",			-- Rewind Time
+	[100686] = "Immune",			-- Calling of the Highborne
+	[101841] = "Immune",			-- In Shadow (not immune, 90% damage reduction)
+	[102599] = "Immune",			-- Void Shield (not immune, damage taken reduced by 50%)
+	[101811] = "Immune",			-- Shield Wall (not immune, damage taken reduced by 60%)
+	[101888] = "Root",				-- Face Kick
+	[101412] = "Snare",				-- Shriek of the Highborne
+	[103171] = "Snare",				-- Blighted Arrows
+	[102600] = "Snare",				-- Temporal Vortex
+	-- -- Well of Eternity
+	[104905] = "CC",				-- Drain Essence
+	[105545] = "CC",				-- Fel Addled
+	[105493] = "CC",				-- Easy Prey
+	[105442] = "CC",				-- Enfeebled
+	[103241] = "CC",				-- Total Obedience
+	[110096] = "CC",				-- Total Obedience
+	[102334] = "CC",				-- Servant of the Queen
+	[104678] = "CC",				-- Debilitating Flay
+	[102561] = "CC",				-- Demon Grip
+	[102937] = "CC",				-- Demon Grip Root
+	[105543] = "CC",				-- Absorb Fel Energy
+	[104738] = "CC",				-- Consume Essence
+	[105547] = "CC",				-- Regeneration
+	[102245] = "CC",				-- Sweet Lullaby
+	[102681] = "CC",				-- RP 1
+	[102684] = "CC",				-- RP 2
+	[102685] = "CC",				-- RP 3
+	[102915] = "Immune",			-- Shroud of Luminosity
+	[103763] = "Immune",			-- Displacement (not immune, only immune to direct attacks)
+	[104746] = "ImmunePhysical",	-- Demonic Sight (dodge chance increased by 75%)
+	[103018] = "Other",				-- Shadow Ambusher
+	[102466] = "Snare",				-- Coldflame
+	[102263] = "Snare",				-- Firebomb
+	[102482] = "Snare",				-- Firebomb
+	[102455] = "Snare",				-- Arcane Bomb
+	-- -- Hour of Twilight
+	[103251] = "CC",				-- Icy Tomb
+	[103762] = "CC",				-- Engulfing Twilight
+	[102861] = "CC",				-- Squeeze Lifeless
+	[103023] = "CC",				-- Hungering Shadows
+	[102990] = "CC",				-- Bash
+	[43415]  = "CC",				-- Freezing Trap
+	[51946]  = "ImmunePhysical",	-- Evasive Maneuver (dodge chance increased by 75%)
+	[103587] = "Silence",			-- Silenced
+	[102926] = "Silence",			-- Garrote - Silence
+	[102582] = "Root",				-- Chains of Frost
+	[103834] = "Other",				-- Bloodlust
+	[103904] = "Snare",				-- Torrent of Frost
+	[102226] = "Snare",				-- Corrupted Bite
+	[103024] = "Snare",				-- Mind Flay
+	------------------------
 	---- PVE TBC
 	------------------------
 	-- Karazhan Raid
@@ -4251,7 +4643,6 @@ local spellIds = {
 	[29505]  = "Silence",			-- Banshee Shriek
 	[30013]  = "Disarm",			-- Disarm
 	--[30019]  = "CC",				-- Control Piece
-	--[39331]  = "Silence",			-- Game In Session
 	[29303]  = "Snare",				-- Wing Beat
 	[29540]  = "Snare",				-- Curse of Past Burdens
 	[29666]  = "Snare",				-- Frost Shock
@@ -4316,7 +4707,7 @@ local spellIds = {
 	[33173]  = "CC",				-- Greater Polymorph
 	[33130]  = "CC",				-- Death Coil
 	[33175]  = "Disarm",			-- Arcane Shock
-	[33054]  = "ImmuneMagic",		-- Spell Shield (not immune, magic damage taken reduced by 75%)
+	[33054]  = "ImmuneSpell",		-- Spell Shield (not immune, magic damage taken reduced by 75%)
 	[33147]  = "Other",				-- Greater Power Word: Shield (immune to spell interrupt, immune to stun)
 	[33238]  = "Snare",				-- Whirlwind
 	[33061]  = "Snare",				-- Blast Wave
@@ -4327,7 +4718,6 @@ local spellIds = {
 	-- -- Magtheridon’s Lair Raid
 	-- -- Trash
 	[34437]  = "CC",				-- Death Coil
-	[31117]  = "Silence",			-- Unstable Affliction
 	-- -- Magtheridon
 	[30530]  = "CC",				-- Fear
 	[30168]  = "CC",				-- Shadow Cage
@@ -4544,6 +4934,7 @@ local spellIds = {
 	[43433]  = "CC",				-- Blind
 	[43550]  = "CC",				-- Mind Control
 	[43448]  = "CC",				-- Freezing Trap
+	[43523]  = "Silence",			-- Unstable Affliction
 	[43426]  = "Root",				-- Frost Nova
 	[43443]  = "ImmuneSpell",		-- Spell Reflection
 	[43421]  = "Other",				-- Lifebloom (big heal hot)
@@ -4938,6 +5329,7 @@ local spellIds = {
 	[24261]  = "CC",				-- Brain Wash
 	-- -- Edge of Madness: Gri'lek, Hazza'rah, Renataki, Wushoolay
 	[24648]  = "Root",				-- Entangling Roots
+	[24646]  = "Other",				-- Avatar
 	[24664]  = "CC",				-- Sleep
 	-- -- Hakkar
 	[24687]  = "Silence",			-- Aspect of Jeklik
@@ -5146,7 +5538,7 @@ local spellIds = {
 	[23224]  = "Other",				-- Veil of Shadow
 	[7803]   = "CC",				-- Thundershock
 	[7074]   = "Silence",			-- Screams of the Past
-	[93956]  = "Other",				-- Cursed Veil	
+	[93956]  = "Other",				-- Cursed Veil
 	[67781]  = "Snare",				-- Desecration
 	[93691]  = "Snare",				-- Desecration
 	[196178] = "Snare",				-- Desecration
@@ -5224,6 +5616,15 @@ local spellIds = {
 	[9256]   = "CC",				-- Deep Sleep
 	[3639]   = "Other",				-- Improved Blocking
 	[6146]   = "Snare",				-- Slow
+	[111107] = "CC",				-- Pass Judgment
+	[112955] = "CC",				-- Blades of Light
+	[113653] = "CC",				-- Greater Dragon's Breath
+	[114000] = "CC",				-- Jolt
+	[111582] = "CC",				-- Hungry Dog
+	[122913] = "CC",				-- Tasty
+	[127352] = "Immune",			-- Phalanx Defense (not immune, reduces damage taken by 95%)
+	[114219] = "Immune",			-- Scarlet Protection (not immune, reduces damage taken by 99%)
+	[113642] = "Snare",				-- Staggering Shot
 	-- -- Razorfen Downs
 	[12252]  = "Root",				-- Web Spray
 	[15530]  = "Snare",				-- Frostbolt
@@ -5297,6 +5698,8 @@ local spellIds = {
 	[15499]  = "Snare",				-- Frost Shock
 	[280494] = "CC",				-- Conflagration
 	[21401]  = "Snare",				-- Frost Shock
+	[27581]  = "Disarm",			-- Disarm
+	[20615]  = "CC",				-- Intercept
 	-- -- Blackrock Spire
 	[16097]  = "CC",				-- Hex
 	[22566]  = "CC",				-- Hex
@@ -5382,6 +5785,9 @@ local spellIds = {
 	[17165]  = "Snare",				-- Mind Flay
 	[22643]  = "Snare",				-- Frostbolt Volley
 	[18101]  = "Snare",				-- Chilled (Frost Armor)
+	[113865] = "Immune",			-- Improved Bone Shield
+	[113143] = "Immune",			-- Rise! (not immune, damage taken reduced by 50%)
+	[23600]  = "Snare",				-- Piercing Howl
 }
 
 if debug then
@@ -5436,7 +5842,7 @@ local anchors = {
 		arena2       = "ArenaEnemyFrame2ClassPortrait",
 		arena3       = "ArenaEnemyFrame3ClassPortrait",
 		arena4       = "ArenaEnemyFrame4ClassPortrait",
-		arena5       = "ArenaEnemyFrame5ClassPortrait",
+		arena5       = "ArenaEnemyFrame5ClassPortrait"
 	},
 	BlizzardRaidFrames = {
 		raid1        = "CompactRaidFrame1",
@@ -5478,7 +5884,7 @@ local anchors = {
 		raid37       = "CompactRaidFrame37",
 		raid38       = "CompactRaidFrame38",
 		raid39       = "CompactRaidFrame39",
-		raid40       = "CompactRaidFrame40",
+		raid40       = "CompactRaidFrame40"
 	},
 	BlizzardNameplates = {
 		nameplate1   = "NamePlate1",
@@ -5529,26 +5935,84 @@ local anchors = {
 		target       = "Perl_Target_PortraitFrame",
 		targettarget = "Perl_Target_Target_PortraitFrame",
 		focus        = "Perl_Focus_PortraitFrame",
-		focustarget  = "Perl_Focus_Target_PortraitFrame",
+		focustarget  = "Perl_Party_Target5_PortraitFrame",
 		party1       = "Perl_Party_MemberFrame1_PortraitFrame",
 		party2       = "Perl_Party_MemberFrame2_PortraitFrame",
 		party3       = "Perl_Party_MemberFrame3_PortraitFrame",
-		party4       = "Perl_Party_MemberFrame4_PortraitFrame",
+		party4       = "Perl_Party_MemberFrame4_PortraitFrame"
+	},
+	Perl_CF = {
+		player       = "Perl_Player_StatsFrame",
+		player2      = "Perl_Player_StatsFrame",
+		pet          = "Perl_Player_Pet_StatsFrame",
+		target       = "Perl_Target_StatsFrame",
+		targettarget = "Perl_Target_Target_StatsFrame",
+		focus        = "Perl_Focus_StatsFrame",
+		focustarget  = "Perl_Party_Target5_StatsFrame",
+		party1       = "Perl_Party_MemberFrame1_StatsFrame",
+		party2       = "Perl_Party_MemberFrame2_StatsFrame",
+		party3       = "Perl_Party_MemberFrame3_StatsFrame",
+		party4       = "Perl_Party_MemberFrame4_StatsFrame"
 	},
 	XPerl = {	-- and Z-Perl
 		player       = "XPerl_PlayerportraitFrameportrait",
 		player2      = "XPerl_PlayerportraitFrameportrait",
 		pet          = "XPerl_Player_PetportraitFrameportrait",
 		target       = "XPerl_TargetportraitFrameportrait",
-		targettarget = "XPerl_TargettargetportraitFrameportrait",
+		targettarget = "XPerl_TargetTargetportraitFrameportrait",
 		focus        = "XPerl_FocusportraitFrameportrait",
-		focustarget  = "XPerl_FocustargetportraitFrameportrait",
+		focustarget  = "XPerl_FocusTargetportraitFrameportrait"
+	},
+	XPerl_CUF = {	-- and Z-Perl_CUF
+		player       = "XPerl_Player",
+		player2      = "XPerl_Player",
+		pet          = "XPerl_Player_Pet",
+		target       = "XPerl_Target",
+		targettarget = "XPerl_TargetTarget",
+		focus        = "XPerl_Focus",
+		focustarget  = "XPerl_FocusTarget"
+	},
+	XPerl_PlayerInParty = {	-- and Z-Perl_PlayerInParty
+		partyplayer  = "XPerl_party1portraitFrameportrait",
+		party1       = "XPerl_party2portraitFrameportrait",
+		party2       = "XPerl_party3portraitFrameportrait",
+		party3       = "XPerl_party4portraitFrameportrait",
+		party4       = "XPerl_party5portraitFrameportrait"
+	},
+	XPerl_NoPlayerInParty = {	-- and Z-Perl_NoPlayerInParty
 		party1       = "XPerl_party1portraitFrameportrait",
 		party2       = "XPerl_party2portraitFrameportrait",
 		party3       = "XPerl_party3portraitFrameportrait",
-		party4       = "XPerl_party4portraitFrameportrait",
+		party4       = "XPerl_party4portraitFrameportrait"
+	},
+	XPerl_CUF_PlayerInParty = {	-- and Z-Perl_CUF_PlayerInParty
+		partyplayer  = "XPerl_party1",
+		party1       = "XPerl_party2",
+		party2       = "XPerl_party3",
+		party3       = "XPerl_party4",
+		party4       = "XPerl_party5"
+	},
+	XPerl_CUF_NoPlayerInParty = {	-- and Z-Perl_CUF_NoPlayerInParty
+		party1       = "XPerl_party1",
+		party2       = "XPerl_party2",
+		party3       = "XPerl_party3",
+		party4       = "XPerl_party4"
 	},
 	LUI = {
+		player       = "oUF_LUI_player.Portrait",
+		player2      = "oUF_LUI_player.Portrait",
+		pet          = "oUF_LUI_pet.Portrait",
+		target       = "oUF_LUI_target.Portrait",
+		targettarget = "oUF_LUI_targettarget.Portrait",
+		focus        = "oUF_LUI_focus.Portrait",
+		focustarget  = "oUF_LUI_focustarget.Portrait",
+		arena1       = "oUF_LUI_arena1.Portrait",
+		arena2       = "oUF_LUI_arena2.Portrait",
+		arena3       = "oUF_LUI_arena3.Portrait",
+		arena4       = "oUF_LUI_arena4.Portrait",
+		arena5       = "oUF_LUI_arena5.Portrait"
+	},
+	LUI_CF = {
 		player       = "oUF_LUI_player",
 		player2      = "oUF_LUI_player",
 		pet          = "oUF_LUI_pet",
@@ -5556,17 +6020,44 @@ local anchors = {
 		targettarget = "oUF_LUI_targettarget",
 		focus        = "oUF_LUI_focus",
 		focustarget  = "oUF_LUI_focustarget",
+		arena1       = "oUF_LUI_arena1",
+		arena2       = "oUF_LUI_arena2",
+		arena3       = "oUF_LUI_arena3",
+		arena4       = "oUF_LUI_arena4",
+		arena5       = "oUF_LUI_arena5"
+	},
+	LUI_PlayerInParty = {
+		partyplayer  = "oUF_LUI_partyUnitButton1.Portrait",
+		party1       = "oUF_LUI_partyUnitButton2.Portrait",
+		party2       = "oUF_LUI_partyUnitButton3.Portrait",
+		party3       = "oUF_LUI_partyUnitButton4.Portrait",
+		party4       = "oUF_LUI_partyUnitButton5.Portrait"
+	},
+	LUI_NoPlayerInParty = {
+		party1       = "oUF_LUI_partyUnitButton1.Portrait",
+		party2       = "oUF_LUI_partyUnitButton2.Portrait",
+		party3       = "oUF_LUI_partyUnitButton3.Portrait",
+		party4       = "oUF_LUI_partyUnitButton4.Portrait"
+	},
+	LUI_CF_PlayerInParty = {
+		partyplayer  = "oUF_LUI_partyUnitButton1",
+		party1       = "oUF_LUI_partyUnitButton2",
+		party2       = "oUF_LUI_partyUnitButton3",
+		party3       = "oUF_LUI_partyUnitButton4",
+		party4       = "oUF_LUI_partyUnitButton5"
+	},
+	LUI_CF_NoPlayerInParty = {
 		party1       = "oUF_LUI_partyUnitButton1",
 		party2       = "oUF_LUI_partyUnitButton2",
 		party3       = "oUF_LUI_partyUnitButton3",
-		party4       = "oUF_LUI_partyUnitButton4",
+		party4       = "oUF_LUI_partyUnitButton4"
 	},
 	SyncFrames = {
 		arena1       = "SyncFrame1Class",
 		arena2       = "SyncFrame2Class",
 		arena3       = "SyncFrame3Class",
 		arena4       = "SyncFrame4Class",
-		arena5       = "SyncFrame5Class",
+		arena5       = "SyncFrame5Class"
 	},
 	SUF = {
 		player       = "SUFUnitplayer.portrait",
@@ -5576,15 +6067,51 @@ local anchors = {
 		targettarget = "SUFUnittargettarget.portrait",
 		focus        = "SUFUnitfocus.portrait",
 		focustarget  = "SUFUnitfocustarget.portrait",
-		party1       = "SUFHeaderpartyUnitButton1.portrait",
-		party2       = "SUFHeaderpartyUnitButton2.portrait",
-		party3       = "SUFHeaderpartyUnitButton3.portrait",
-		party4       = "SUFHeaderpartyUnitButton4.portrait",
 		arena1       = "SUFHeaderarenaUnitButton1.portrait",
 		arena2       = "SUFHeaderarenaUnitButton2.portrait",
 		arena3       = "SUFHeaderarenaUnitButton3.portrait",
 		arena4       = "SUFHeaderarenaUnitButton4.portrait",
-		arena5       = "SUFHeaderarenaUnitButton5.portrait",
+		arena5       = "SUFHeaderarenaUnitButton5.portrait"
+	},
+	SUF_CF = {
+		player       = "SUFUnitplayer",
+		player2      = "SUFUnitplayer",
+		pet          = "SUFUnitpet",
+		target       = "SUFUnittarget",
+		targettarget = "SUFUnittargettarget",
+		focus        = "SUFUnitfocus",
+		focustarget  = "SUFUnitfocustarget",
+		arena1       = "SUFHeaderarenaUnitButton1",
+		arena2       = "SUFHeaderarenaUnitButton2",
+		arena3       = "SUFHeaderarenaUnitButton3",
+		arena4       = "SUFHeaderarenaUnitButton4",
+		arena5       = "SUFHeaderarenaUnitButton5"
+	},
+	SUF_PlayerInParty = {
+		partyplayer  = "SUFHeaderpartyUnitButton1.portrait",
+		party1       = "SUFHeaderpartyUnitButton2.portrait",
+		party2       = "SUFHeaderpartyUnitButton3.portrait",
+		party3       = "SUFHeaderpartyUnitButton4.portrait",
+		party4       = "SUFHeaderpartyUnitButton5.portrait"
+	},
+	SUF_NoPlayerInParty = {
+		party1       = "SUFHeaderpartyUnitButton1.portrait",
+		party2       = "SUFHeaderpartyUnitButton2.portrait",
+		party3       = "SUFHeaderpartyUnitButton3.portrait",
+		party4       = "SUFHeaderpartyUnitButton4.portrait"
+	},
+	SUF_CF_PlayerInParty = {
+		partyplayer  = "SUFHeaderpartyUnitButton1",
+		party1       = "SUFHeaderpartyUnitButton2",
+		party2       = "SUFHeaderpartyUnitButton3",
+		party3       = "SUFHeaderpartyUnitButton4",
+		party4       = "SUFHeaderpartyUnitButton5"
+	},
+	SUF_CF_NoPlayerInParty = {
+		party1       = "SUFHeaderpartyUnitButton1",
+		party2       = "SUFHeaderpartyUnitButton2",
+		party3       = "SUFHeaderpartyUnitButton3",
+		party4       = "SUFHeaderpartyUnitButton4"
 	},
 	PitBullUF = {
 		player       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player"]..".Portrait" or nil,
@@ -5593,11 +6120,42 @@ local anchors = {
 		target       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"]..".Portrait" or nil,
 		targettarget = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"])..".Portrait" or nil,
 		focus        = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"]..".Portrait" or nil,
-		focustarget  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"])..".Portrait" or nil,
+		focustarget  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"])..".Portrait" or nil
+	},
+	PitBullUF_CF = {
+		player       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player"] or nil,
+		player2      = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player"] or nil,
+		pet          = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player's pet"] or nil,
+		target       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"] or nil,
+		targettarget = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"]) or nil,
+		focus        = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"] or nil,
+		focustarget  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"]) or nil
+	},
+	PitBullUF_PlayerInParty = {
+		partyplayer  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton1"..".Portrait" or nil,
+		party1       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton2"..".Portrait" or nil,
+		party2       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton3"..".Portrait" or nil,
+		party3       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4"..".Portrait" or nil,
+		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton5"..".Portrait" or nil
+	},
+	PitBullUF_NoPlayerInParty = {
 		party1       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton1"..".Portrait" or nil,
 		party2       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton2"..".Portrait" or nil,
 		party3       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton3"..".Portrait" or nil,
-		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4"..".Portrait" or nil,
+		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4"..".Portrait" or nil
+	},
+	PitBullUF_CF_PlayerInParty = {
+		partyplayer  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton1" or nil,
+		party1       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton2" or nil,
+		party2       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton3" or nil,
+		party3       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4" or nil,
+		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton5" or nil
+	},
+	PitBullUF_CF_NoPlayerInParty = {
+		party1       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton1" or nil,
+		party2       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton2" or nil,
+		party3       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton3" or nil,
+		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4" or nil
 	},
 	SpartanUI_2D = {
 		player       = "SUI_UF_player.Portrait2D",
@@ -5607,6 +6165,11 @@ local anchors = {
 		targettarget = "SUI_UF_targettarget.Portrait2D",
 		focus        = "SUI_UF_focus.Portrait2D",
 		focustarget  = "SUI_UF_focustarget.Portrait2D",
+		arena1       = "SUI_arena1.Portrait2D",
+		arena2       = "SUI_arena2.Portrait2D",
+		arena3       = "SUI_arena3.Portrait2D",
+		arena4       = "SUI_arena4.Portrait2D",
+		arena5       = "SUI_arena5.Portrait2D"
 	},
 	SpartanUI_3D = {
 		player       = "SUI_UF_player.Portrait3D",
@@ -5616,58 +6179,205 @@ local anchors = {
 		targettarget = "SUI_UF_targettarget.Portrait3D",
 		focus        = "SUI_UF_focus.Portrait3D",
 		focustarget  = "SUI_UF_focustarget.Portrait3D",
+		arena1       = "SUI_arena1.Portrait3D",
+		arena2       = "SUI_arena2.Portrait3D",
+		arena3       = "SUI_arena3.Portrait3D",
+		arena4       = "SUI_arena4.Portrait3D",
+		arena5       = "SUI_arena5.Portrait3D"
+	},
+	SpartanUI_CF = {
+		player       = "SUI_UF_player",
+		player2      = "SUI_UF_player",
+		pet          = "SUI_UF_pet",
+		target       = "SUI_UF_target",
+		targettarget = "SUI_UF_targettarget",
+		focus        = "SUI_UF_focus",
+		focustarget  = "SUI_UF_focustarget",
+		arena1       = "SUI_arena1",
+		arena2       = "SUI_arena2",
+		arena3       = "SUI_arena3",
+		arena4       = "SUI_arena4",
+		arena5       = "SUI_arena5"
 	},
 	SpartanUI_2D_PlayerInParty = {
 		partyplayer  = "SUI_partyFrameHeaderUnitButton1.Portrait2D",
 		party1       = "SUI_partyFrameHeaderUnitButton2.Portrait2D",
 		party2       = "SUI_partyFrameHeaderUnitButton3.Portrait2D",
 		party3       = "SUI_partyFrameHeaderUnitButton4.Portrait2D",
-		party4       = "SUI_partyFrameHeaderUnitButton5.Portrait2D",
+		party4       = "SUI_partyFrameHeaderUnitButton5.Portrait2D"
 	},
 	SpartanUI_2D_NoPlayerInParty = {
 		party1       = "SUI_partyFrameHeaderUnitButton1.Portrait2D",
 		party2       = "SUI_partyFrameHeaderUnitButton2.Portrait2D",
 		party3       = "SUI_partyFrameHeaderUnitButton3.Portrait2D",
-		party4       = "SUI_partyFrameHeaderUnitButton4.Portrait2D",
+		party4       = "SUI_partyFrameHeaderUnitButton4.Portrait2D"
 	},
 	SpartanUI_3D_PlayerInParty = {
 		partyplayer  = "SUI_partyFrameHeaderUnitButton1.Portrait3D",
 		party1       = "SUI_partyFrameHeaderUnitButton2.Portrait3D",
 		party2       = "SUI_partyFrameHeaderUnitButton3.Portrait3D",
 		party3       = "SUI_partyFrameHeaderUnitButton4.Portrait3D",
-		party4       = "SUI_partyFrameHeaderUnitButton5.Portrait3D",
+		party4       = "SUI_partyFrameHeaderUnitButton5.Portrait3D"
 	},
 	SpartanUI_3D_NoPlayerInParty = {
 		party1       = "SUI_partyFrameHeaderUnitButton1.Portrait3D",
 		party2       = "SUI_partyFrameHeaderUnitButton2.Portrait3D",
 		party3       = "SUI_partyFrameHeaderUnitButton3.Portrait3D",
-		party4       = "SUI_partyFrameHeaderUnitButton4.Portrait3D",
+		party4       = "SUI_partyFrameHeaderUnitButton4.Portrait3D"
+	},
+	SpartanUI_CF_PlayerInParty = {
+		partyplayer  = "SUI_partyFrameHeaderUnitButton1",
+		party1       = "SUI_partyFrameHeaderUnitButton2",
+		party2       = "SUI_partyFrameHeaderUnitButton3",
+		party3       = "SUI_partyFrameHeaderUnitButton4",
+		party4       = "SUI_partyFrameHeaderUnitButton5"
+	},
+	SpartanUI_CF_NoPlayerInParty = {
+		party1       = "SUI_partyFrameHeaderUnitButton1",
+		party2       = "SUI_partyFrameHeaderUnitButton2",
+		party3       = "SUI_partyFrameHeaderUnitButton3",
+		party4       = "SUI_partyFrameHeaderUnitButton4"
 	},
 	GW2 = {
 		player       = "GwPlayerUnitFrame.portrait",
 		player2      = "GwPlayerUnitFrame.portrait",
 		pet          = "GwPlayerPetFrame.portrait",
 		target       = "GwTargetUnitFrame.portrait",
-		focus        = "GwFocusUnitFrame.portrait",
+		focus        = "GwFocusUnitFrame.portrait"
+	},
+	GW2_CF = {
+		player       = "GwPlayerUnitFrame",
+		player2      = "GwPlayerUnitFrame",
+		pet          = "GwPlayerPetFrame",
+		target       = "GwTargetUnitFrame",
+		targettarget = "GwTargetTargetUnitFrame",
+		focus        = "GwFocusUnitFrame",
+		focustarget  = "GwFocusTargetUnitFrame"
+	},
+	GW2_PlayerInParty = {
+		partyplayer  = "GwPartyFrame0.portrait",
 		party1       = "GwPartyFrame1.portrait",
 		party2       = "GwPartyFrame2.portrait",
 		party3       = "GwPartyFrame3.portrait",
-		party4       = "GwPartyFrame4.portrait",
+		party4       = "GwPartyFrame4.portrait"
 	},
-	nUI = {
+	GW2_NoPlayerInParty = {
+		party1       = "GwPartyFrame1.portrait",
+		party2       = "GwPartyFrame2.portrait",
+		party3       = "GwPartyFrame3.portrait",
+		party4       = "GwPartyFrame4.portrait"
+	},
+	GW2_CF_PlayerInParty = {
+		partyplayer  = "GwPartyFrame0",
+		party1       = "GwPartyFrame1",
+		party2       = "GwPartyFrame2",
+		party3       = "GwPartyFrame3",
+		party4       = "GwPartyFrame4"
+	},
+	GW2_CF_NoPlayerInParty = {
+		party1       = "GwPartyFrame1",
+		party2       = "GwPartyFrame2",
+		party3       = "GwPartyFrame3",
+		party4       = "GwPartyFrame4"
+	},
+	GW2_PartyRaidStyle = {
+		partyplayer  = "GwCompactPartyFrame1",
+		party1       = "GwCompactPartyFrame2",
+		party2       = "GwCompactPartyFrame3",
+		party3       = "GwCompactPartyFrame4",
+		party4       = "GwCompactPartyFrame5"
+	},
+	nUI_Solo = {
+		player       = "nUI_SoloUnit_Player_Portrait",
+		player2      = "nUI_SoloUnit_Player_Portrait",
+		pet          = "nUI_SoloUnit_Pet_Portrait",
+		target       = "nUI_SoloUnit_Target_Portrait",
+		targettarget = "nUI_SoloUnit_ToT_Portrait",
+		focus        = "nUI_SoloUnit_Focus_Portrait"
+	},
+	nUI_Party = {
 		player       = "nUI_PartyUnit_Player_Portrait",
 		player2      = "nUI_PartyUnit_Player_Portrait",
+		pet          = "nUI_PartyUnit_Pet",
 		target       = "nUI_PartyUnit_Target_Portrait",
+		targettarget = "nUI_PartyUnit_ToT",
 		focus        = "nUI_PartyUnit_Focus_Portrait",
 		party1       = "nUI_PartyUnit_Party1_Portrait",
 		party2       = "nUI_PartyUnit_Party2_Portrait",
 		party3       = "nUI_PartyUnit_Party3_Portrait",
 		party4       = "nUI_PartyUnit_Party4_Portrait",
 	},
+	nUI_Raid10 = {
+		player       = "nUI_Raid10Unit_Player_Portrait",
+		player2      = "nUI_Raid10Unit_Player_Portrait",
+		pet          = "nUI_Raid10Unit_Pet",
+		target       = "nUI_Raid10Unit_Target_Portrait",
+		targettarget = "nUI_Raid10Unit_ToT",
+		focus        = "nUI_Raid10Unit_Focus_Portrait"
+	},
+	nUI_Raid15 = {
+		player       = "nUI_Raid15Unit_Player_Portrait",
+		player2      = "nUI_Raid15Unit_Player_Portrait",
+		pet          = "nUI_Raid15Unit_Pet",
+		target       = "nUI_Raid15Unit_Target_Portrait",
+		targettarget = "nUI_Raid15Unit_ToT",
+		focus        = "nUI_Raid15Unit_Focus_Portrait"
+	},
+	nUI_Raid20 = {
+		player       = "nUI_Raid20Unit_Player_Portrait",
+		player2      = "nUI_Raid20Unit_Player_Portrait",
+		pet          = "nUI_Raid20Unit_Pet",
+		target       = "nUI_Raid20Unit_Target_Portrait",
+		targettarget = "nUI_Raid20Unit_ToT",
+		focus        = "nUI_Raid20Unit_Focus_Portrait"
+	},
+	nUI_Raid25 = {
+		player       = "nUI_Raid25Unit_Player",
+		player2      = "nUI_Raid25Unit_Player",
+		pet          = "nUI_Raid25Unit_Pet",
+		target       = "nUI_Raid25Unit_Target",
+		targettarget = "nUI_Raid25Unit_ToT",
+		focus        = "nUI_Raid25Unit_Focus_Portrait"
+	},
+	nUI_Raid40 = {
+		player       = "nUI_Raid40Unit_Player",
+		player2      = "nUI_Raid40Unit_Player",
+		pet          = "nUI_Raid40Unit_Pet",
+		target       = "nUI_Raid40Unit_Target",
+		targettarget = "nUI_Raid40Unit_ToT",
+		focus        = "nUI_Raid40Unit_Focus_Portrait"
+	},
 	Tukui = {
 		player       = "TukuiPlayerFrame.Portrait",
 		player2      = "TukuiPlayerFrame.Portrait",
-		target       = "TukuiTargetFrame.Portrait",
+		target       = "TukuiTargetFrame.Portrait"
+	},
+	Tukui_CF = {
+		player       = "TukuiPlayerFrame",
+		player2      = "TukuiPlayerFrame",
+		pet          = "TukuiPetFrame",
+		target       = "TukuiTargetFrame",
+		targettarget = "TukuiTargetTargetFrame",
+		focus        = "TukuiFocusFrame",
+		focustarget  = "TukuiFocusTargetFrame",
+		arena1       = "TukuiArenaFrame1",
+		arena2       = "TukuiArenaFrame2",
+		arena3       = "TukuiArenaFrame3",
+		arena4       = "TukuiArenaFrame4",
+		arena5       = "TukuiArenaFrame5"
+	},
+	Tukui_CF_PlayerInParty = {
+		partyplayer  = "TukuiPartyUnitButton1",
+		party1       = "TukuiPartyUnitButton2",
+		party2       = "TukuiPartyUnitButton3",
+		party3       = "TukuiPartyUnitButton4",
+		party4       = "TukuiPartyUnitButton5"
+	},
+	Tukui_CF_NoPlayerInParty = {
+		party1       = "TukuiPartyUnitButton1",
+		party2       = "TukuiPartyUnitButton2",
+		party3       = "TukuiPartyUnitButton3",
+		party4       = "TukuiPartyUnitButton4"
 	},
 	ElvUI = {
 		player       = "ElvUF_Player.Portrait",
@@ -5677,26 +6387,58 @@ local anchors = {
 		targettarget = "ElvUF_TargetTarget.Portrait",
 		focus        = "ElvUF_Focus.Portrait",
 		focustarget  = "ElvUF_FocusTarget.Portrait",
+		arena1       = "ElvUF_Arena1.Portrait",
+		arena1       = "ElvUF_Arena2.Portrait",
+		arena1       = "ElvUF_Arena3.Portrait",
+		arena1       = "ElvUF_Arena4.Portrait",
+		arena1       = "ElvUF_Arena5.Portrait"
+	},
+	ElvUI_CF = {
+		player       = "ElvUF_Player",
+		player2      = "ElvUF_Player",
+		pet          = "ElvUF_Pet",
+		target       = "ElvUF_Target",
+		targettarget = "ElvUF_TargetTarget",
+		focus        = "ElvUF_Focus",
+		focustarget  = "ElvUF_FocusTarget",
+		arena1       = "ElvUF_Arena1",
+		arena1       = "ElvUF_Arena2",
+		arena1       = "ElvUF_Arena3",
+		arena1       = "ElvUF_Arena4",
+		arena1       = "ElvUF_Arena5"
 	},
 	ElvUI_PlayerInParty = {
 		partyplayer  = "ElvUF_PartyGroup1UnitButton1.Portrait",
 		party1       = "ElvUF_PartyGroup1UnitButton2.Portrait",
 		party2       = "ElvUF_PartyGroup1UnitButton3.Portrait",
 		party3       = "ElvUF_PartyGroup1UnitButton4.Portrait",
-		party4       = "ElvUF_PartyGroup1UnitButton5.Portrait",
+		party4       = "ElvUF_PartyGroup1UnitButton5.Portrait"
 	},
 	ElvUI_NoPlayerInParty = {
 		party1       = "ElvUF_PartyGroup1UnitButton1.Portrait",
 		party2       = "ElvUF_PartyGroup1UnitButton2.Portrait",
 		party3       = "ElvUF_PartyGroup1UnitButton3.Portrait",
-		party4       = "ElvUF_PartyGroup1UnitButton4.Portrait",
+		party4       = "ElvUF_PartyGroup1UnitButton4.Portrait"
+	},
+	ElvUI_CF_PlayerInParty = {
+		partyplayer  = "ElvUF_PartyGroup1UnitButton1",
+		party1       = "ElvUF_PartyGroup1UnitButton2",
+		party2       = "ElvUF_PartyGroup1UnitButton3",
+		party3       = "ElvUF_PartyGroup1UnitButton4",
+		party4       = "ElvUF_PartyGroup1UnitButton5"
+	},
+	ElvUI_CF_NoPlayerInParty = {
+		party1       = "ElvUF_PartyGroup1UnitButton1",
+		party2       = "ElvUF_PartyGroup1UnitButton2",
+		party3       = "ElvUF_PartyGroup1UnitButton3",
+		party4       = "ElvUF_PartyGroup1UnitButton4"
 	},
 	Gladius = {
 		arena1       = "GladiusClassIconFramearena1",
 		arena2       = "GladiusClassIconFramearena2",
 		arena3       = "GladiusClassIconFramearena3",
 		arena4       = "GladiusClassIconFramearena4",
-		arena5       = "GladiusClassIconFramearena5",
+		arena5       = "GladiusClassIconFramearena5"
 	},
 	GladiusEx = {
 		party1       = "GladiusExClassIconFrameparty1",
@@ -5707,7 +6449,7 @@ local anchors = {
 		arena2       = "GladiusExClassIconFramearena2",
 		arena3       = "GladiusExClassIconFramearena3",
 		arena4       = "GladiusExClassIconFramearena4",
-		arena5       = "GladiusExClassIconFramearena5",
+		arena5       = "GladiusExClassIconFramearena5"
 	}
 	-- more to come here?
 }
@@ -8834,7 +9576,7 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 						end
 						if (frame.anchor == "BlizzardRaidFrames" or (isPartyFrame and frame.anchor == "Blizzard")) then
 							icon.anchor = compactRaidFrame
-							icon.parent:SetParent(icon.anchor:GetParent())
+							icon.parent:SetParent(icon.anchor:GetParent() or UIParent or nil)
 							icon.defaultFrameStrata = icon:GetFrameStrata()
 							icon:GetParent():ClearAllPoints()
 							icon:GetParent():SetPoint(
@@ -9007,7 +9749,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "7.10"
+		self.VERSION = "7.11"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
@@ -9099,7 +9841,7 @@ function LoseControl:CheckNameplateAnchor()
 			local name = newAnchor:GetName()
 			if not name or not name:match("^NamePlate") then return end
 			anchors.BlizzardNameplates[self.unitId] = name
-			local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]	
+			local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
 			if (frame.anchor == "BlizzardNameplates") then
 				self.anchor = newAnchor
 				self.parent:SetParent(self.anchor)
@@ -9116,7 +9858,7 @@ function LoseControl:CheckNameplateAnchor()
 		end
 	else
 		anchors.BlizzardNameplates[self.unitId] = "UIParent"
-		local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]	
+		local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
 		if (frame.anchor == "BlizzardNameplates") then
 			self.anchor = UIParent
 			self.parent:SetParent(nil)
@@ -9159,7 +9901,7 @@ function LoseControl:CheckAnchor(forceCheck)
 			end
 			if (newAnchor ~= nil and updateFrame) then
 				local frame = self.frame
-				self.parent:SetParent(self.anchor:GetParent())
+				self.parent:SetParent(self.anchor:GetParent() or UIParent or nil)
 				self.defaultFrameStrata = self:GetFrameStrata()
 				self:GetParent():ClearAllPoints()
 				self:GetParent():SetPoint(
@@ -9240,7 +9982,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	end)
 	self.unitGUID = UnitGUID(unitId)
 	self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][self.fakeUnitId or unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or unitId])=="string") and _GF(anchors[frame.anchor][self.fakeUnitId or unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or unitId])=="table") and anchors[frame.anchor][self.fakeUnitId or unitId] or UIParent))
-	self.parent:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
+	self.parent:SetParent(self.anchor:GetParent() or UIParent or nil) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
 	self.defaultFrameStrata = self:GetFrameStrata()
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:GetParent():ClearAllPoints()
@@ -9249,7 +9991,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	self:GetParent():SetWidth(frame.size)
 	self:GetParent():SetHeight(frame.size)
 	self:RegisterUnitEvents(enabled)
-	
+
 	self:SetPoint("CENTER", self:GetParent(), "CENTER", 0, 0)
 	self:GetParent():SetPoint(
 		frame.point or "CENTER",
@@ -9305,9 +10047,9 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	if self.MasqueGroup then
 		self.MasqueGroup:ReSkin()
 	end
-	
+
 	SetInterruptIconsSize(self, frame.size)
-	
+
 	self.iconInterruptBackground:SetAlpha(frame.interruptBackgroundAlpha)
 	self.iconInterruptBackground:SetVertexColor(frame.interruptBackgroundVertexColor.r, frame.interruptBackgroundVertexColor.g, frame.interruptBackgroundVertexColor.b)
 	for _, v in pairs(self.iconInterruptList) do
@@ -9319,12 +10061,12 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	for _, v in ipairs(self.iconQueueInterruptList) do
 		v:SetAlpha(frame.interruptMiniIconsAlpha)
 	end
-	
+
 	if strfind((self.fakeUnitId or unitId), "party") then
 		self:CheckStatusPartyFrameChange()
 	end
 	C_Timer.After(0.01, MainHookCompactRaidFrames)	-- execute in some close next frame
-	
+
 	if frame.anchor == "Blizzard" and not(self.useCompactPartyFrames) then
 		if self.textureicon then
 			SetPortraitToTexture(self.texture, self.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
@@ -9339,11 +10081,11 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		self:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 		self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 	end
-	
+
 	--self:SetAlpha(frame.alpha) -- doesn't seem to work; must manually set alpha after the cooldown is displayed, otherwise it doesn't apply.
 	self:Hide()
 	self:GetParent():Hide()
-	
+
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
 		self:UNIT_AURA(self.unitId, true, nil, 0)
@@ -9359,9 +10101,7 @@ function LoseControl:GROUP_ROSTER_UPDATE()
 	local enabled = self:GetEnabled()
 	self:RegisterUnitEvents(enabled)
 	self.unitGUID = UnitGUID(unitId)
-	if (self.fakeUnitId ~= "partyplayer") then
-		self:CheckAnchor(frame.anchor ~= "Blizzard" or self.useCompactPartyFrames)
-	end
+	self:CheckAnchor(frame.anchor ~= "Blizzard" or self.useCompactPartyFrames)
 	if (enabled and IsInRaid() and (frame.anchor == "Blizzard") and (self.useCompactPartyFrames) and strfind(self.fakeUnitId or self.unitId, "party") and GetCVarBool("useCompactPartyFrames") and UnitExists(self.unitId)) then
 		UpdateAllRaidIconsAnchorCompactRaidFrame()
 	end
@@ -9477,14 +10217,34 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 		local unitId = self.fakeUnitId or self.unitId
 		if not(strfind(unitId, "party")) then return end
 		self.useCompactPartyFrames = value
+		if (value) then
+			anchors.Blizzard[unitId] = nil
+		else
+			local numId = -1
+			if (unitId == "party1") then
+				numId = 1
+			elseif (unitId == "party2") then
+				numId = 2
+			elseif (unitId == "party3") then
+				numId = 3
+			elseif (unitId == "party4") then
+				numId = 4
+			elseif (unitId == "partyplayer") then
+				numId = 0
+			end
+			if (numId <= 0) then
+				anchors.Blizzard[unitId] = nil
+			else
+				anchors.Blizzard[unitId] = "PartyMemberFrame" .. numId .. "Portrait"
+			end
+		end
 		local frame = self.frame or LoseControlDB.frames[unitId]
 		if (frame.anchor == "Blizzard") or (unitId == "partyplayer") then
 			if (value) then
 				MainHookCompactRaidFrames()
-				anchors.Blizzard[unitId] = nil
 				UpdateAllRaidIconsAnchorCompactRaidFrame()
 				if not(frame.noCompactFrame) then
-					frame.noCompactFrame = { 
+					frame.noCompactFrame = {
 						["point"] = frame.point,
 						["relativePoint"] = frame.relativePoint,
 						["frameStrata"] = frame.frameStrata,
@@ -9505,29 +10265,10 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 					frame.size = frame.compactFrame.size
 					if (unitId == "partyplayer") then frame.anchor = frame.compactFrame.anchor or "Blizzard" end
 					frame.compactFrame = nil
-				else
-					if (unitId == "partyplayer") then frame.anchor = "Blizzard" end
 				end
 			else
-				local numId = -1
-				if (unitId == "party1") then
-					numId = 1
-				elseif (unitId == "party2") then
-					numId = 2
-				elseif (unitId == "party3") then
-					numId = 3
-				elseif (unitId == "party4") then
-					numId = 4
-				elseif (unitId == "partyplayer") then
-					numId = 0
-				end
-				if (numId <= 0) then
-					anchors.Blizzard[unitId] = nil
-				else
-					anchors.Blizzard[unitId] = "PartyMemberFrame" .. numId .. "Portrait"
-				end
 				if not(frame.compactFrame) then
-					frame.compactFrame = { 
+					frame.compactFrame = {
 						["point"] = frame.point,
 						["relativePoint"] = frame.relativePoint,
 						["frameStrata"] = frame.frameStrata,
@@ -9538,18 +10279,20 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 					}
 					if (unitId == "partyplayer") then frame.compactFrame.anchor = frame.anchor end
 				end
-				frame.point = (frame.noCompactFrame and frame.noCompactFrame.point) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].point) or nil
-				frame.relativePoint = (frame.noCompactFrame and frame.noCompactFrame.relativePoint) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].relativePoint) or nil
-				frame.frameStrata = (frame.noCompactFrame and frame.noCompactFrame.frameStrata) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameStrata) or nil
-				frame.frameLevel = (frame.noCompactFrame and frame.noCompactFrame.frameLevel) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameLevel) or 0
-				frame.x = (frame.noCompactFrame and frame.noCompactFrame.x) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].x) or nil
-				frame.y = (frame.noCompactFrame and frame.noCompactFrame.y) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].y) or nil
-				frame.size = (frame.noCompactFrame and frame.noCompactFrame.size) or 36
-				if (unitId == "partyplayer") then frame.anchor = (frame.noCompactFrame and frame.noCompactFrame.anchor) or "None" end
-				frame.noCompactFrame = nil
+				if frame.noCompactFrame then
+					frame.point = frame.noCompactFrame.point
+					frame.relativePoint = frame.noCompactFrame.relativePoint
+					frame.frameStrata = frame.noCompactFrame.frameStrata
+					frame.frameLevel = frame.noCompactFrame.frameLevel
+					frame.x = frame.noCompactFrame.x
+					frame.y = frame.noCompactFrame.y
+					frame.size = frame.noCompactFrame.size
+					if (unitId == "partyplayer") then frame.anchor = frame.noCompactFrame.anchor or "None" end
+					frame.noCompactFrame = nil
+				end
 			end
 			self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="string") and _GF(anchors[frame.anchor][unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="table") and anchors[frame.anchor][unitId] or UIParent))
-			self.parent:SetParent(self.anchor:GetParent())
+			self.parent:SetParent(self.anchor:GetParent() or UIParent or nil)
 			self.defaultFrameStrata = self:GetFrameStrata()
 			self:GetParent():ClearAllPoints()
 			self:GetParent():SetPoint(
@@ -9977,13 +10720,13 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 			if (self.unitId == "targettarget") or (self.unitId == "focustarget") then
 				if debug then print(unitId, "debuff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
 			end
-			
+
 			if duration == 0 and expirationTime == 0 then
 				expirationTime = GetTime() + 1 -- normal expirationTime = 0
 			elseif expirationTime > 0 then
 				localForceEventUnitAuraAtEnd = (self.unitId == "targettarget")
 			end
-			
+
 			-- exceptions
 			if spellId == 212183 then	-- Smoke Bomb
 				local customSourceGUID
@@ -10091,7 +10834,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 					if ((class == 5) or (class == 8) or (class == 9)) then
 						spellId = 1
 					elseif ((class == 7) or (class == 11)) then
-						if (self.unitId == "player") then 
+						if (self.unitId == "player") then
 							local specID = GetSpecialization()
 							if (specID ~= nil) then
 								specID = GetSpecializationInfo(specID)
@@ -10108,7 +10851,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 					end
 				end
 			end
-			
+
 			local spellCategory = spellIds[spellId]
 			local Priority = priority[spellCategory]
 			if self.frame.categoriesEnabled.debuff[reactionToPlayer] and self.frame.categoriesEnabled.debuff[reactionToPlayer][spellCategory] then
@@ -10136,13 +10879,13 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 			local name, icon, _, _, duration, expirationTime, auraSource, _, _, spellId, _, _, _, _, _, extraFlag1 = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
 			if not spellId then break end -- no more debuffs, terminate the loop
 			if debug then print(unitId, "buff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
-			
+
 			if duration == 0 and expirationTime == 0 then
 				expirationTime = GetTime() + 1 -- normal expirationTime = 0
 			elseif expirationTime > 0 then
 				localForceEventUnitAuraAtEnd = (self.unitId == "targettarget")
 			end
-			
+
 			-- exceptions
 			if spellId == 145629 then	-- Anti-Magic Zone
 				if extraFlag1 <= 30 then
@@ -10199,7 +10942,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 			elseif spellId == 209426 and not(self:ArePvpTalentsActive()) then	-- Darkness
 				newCategory = "Other"
 			end
-			
+
 			local spellCategory = newCategory or spellIds[spellId]
 			local Priority = priority[spellCategory]
 			if self.frame.categoriesEnabled.buff[reactionToPlayer] and self.frame.categoriesEnabled.buff[reactionToPlayer][spellCategory] then
@@ -10219,7 +10962,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 				end
 			end
 		end
-		
+
 		-- Check interrupts
 		if ((self.unitGUID ~= nil) and (priority.Interrupt > 0) and self.frame.categoriesEnabled.interrupt[reactionToPlayer] and (UnitIsPlayer(self.unitId) or (((self.unitId ~= "target") or (LoseControlDB.showNPCInterruptsTarget)) and ((self.unitId ~= "focus") or (LoseControlDB.showNPCInterruptsFocus)) and ((self.unitId ~= "targettarget") or (LoseControlDB.showNPCInterruptsTargetTarget)) and ((self.unitId ~= "focustarget") or (LoseControlDB.showNPCInterruptsFocusTarget)) and (not(strfind(self.unitId, "nameplate")) or (LoseControlDB.showNPCInterruptsNameplate))))) then
 			if (self.frame.useSpellInsteadSchoolMiniIcon) then
@@ -10424,7 +11167,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 			end
 		end
 	end
-	
+
 	if maxExpirationTime == 0 then -- no (de)buffs found
 		self.maxExpirationTime = 0
 		if self.anchor ~= UIParent and self.drawlayer then
@@ -10597,7 +11340,7 @@ function LoseControl:StopMoving()
 		end
 	end
 	self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][self.fakeUnitId or self.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or self.unitId])=="string") and _GF(anchors[frame.anchor][self.fakeUnitId or self.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or self.unitId])=="table") and anchors[frame.anchor][self.fakeUnitId or self.unitId] or UIParent))
-	self.parent:SetParent(self.anchor:GetParent())
+	self.parent:SetParent(self.anchor:GetParent() or UIParent or nil)
 	self.defaultFrameStrata = self:GetFrameStrata()
 	self:ClearAllPoints()
 	self:GetParent():ClearAllPoints()
@@ -10697,13 +11440,13 @@ function LoseControl:new(unitId)
 	local op = CreateFrame("Button", addonName .. "ButtonParent" .. unitId, nil, 'ActionButtonTemplate')
 	op:EnableMouse(false)
 	HideTheButtonDefaultSkin(op)
-	
+
 	setmetatable(o, self)
 	self.__index = self
-	
+
 	o:SetParent(op)
 	o.parent = op
-	
+
 	o:SetDrawEdge(false)
 
 	-- Init class members
@@ -10819,7 +11562,7 @@ function LoseControl:new(unitId)
 		SetPortraitToTexture(v, v:GetTexture())
 		v:SetTexCoord(0.08,0.92,0.08,0.92)
 	end
-	
+
 	-- Handle events
 	o:SetScript("OnEvent", self.OnEvent)
 	o:SetScript("OnDragStart", self.StartMoving) -- this function is already built into the Frame class
@@ -10937,11 +11680,11 @@ OptionsPanel.scrollupbutton:ClearAllPoints()
 OptionsPanel.scrollupbutton:SetPoint("TOPRIGHT", OptionsPanel.scrollframe, "TOPRIGHT", -2, -2)
 OptionsPanel.scrolldownbutton:ClearAllPoints()
 OptionsPanel.scrolldownbutton:SetPoint("BOTTOMRIGHT", OptionsPanel.scrollframe, "BOTTOMRIGHT", -2, 2)
- 
+
 OptionsPanel.scrollbar:ClearAllPoints()
 OptionsPanel.scrollbar:SetPoint("TOP", OptionsPanel.scrollupbutton, "BOTTOM", 0, -2)
 OptionsPanel.scrollbar:SetPoint("BOTTOM", OptionsPanel.scrolldownbutton, "TOP", 0, 2)
- 
+
 OptionsPanel.scrollframe:SetScrollChild(OptionsPanel.scrollchild)
 OptionsPanel.scrollframe:SetAllPoints(OptionsPanel)
 OptionsPanel.scrollchild:SetSize(623, 568)
@@ -10998,7 +11741,7 @@ function Unlock:OnClick()
 						v:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 						v.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 					end
-					v.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
+					v.parent:SetParent(UIParent or nil) -- detach the frame from its parent or else it won't show if the parent is hidden
 					if (frame.frameStrata ~= nil) then
 						v:GetParent():SetFrameStrata(frame.frameStrata)
 						v:SetFrameStrata(frame.frameStrata)
@@ -11046,7 +11789,7 @@ function Unlock:OnClick()
 				LCframeplayer2:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 				LCframeplayer2.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 			end
-			LCframeplayer2.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
+			LCframeplayer2.parent:SetParent(UIParent or nil) -- detach the frame from its parent or else it won't show if the parent is hidden
 			if (frame.frameStrata ~= nil) then
 				LCframeplayer2:GetParent():SetFrameStrata(frame.frameStrata)
 				LCframeplayer2:SetFrameStrata(frame.frameStrata)
@@ -11424,7 +12167,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	local OptionsPanelFrame = CreateFrame("Frame", O..v)
 	OptionsPanelFrame.parent = addonName
 	OptionsPanelFrame.name = L[v]
-	
+
 	OptionsPanelFrame.scrollframe = OptionsPanelFrame.scrollframe or CreateFrame("ScrollFrame", OptionsPanelFrame:GetName().."ScrollFrame", OptionsPanelFrame, "UIPanelScrollFrameTemplate")
 	OptionsPanelFrame.scrollchild = OptionsPanelFrame.scrollchild or CreateFrame("Frame", OptionsPanelFrame:GetName().."ScrollChild")
 
@@ -11435,11 +12178,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	OptionsPanelFrame.scrollupbutton:SetPoint("TOPRIGHT", OptionsPanelFrame.scrollframe, "TOPRIGHT", -2, -2)
 	OptionsPanelFrame.scrolldownbutton:ClearAllPoints()
 	OptionsPanelFrame.scrolldownbutton:SetPoint("BOTTOMRIGHT", OptionsPanelFrame.scrollframe, "BOTTOMRIGHT", -2, 2)
-	 
+
 	OptionsPanelFrame.scrollbar:ClearAllPoints()
 	OptionsPanelFrame.scrollbar:SetPoint("TOP", OptionsPanelFrame.scrollupbutton, "BOTTOM", 0, -2)
 	OptionsPanelFrame.scrollbar:SetPoint("BOTTOM", OptionsPanelFrame.scrolldownbutton, "TOP", 0, 2)
-	 
+
 	OptionsPanelFrame.scrollframe:SetScrollChild(OptionsPanelFrame.scrollchild)
 	OptionsPanelFrame.scrollframe:SetAllPoints(OptionsPanelFrame)
 	OptionsPanelFrame.scrollchild:SetSize(623, 720)
@@ -11518,7 +12261,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		["Snare"] = CategoryEnabledSnareLabel,
 		["Other"] = CategoryEnabledOtherLabel
 	}
-	
+
 	local AnchorDropDown = CreateFrame("Frame", O..v.."AnchorDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
 	function AnchorDropDown:OnClick()
 		UIDropDownMenu_SetSelectedValue(AnchorDropDown, self.value)
@@ -11538,14 +12281,14 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (unitId ~= "partyplayer") then
 				frame.anchor = self.value
 			else
-				if (GetCVarBool("useCompactPartyFrames")) then
+				if ((self.value ~= "None" and self.value ~= "Blizzard" and anchors[self.value].partyplayer ~= nil) or (self.value == "Blizzard" and GetCVarBool("useCompactPartyFrames"))) then
 					frame.anchor = self.value
 				else
 					frame.anchor = "None"
 				end
 			end
 			icon.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][icon.fakeUnitId or icon.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="string") and _GF(anchors[frame.anchor][icon.fakeUnitId or icon.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="table") and anchors[frame.anchor][icon.fakeUnitId or icon.unitId] or UIParent))
-			icon.parent:SetParent(icon.anchor:GetParent())
+			icon.parent:SetParent(icon.anchor:GetParent() or UIParent or nil)
 			icon.defaultFrameStrata = icon:GetFrameStrata()
 			if frame.anchor ~= "None" then -- reset the frame position so it centers on the anchor frame
 				frame.point = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].point) or nil
@@ -11748,7 +12491,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			local icon = LCframeplayer2
 			frame.anchor = self.value
 			icon.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][icon.fakeUnitId or icon.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="string") and _GF(anchors[frame.anchor][icon.fakeUnitId or icon.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="table") and anchors[frame.anchor][icon.fakeUnitId or icon.unitId] or UIParent))
-			icon.parent:SetParent(icon.anchor:GetParent())
+			icon.parent:SetParent(icon.anchor:GetParent() or UIParent or nil)
 			icon.defaultFrameStrata = icon:GetFrameStrata()
 			if frame.anchor ~= "None" then -- reset the frame position so it centers on the anchor frame
 				frame.point = (DBdefaults.frames.player2 and frame.anchor == DBdefaults.frames.player2.anchor and DBdefaults.frames.player2.point) or nil
@@ -11829,7 +12572,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorPositionPartyDropDown
 	if v == "party" then
 		AnchorPositionPartyDropDown	= CreateFrame("Frame", O..v.."AnchorPositionPartyDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
@@ -11897,7 +12640,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorPositionArenaDropDown
 	if v == "arena" then
 		AnchorPositionArenaDropDown	= CreateFrame("Frame", O..v.."AnchorPositionArenaDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
@@ -11963,7 +12706,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorPositionRaidDropDown
 	if v == "raid" then
 		AnchorPositionRaidDropDown = CreateFrame("Frame", O..v.."AnchorPositionRaidDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
@@ -12077,7 +12820,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		self:SetTextColor(1, 1, 1)
 		self.labelObj:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
 	end)
-	
+
 	local PositionYEditBox = CreateEditBox(L["Position"], OptionsPanelFrame.container, 55, 20, OptionsPanelFrame:GetName() .. "PositionYEditBox")
 	PositionYEditBox.labelObj = PositionYEditBoxLabel
 	PositionYEditBox:SetScript("OnEnterPressed", function(self, value)
@@ -12182,7 +12925,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorIconPointDropDown = CreateFrame("Frame", O..v.."AnchorIconPointDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
 	function AnchorIconPointDropDown:OnClick()
 		UIDropDownMenu_SetSelectedValue(AnchorIconPointDropDown, self.value)
@@ -12227,7 +12970,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorFrameStrataDropDown = CreateFrame("Frame", O..v.."AnchorFrameStrataDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
 	function AnchorFrameStrataDropDown:OnClick()
 		UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, self.value)
@@ -12275,7 +13018,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local FrameLevelEditBox = CreateEditBox(nil, OptionsPanelFrame.container, 55, 20, OptionsPanelFrame:GetName() .. "FrameLevelEditBox")
 	FrameLevelEditBox.labelObj = FrameLevelEditBoxLabel
 	FrameLevelEditBox:SetScript("OnEnterPressed", function(self, value)
@@ -12331,7 +13074,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, frame in ipairs(frames) do
-			if (v ~= "party" or GetCVarBool("useCompactPartyFrames") or not(LoseControlDB.showPartyplayerIcon) or frame == "partyplayer") then
+			if (v ~= "party" or GetCVarBool("useCompactPartyFrames") or not(LoseControlDB.showPartyplayerIcon) or LoseControlDB.frames[frame].anchor ~= "Blizzard" or frame == "partyplayer") then
 				LoseControlDB.frames[frame].size = value
 				LCframes[frame]:SetWidth(value)
 				LCframes[frame]:SetHeight(value)
@@ -12354,7 +13097,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			self:Func(value)
 		end
 	end)
-	
+
 	local SizeSlider2
 	if v == "player" then
 		SizeSlider2 = CreateSlider(L["Icon Size"], OptionsPanelFrame.container, 4, 256, 1, 160, true, OptionsPanelFrame:GetName() .. "IconSizeSlider2")
@@ -12476,7 +13219,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end)
 	end
-	
+
 	local DisableInArena
 	if v == "party" then
 		DisableInArena = CreateFrame("CheckButton", O..v.."DisableInArena", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
@@ -12622,7 +13365,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end)
 	end
-	
+
 	local DisableFocusFocusTarget
 	if v == "focustarget" then
 		DisableFocusFocusTarget = CreateFrame("CheckButton", O..v.."DisableFocusFocusTarget", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
@@ -12718,7 +13461,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			self:Func(value)
 		end
 	end)
-	
+
 	local AlphaSliderInterruptMiniIcons = CreateSlider(L["InterruptMiniIconsOpacity"], OptionsPanelFrame.container, 0, 100, 1, 200, true, OptionsPanelFrame:GetName() .. "InterruptMiniIconsOpacitySlider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
 	AlphaSliderInterruptMiniIcons.Func = function(self, value)
 		if value == nil then value = self:GetValue() end
@@ -12783,7 +13526,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			self:Func(value)
 		end
 	end)
-	
+
 	local ColorPickerBackgroundInterrupt = CreateFrame("Button", OptionsPanelFrame:GetName() .. "ColorPickerBackgroundInterrupt", OptionsPanelFrame.container, "GlowBoxTemplate")
 	ColorPickerBackgroundInterrupt:SetSize(25, 25)
 	ColorPickerBackgroundInterrupt:SetPoint("LEFT")
@@ -12817,7 +13560,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		end
 		ShowColorPicker(self.texture, LoseControlDB.frames[frames[1]].interruptBackgroundVertexColor.r, LoseControlDB.frames[frames[1]].interruptBackgroundVertexColor.g, LoseControlDB.frames[frames[1]].interruptBackgroundVertexColor.b, nil, InterruptBackgroundColorPickerChangeCallback, InterruptBackgroundColorPickerCancelCallback)
 	end)
-	
+
 	local ColorPickerBackgroundInterruptREditBox = CreateEditBox(nil, OptionsPanelFrame.container, 30, 3, OptionsPanelFrame:GetName() .. "ColorPickerBackgroundInterruptREditBox")
 	ColorPickerBackgroundInterruptREditBox.labelObj = ColorPickerBackgroundInterruptREditBoxLabel
 	ColorPickerBackgroundInterruptREditBox:SetScript("OnEnterPressed", function(self, value)
@@ -12882,7 +13625,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		self:SetTextColor(1, 1, 1)
 		self.labelObj:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
 	end)
-	
+
 	local ColorPickerBackgroundInterruptGEditBox = CreateEditBox(nil, OptionsPanelFrame.container, 30, 3, OptionsPanelFrame:GetName() .. "ColorPickerBackgroundInterruptGEditBox")
 	ColorPickerBackgroundInterruptGEditBox.labelObj = ColorPickerBackgroundInterruptGEditBoxLabel
 	ColorPickerBackgroundInterruptGEditBox:SetScript("OnEnterPressed", function(self, value)
@@ -12947,7 +13690,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		self:SetTextColor(1, 1, 1)
 		self.labelObj:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
 	end)
-	
+
 	local ColorPickerBackgroundInterruptBEditBox = CreateEditBox(nil, OptionsPanelFrame.container, 30, 3, OptionsPanelFrame:GetName() .. "ColorPickerBackgroundInterruptBEditBox")
 	ColorPickerBackgroundInterruptBEditBox.labelObj = ColorPickerBackgroundInterruptBEditBoxLabel
 	ColorPickerBackgroundInterruptBEditBox:SetScript("OnEnterPressed", function(self, value)
@@ -13012,7 +13755,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		self:SetTextColor(1, 1, 1)
 		self.labelObj:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
 	end)
-	
+
 	function ColorPickerBackgroundInterrupt.texture:UpdateColor(frame)
 		self:SetVertexColor(frame.interruptBackgroundVertexColor.r, frame.interruptBackgroundVertexColor.g, frame.interruptBackgroundVertexColor.b)
 		ColorPickerBackgroundInterruptREditBox:SetText(mathfloor(frame.interruptBackgroundVertexColor.r * 255 + 0.5))
@@ -13022,7 +13765,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		ColorPickerBackgroundInterruptBEditBox:SetText(mathfloor(frame.interruptBackgroundVertexColor.b * 255 + 0.5))
 		ColorPickerBackgroundInterruptBEditBox:SetCursorPosition(0)
 	end
-	
+
 	local EnableElementalSchoolMiniIcon = CreateFrame("CheckButton", OptionsPanelFrame:GetName().."EnableElementalSchoolMiniIcon", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
 	_G[OptionsPanelFrame:GetName().."EnableElementalSchoolMiniIconText"]:SetText(L["EnableElementalSchoolMiniIcon"])
 	function EnableElementalSchoolMiniIcon:Check(value)
@@ -13072,7 +13815,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	EnableElementalSchoolMiniIcon:SetScript("OnClick", function(self)
 		EnableElementalSchoolMiniIcon:Check(self:GetChecked())
 	end)
-	
+
 	local EnableChaosSchoolMiniIcon = CreateFrame("CheckButton", OptionsPanelFrame:GetName().."EnableChaosSchoolMiniIcon", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
 	_G[OptionsPanelFrame:GetName().."EnableChaosSchoolMiniIconText"]:SetText(L["EnableChaosSchoolMiniIcon"])
 	function EnableChaosSchoolMiniIcon:Check(value)
@@ -13122,7 +13865,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	EnableChaosSchoolMiniIcon:SetScript("OnClick", function(self)
 		EnableChaosSchoolMiniIcon:Check(self:GetChecked())
 	end)
-	
+
 	local UseSpellInsteadSchoolMiniIcon = CreateFrame("CheckButton", OptionsPanelFrame:GetName().."UseSpellInsteadSchoolMiniIcon", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
 	_G[OptionsPanelFrame:GetName().."UseSpellInsteadSchoolMiniIconText"]:SetText(L["UseSpellInsteadSchoolMiniIcon"])
 	function UseSpellInsteadSchoolMiniIcon:Check(value)
@@ -13202,7 +13945,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			else
 				LCframes[frame]:SetSwipeColor(0, 0, 0, value / 100)
 			end
-			
+
 			if (frame == "player") then
 				LoseControlDB.frames.player2.swipeAlpha = value / 100 -- the real alpha value
 				if (LoseControlDB.frames.player2.anchor == "Blizzard" and not(LCframes[frame].useCompactPartyFrames)) then
@@ -13479,7 +14222,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					}, "Button", true)
 				end
 				LCframes.player.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId])=="string") and _GF(anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId])=="table") and anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId] or UIParent))
-				LCframes.player.parent:SetParent(LCframes.player.anchor:GetParent())
+				LCframes.player.parent:SetParent(LCframes.player.anchor:GetParent() or UIParent or nil)
 				LCframes.player.defaultFrameStrata = LCframes.player:GetFrameStrata()
 				LCframes.player:GetParent():ClearAllPoints()
 				LCframes.player:GetParent():SetPoint(
@@ -14030,22 +14773,64 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				AddItem(AnchorDropDown, "Blizzard", "Blizzard")
 			end
 			if _G[anchors["Perl"][unitId]] or (type(anchors["Perl"][unitId])=="table" and anchors["Perl"][unitId]) or (type(anchors["Perl"][unitId])=="string" and _GF(anchors["Perl"][unitId])) then AddItem(AnchorDropDown, "Perl", "Perl") end
+			if _G[anchors["Perl_CF"][unitId]] or (type(anchors["Perl_CF"][unitId])=="table" and anchors["Perl_CF"][unitId]) or (type(anchors["Perl_CF"][unitId])=="string" and _GF(anchors["Perl_CF"][unitId])) then AddItem(AnchorDropDown, "Perl_CF", "Perl_CF") end
 			if _G[anchors["XPerl"][unitId]] or (type(anchors["XPerl"][unitId])=="table" and anchors["XPerl"][unitId]) or (type(anchors["XPerl"][unitId])=="string" and _GF(anchors["XPerl"][unitId])) then AddItem(AnchorDropDown, "XPerl", "XPerl") end
+			if _G[anchors["XPerl_CUF"][unitId]] or (type(anchors["XPerl_CUF"][unitId])=="table" and anchors["XPerl_CUF"][unitId]) or (type(anchors["XPerl_CUF"][unitId])=="string" and _GF(anchors["XPerl_CUF"][unitId])) then AddItem(AnchorDropDown, "XPerl_CUF", "XPerl_CUF") end
+			if _G[anchors["XPerl_PlayerInParty"][unitId]] or (type(anchors["XPerl_PlayerInParty"][unitId])=="table" and anchors["XPerl_PlayerInParty"][unitId]) or (type(anchors["XPerl_PlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "XPerl_PlayerInParty", "XPerl_PlayerInParty") end
+			if _G[anchors["XPerl_NoPlayerInParty"][unitId]] or (type(anchors["XPerl_NoPlayerInParty"][unitId])=="table" and anchors["XPerl_NoPlayerInParty"][unitId]) or (type(anchors["XPerl_NoPlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "XPerl_NoPlayerInParty", "XPerl_NoPlayerInParty") end
+			if _G[anchors["XPerl_CUF_PlayerInParty"][unitId]] or (type(anchors["XPerl_CUF_PlayerInParty"][unitId])=="table" and anchors["XPerl_CUF_PlayerInParty"][unitId]) or (type(anchors["XPerl_CUF_PlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_CUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "XPerl_CUF_PlayerInParty", "XPerl_CUF_PlayerInParty") end
+			if _G[anchors["XPerl_CUF_NoPlayerInParty"][unitId]] or (type(anchors["XPerl_CUF_NoPlayerInParty"][unitId])=="table" and anchors["XPerl_CUF_NoPlayerInParty"][unitId]) or (type(anchors["XPerl_CUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_CUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "XPerl_CUF_NoPlayerInParty", "XPerl_CUF_NoPlayerInParty") end
 			if _G[anchors["LUI"][unitId]] or (type(anchors["LUI"][unitId])=="table" and anchors["LUI"][unitId]) or (type(anchors["LUI"][unitId])=="string" and _GF(anchors["LUI"][unitId])) then AddItem(AnchorDropDown, "LUI", "LUI") end
+			if _G[anchors["LUI_CF"][unitId]] or (type(anchors["LUI_CF"][unitId])=="table" and anchors["LUI_CF"][unitId]) or (type(anchors["LUI_CF"][unitId])=="string" and _GF(anchors["LUI_CF"][unitId])) then AddItem(AnchorDropDown, "LUI_CF", "LUI_CF") end
+			if _G[anchors["LUI_PlayerInParty"][unitId]] or (type(anchors["LUI_PlayerInParty"][unitId])=="table" and anchors["LUI_PlayerInParty"][unitId]) or (type(anchors["LUI_PlayerInParty"][unitId])=="string" and _GF(anchors["LUI_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUI_PlayerInParty", "LUI_PlayerInParty") end
+			if _G[anchors["LUI_NoPlayerInParty"][unitId]] or (type(anchors["LUI_NoPlayerInParty"][unitId])=="table" and anchors["LUI_NoPlayerInParty"][unitId]) or (type(anchors["LUI_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUI_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUI_NoPlayerInParty", "LUI_NoPlayerInParty") end
+			if _G[anchors["LUI_CF_PlayerInParty"][unitId]] or (type(anchors["LUI_CF_PlayerInParty"][unitId])=="table" and anchors["LUI_CF_PlayerInParty"][unitId]) or (type(anchors["LUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["LUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUI_CF_PlayerInParty", "LUI_CF_PlayerInParty") end
+			if _G[anchors["LUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["LUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["LUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["LUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUI_CF_NoPlayerInParty", "LUI_CF_NoPlayerInParty") end
 			if _G[anchors["SUF"][unitId]] or (type(anchors["SUF"][unitId])=="table" and anchors["SUF"][unitId]) or (type(anchors["SUF"][unitId])=="string" and _GF(anchors["SUF"][unitId])) then AddItem(AnchorDropDown, "SUF", "SUF") end
+			if _G[anchors["SUF_CF"][unitId]] or (type(anchors["SUF_CF"][unitId])=="table" and anchors["SUF_CF"][unitId]) or (type(anchors["SUF_CF"][unitId])=="string" and _GF(anchors["SUF_CF"][unitId])) then AddItem(AnchorDropDown, "SUF_CF", "SUF_CF") end
+			if _G[anchors["SUF_PlayerInParty"][unitId]] or (type(anchors["SUF_PlayerInParty"][unitId])=="table" and anchors["SUF_PlayerInParty"][unitId]) or (type(anchors["SUF_PlayerInParty"][unitId])=="string" and _GF(anchors["SUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SUF_PlayerInParty", "SUF_PlayerInParty") end
+			if _G[anchors["SUF_NoPlayerInParty"][unitId]] or (type(anchors["SUF_NoPlayerInParty"][unitId])=="table" and anchors["SUF_NoPlayerInParty"][unitId]) or (type(anchors["SUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SUF_NoPlayerInParty", "SUF_NoPlayerInParty") end
+			if _G[anchors["SUF_CF_PlayerInParty"][unitId]] or (type(anchors["SUF_CF_PlayerInParty"][unitId])=="table" and anchors["SUF_CF_PlayerInParty"][unitId]) or (type(anchors["SUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["SUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SUF_CF_PlayerInParty", "SUF_CF_PlayerInParty") end
+			if _G[anchors["SUF_CF_NoPlayerInParty"][unitId]] or (type(anchors["SUF_CF_NoPlayerInParty"][unitId])=="table" and anchors["SUF_CF_NoPlayerInParty"][unitId]) or (type(anchors["SUF_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SUF_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SUF_CF_NoPlayerInParty", "SUF_CF_NoPlayerInParty") end
 			if _G[anchors["PitBullUF"][unitId]] or (type(anchors["PitBullUF"][unitId])=="table" and anchors["PitBullUF"][unitId]) or (type(anchors["PitBullUF"][unitId])=="string" and _GF(anchors["PitBullUF"][unitId])) then AddItem(AnchorDropDown, "PitBullUF", "PitBullUF") end
+			if _G[anchors["PitBullUF_CF"][unitId]] or (type(anchors["PitBullUF_CF"][unitId])=="table" and anchors["PitBullUF_CF"][unitId]) or (type(anchors["PitBullUF_CF"][unitId])=="string" and _GF(anchors["PitBullUF_CF"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_CF", "PitBullUF_CF") end
+			if _G[anchors["PitBullUF_PlayerInParty"][unitId]] or (type(anchors["PitBullUF_PlayerInParty"][unitId])=="table" and anchors["PitBullUF_PlayerInParty"][unitId]) or (type(anchors["PitBullUF_PlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_PlayerInParty", "PitBullUF_PlayerInParty") end
+			if _G[anchors["PitBullUF_NoPlayerInParty"][unitId]] or (type(anchors["PitBullUF_NoPlayerInParty"][unitId])=="table" and anchors["PitBullUF_NoPlayerInParty"][unitId]) or (type(anchors["PitBullUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_NoPlayerInParty", "PitBullUF_NoPlayerInParty") end
+			if _G[anchors["PitBullUF_CF_PlayerInParty"][unitId]] or (type(anchors["PitBullUF_CF_PlayerInParty"][unitId])=="table" and anchors["PitBullUF_CF_PlayerInParty"][unitId]) or (type(anchors["PitBullUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_CF_PlayerInParty", "PitBullUF_CF_PlayerInParty") end
+			if _G[anchors["PitBullUF_CF_NoPlayerInParty"][unitId]] or (type(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])=="table" and anchors["PitBullUF_CF_NoPlayerInParty"][unitId]) or (type(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_CF_NoPlayerInParty", "PitBullUF_CF_NoPlayerInParty") end
 			if _G[anchors["SpartanUI_2D"][unitId]] or (type(anchors["SpartanUI_2D"][unitId])=="table" and anchors["SpartanUI_2D"][unitId]) or (type(anchors["SpartanUI_2D"][unitId])=="string" and _GF(anchors["SpartanUI_2D"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_2D", "SpartanUI_2D") end
 			if _G[anchors["SpartanUI_3D"][unitId]] or (type(anchors["SpartanUI_3D"][unitId])=="table" and anchors["SpartanUI_3D"][unitId]) or (type(anchors["SpartanUI_3D"][unitId])=="string" and _GF(anchors["SpartanUI_3D"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_3D", "SpartanUI_3D") end
-			if _G[anchors["SpartanUI_2D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_2D_NoPlayerInParty", "SpartanUI_2D_NoPlayerInParty") end
+			if _G[anchors["SpartanUI_CF"][unitId]] or (type(anchors["SpartanUI_CF"][unitId])=="table" and anchors["SpartanUI_CF"][unitId]) or (type(anchors["SpartanUI_CF"][unitId])=="string" and _GF(anchors["SpartanUI_CF"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_CF", "SpartanUI_CF") end
 			if _G[anchors["SpartanUI_2D_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_2D_PlayerInParty", "SpartanUI_2D_PlayerInParty") end
-			if _G[anchors["SpartanUI_3D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_3D_NoPlayerInParty", "SpartanUI_3D_NoPlayerInParty") end
+			if _G[anchors["SpartanUI_2D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_2D_NoPlayerInParty", "SpartanUI_2D_NoPlayerInParty") end
 			if _G[anchors["SpartanUI_3D_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_3D_PlayerInParty", "SpartanUI_3D_PlayerInParty") end
+			if _G[anchors["SpartanUI_3D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_3D_NoPlayerInParty", "SpartanUI_3D_NoPlayerInParty") end
+			if _G[anchors["SpartanUI_CF_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_CF_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_CF_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_CF_PlayerInParty", "SpartanUI_CF_PlayerInParty") end
+			if _G[anchors["SpartanUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_CF_NoPlayerInParty", "SpartanUI_CF_NoPlayerInParty") end
 			if _G[anchors["GW2"][unitId]] or (type(anchors["GW2"][unitId])=="table" and anchors["GW2"][unitId]) or (type(anchors["GW2"][unitId])=="string" and _GF(anchors["GW2"][unitId])) then AddItem(AnchorDropDown, "GW2", "GW2") end
-			if _G[anchors["nUI"][unitId]] or (type(anchors["nUI"][unitId])=="table" and anchors["nUI"][unitId]) or (type(anchors["nUI"][unitId])=="string" and _GF(anchors["nUI"][unitId])) then AddItem(AnchorDropDown, "nUI", "nUI") end
+			if _G[anchors["GW2_CF"][unitId]] or (type(anchors["GW2_CF"][unitId])=="table" and anchors["GW2_CF"][unitId]) or (type(anchors["GW2_CF"][unitId])=="string" and _GF(anchors["GW2_CF"][unitId])) then AddItem(AnchorDropDown, "GW2_CF", "GW2_CF") end
+			if _G[anchors["GW2_PlayerInParty"][unitId]] or (type(anchors["GW2_PlayerInParty"][unitId])=="table" and anchors["GW2_PlayerInParty"][unitId]) or (type(anchors["GW2_PlayerInParty"][unitId])=="string" and _GF(anchors["GW2_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "GW2_PlayerInParty", "GW2_PlayerInParty") end
+			if _G[anchors["GW2_NoPlayerInParty"][unitId]] or (type(anchors["GW2_NoPlayerInParty"][unitId])=="table" and anchors["GW2_NoPlayerInParty"][unitId]) or (type(anchors["GW2_NoPlayerInParty"][unitId])=="string" and _GF(anchors["GW2_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "GW2_NoPlayerInParty", "GW2_NoPlayerInParty") end
+			if _G[anchors["GW2_CF_PlayerInParty"][unitId]] or (type(anchors["GW2_CF_PlayerInParty"][unitId])=="table" and anchors["GW2_CF_PlayerInParty"][unitId]) or (type(anchors["GW2_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["GW2_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "GW2_CF_PlayerInParty", "GW2_CF_PlayerInParty") end
+			if _G[anchors["GW2_CF_NoPlayerInParty"][unitId]] or (type(anchors["GW2_CF_NoPlayerInParty"][unitId])=="table" and anchors["GW2_CF_NoPlayerInParty"][unitId]) or (type(anchors["GW2_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["GW2_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "GW2_CF_NoPlayerInParty", "GW2_CF_NoPlayerInParty") end
+			if _G[anchors["GW2_PartyRaidStyle"][unitId]] or (type(anchors["GW2_PartyRaidStyle"][unitId])=="table" and anchors["GW2_PartyRaidStyle"][unitId]) or (type(anchors["GW2_PartyRaidStyle"][unitId])=="string" and _GF(anchors["GW2_PartyRaidStyle"][unitId])) then AddItem(AnchorDropDown, "GW2_PartyRaidStyle", "GW2_PartyRaidStyle") end
+			if _G[anchors["nUI_Solo"][unitId]] or (type(anchors["nUI_Solo"][unitId])=="table" and anchors["nUI_Solo"][unitId]) or (type(anchors["nUI_Solo"][unitId])=="string" and _GF(anchors["nUI_Solo"][unitId])) then AddItem(AnchorDropDown, "nUI_Solo", "nUI_Solo") end
+			if _G[anchors["nUI_Party"][unitId]] or (type(anchors["nUI_Party"][unitId])=="table" and anchors["nUI_Party"][unitId]) or (type(anchors["nUI_Party"][unitId])=="string" and _GF(anchors["nUI_Party"][unitId])) then AddItem(AnchorDropDown, "nUI_Party", "nUI_Party") end
+			if _G[anchors["nUI_Raid10"][unitId]] or (type(anchors["nUI_Raid10"][unitId])=="table" and anchors["nUI_Raid10"][unitId]) or (type(anchors["nUI_Raid10"][unitId])=="string" and _GF(anchors["nUI_Raid10"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid10", "nUI_Raid10") end
+			if _G[anchors["nUI_Raid15"][unitId]] or (type(anchors["nUI_Raid15"][unitId])=="table" and anchors["nUI_Raid15"][unitId]) or (type(anchors["nUI_Raid15"][unitId])=="string" and _GF(anchors["nUI_Raid15"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid15", "nUI_Raid15") end
+			if _G[anchors["nUI_Raid20"][unitId]] or (type(anchors["nUI_Raid20"][unitId])=="table" and anchors["nUI_Raid20"][unitId]) or (type(anchors["nUI_Raid20"][unitId])=="string" and _GF(anchors["nUI_Raid20"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid20", "nUI_Raid20") end
+			if _G[anchors["nUI_Raid25"][unitId]] or (type(anchors["nUI_Raid25"][unitId])=="table" and anchors["nUI_Raid25"][unitId]) or (type(anchors["nUI_Raid25"][unitId])=="string" and _GF(anchors["nUI_Raid25"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid25", "nUI_Raid25") end
+			if _G[anchors["nUI_Raid40"][unitId]] or (type(anchors["nUI_Raid40"][unitId])=="table" and anchors["nUI_Raid40"][unitId]) or (type(anchors["nUI_Raid40"][unitId])=="string" and _GF(anchors["nUI_Raid40"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid40", "nUI_Raid40") end
 			if _G[anchors["Tukui"][unitId]] or (type(anchors["Tukui"][unitId])=="table" and anchors["Tukui"][unitId]) or (type(anchors["Tukui"][unitId])=="string" and _GF(anchors["Tukui"][unitId])) then AddItem(AnchorDropDown, "Tukui", "Tukui") end
+			if _G[anchors["Tukui_CF"][unitId]] or (type(anchors["Tukui_CF"][unitId])=="table" and anchors["Tukui_CF"][unitId]) or (type(anchors["Tukui_CF"][unitId])=="string" and _GF(anchors["Tukui_CF"][unitId])) then AddItem(AnchorDropDown, "Tukui_CF", "Tukui_CF") end
+			if _G[anchors["Tukui_CF_PlayerInParty"][unitId]] or (type(anchors["Tukui_CF_PlayerInParty"][unitId])=="table" and anchors["Tukui_CF_PlayerInParty"][unitId]) or (type(anchors["Tukui_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["Tukui_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "Tukui_CF_PlayerInParty", "Tukui_CF_PlayerInParty") end
+			if _G[anchors["Tukui_CF_NoPlayerInParty"][unitId]] or (type(anchors["Tukui_CF_NoPlayerInParty"][unitId])=="table" and anchors["Tukui_CF_NoPlayerInParty"][unitId]) or (type(anchors["Tukui_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["Tukui_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "Tukui_CF_NoPlayerInParty", "Tukui_CF_NoPlayerInParty") end
 			if _G[anchors["ElvUI"][unitId]] or (type(anchors["ElvUI"][unitId])=="table" and anchors["ElvUI"][unitId]) or (type(anchors["ElvUI"][unitId])=="string" and _GF(anchors["ElvUI"][unitId])) then AddItem(AnchorDropDown, "ElvUI", "ElvUI") end
+			if _G[anchors["ElvUI_CF"][unitId]] or (type(anchors["ElvUI_CF"][unitId])=="table" and anchors["ElvUI_CF"][unitId]) or (type(anchors["ElvUI_CF"][unitId])=="string" and _GF(anchors["ElvUI_CF"][unitId])) then AddItem(AnchorDropDown, "ElvUI_CF", "ElvUI_CF") end
 			if _G[anchors["ElvUI_PlayerInParty"][unitId]] or (type(anchors["ElvUI_PlayerInParty"][unitId])=="table" and anchors["ElvUI_PlayerInParty"][unitId]) or (type(anchors["ElvUI_PlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "ElvUI_PlayerInParty", "ElvUI_PlayerInParty") end
 			if _G[anchors["ElvUI_NoPlayerInParty"][unitId]] or (type(anchors["ElvUI_NoPlayerInParty"][unitId])=="table" and anchors["ElvUI_NoPlayerInParty"][unitId]) or (type(anchors["ElvUI_NoPlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "ElvUI_NoPlayerInParty", "ElvUI_NoPlayerInParty") end
+			if _G[anchors["ElvUI_CF_PlayerInParty"][unitId]] or (type(anchors["ElvUI_CF_PlayerInParty"][unitId])=="table" and anchors["ElvUI_CF_PlayerInParty"][unitId]) or (type(anchors["ElvUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "ElvUI_CF_PlayerInParty", "ElvUI_CF_PlayerInParty") end
+			if _G[anchors["ElvUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["ElvUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["ElvUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["ElvUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "ElvUI_CF_NoPlayerInParty", "ElvUI_CF_NoPlayerInParty") end
 			if _G[anchors["Gladius"][unitId]] or (type(anchors["Gladius"][unitId])=="table" and anchors["Gladius"][unitId]) or (type(anchors["Gladius"][unitId])=="string" and _GF(anchors["Gladius"][unitId])) then AddItem(AnchorDropDown, "Gladius", "Gladius") end
 			if _G[anchors["GladiusEx"][unitId]] or (type(anchors["GladiusEx"][unitId])=="table" and anchors["GladiusEx"][unitId]) or (type(anchors["GladiusEx"][unitId])=="string" and _GF(anchors["GladiusEx"][unitId])) then AddItem(AnchorDropDown, "GladiusEx", "GladiusEx") end
 			if _G[anchors["SyncFrames"][unitId]] or (type(anchors["SyncFrames"][unitId])=="table" and anchors["SyncFrames"][unitId]) or (type(anchors["SyncFrames"][unitId])=="string" and _GF(anchors["SyncFrames"][unitId])) then AddItem(AnchorDropDown, "SyncFrames", "SyncFrames") end
@@ -14055,22 +14840,64 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			UIDropDownMenu_Initialize(AnchorDropDown2, function() -- called on refresh and also every time the drop down menu is opened
 				AddItem(AnchorDropDown2, "Blizzard", "Blizzard")
 				if _G[anchors["Perl"][unitId]] or (type(anchors["Perl"][unitId])=="table" and anchors["Perl"][unitId]) or (type(anchors["Perl"][unitId])=="string" and _GF(anchors["Perl"][unitId])) then AddItem(AnchorDropDown2, "Perl", "Perl") end
+				if _G[anchors["Perl_CF"][unitId]] or (type(anchors["Perl_CF"][unitId])=="table" and anchors["Perl_CF"][unitId]) or (type(anchors["Perl_CF"][unitId])=="string" and _GF(anchors["Perl_CF"][unitId])) then AddItem(AnchorDropDown2, "Perl_CF", "Perl_CF") end
 				if _G[anchors["XPerl"][unitId]] or (type(anchors["XPerl"][unitId])=="table" and anchors["XPerl"][unitId]) or (type(anchors["XPerl"][unitId])=="string" and _GF(anchors["XPerl"][unitId])) then AddItem(AnchorDropDown2, "XPerl", "XPerl") end
+				if _G[anchors["XPerl_CUF"][unitId]] or (type(anchors["XPerl_CUF"][unitId])=="table" and anchors["XPerl_CUF"][unitId]) or (type(anchors["XPerl_CUF"][unitId])=="string" and _GF(anchors["XPerl_CUF"][unitId])) then AddItem(AnchorDropDown2, "XPerl_CUF", "XPerl_CUF") end
+				if _G[anchors["XPerl_PlayerInParty"][unitId]] or (type(anchors["XPerl_PlayerInParty"][unitId])=="table" and anchors["XPerl_PlayerInParty"][unitId]) or (type(anchors["XPerl_PlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "XPerl_PlayerInParty", "XPerl_PlayerInParty") end
+				if _G[anchors["XPerl_NoPlayerInParty"][unitId]] or (type(anchors["XPerl_NoPlayerInParty"][unitId])=="table" and anchors["XPerl_NoPlayerInParty"][unitId]) or (type(anchors["XPerl_NoPlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "XPerl_NoPlayerInParty", "XPerl_NoPlayerInParty") end
+				if _G[anchors["XPerl_CUF_PlayerInParty"][unitId]] or (type(anchors["XPerl_CUF_PlayerInParty"][unitId])=="table" and anchors["XPerl_CUF_PlayerInParty"][unitId]) or (type(anchors["XPerl_CUF_PlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_CUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "XPerl_CUF_PlayerInParty", "XPerl_CUF_PlayerInParty") end
+				if _G[anchors["XPerl_CUF_NoPlayerInParty"][unitId]] or (type(anchors["XPerl_CUF_NoPlayerInParty"][unitId])=="table" and anchors["XPerl_CUF_NoPlayerInParty"][unitId]) or (type(anchors["XPerl_CUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_CUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "XPerl_CUF_NoPlayerInParty", "XPerl_CUF_NoPlayerInParty") end
 				if _G[anchors["LUI"][unitId]] or (type(anchors["LUI"][unitId])=="table" and anchors["LUI"][unitId]) or (type(anchors["LUI"][unitId])=="string" and _GF(anchors["LUI"][unitId])) then AddItem(AnchorDropDown2, "LUI", "LUI") end
+				if _G[anchors["LUI_CF"][unitId]] or (type(anchors["LUI_CF"][unitId])=="table" and anchors["LUI_CF"][unitId]) or (type(anchors["LUI_CF"][unitId])=="string" and _GF(anchors["LUI_CF"][unitId])) then AddItem(AnchorDropDown2, "LUI_CF", "LUI_CF") end
+				if _G[anchors["LUI_PlayerInParty"][unitId]] or (type(anchors["LUI_PlayerInParty"][unitId])=="table" and anchors["LUI_PlayerInParty"][unitId]) or (type(anchors["LUI_PlayerInParty"][unitId])=="string" and _GF(anchors["LUI_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUI_PlayerInParty", "LUI_PlayerInParty") end
+				if _G[anchors["LUI_NoPlayerInParty"][unitId]] or (type(anchors["LUI_NoPlayerInParty"][unitId])=="table" and anchors["LUI_NoPlayerInParty"][unitId]) or (type(anchors["LUI_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUI_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUI_NoPlayerInParty", "LUI_NoPlayerInParty") end
+				if _G[anchors["LUI_CF_PlayerInParty"][unitId]] or (type(anchors["LUI_CF_PlayerInParty"][unitId])=="table" and anchors["LUI_CF_PlayerInParty"][unitId]) or (type(anchors["LUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["LUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUI_CF_PlayerInParty", "LUI_CF_PlayerInParty") end
+				if _G[anchors["LUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["LUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["LUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["LUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUI_CF_NoPlayerInParty", "LUI_CF_NoPlayerInParty") end
 				if _G[anchors["SUF"][unitId]] or (type(anchors["SUF"][unitId])=="table" and anchors["SUF"][unitId]) or (type(anchors["SUF"][unitId])=="string" and _GF(anchors["SUF"][unitId])) then AddItem(AnchorDropDown2, "SUF", "SUF") end
+				if _G[anchors["SUF_CF"][unitId]] or (type(anchors["SUF_CF"][unitId])=="table" and anchors["SUF_CF"][unitId]) or (type(anchors["SUF_CF"][unitId])=="string" and _GF(anchors["SUF_CF"][unitId])) then AddItem(AnchorDropDown2, "SUF_CF", "SUF_CF") end
+				if _G[anchors["SUF_PlayerInParty"][unitId]] or (type(anchors["SUF_PlayerInParty"][unitId])=="table" and anchors["SUF_PlayerInParty"][unitId]) or (type(anchors["SUF_PlayerInParty"][unitId])=="string" and _GF(anchors["SUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SUF_PlayerInParty", "SUF_PlayerInParty") end
+				if _G[anchors["SUF_NoPlayerInParty"][unitId]] or (type(anchors["SUF_NoPlayerInParty"][unitId])=="table" and anchors["SUF_NoPlayerInParty"][unitId]) or (type(anchors["SUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SUF_NoPlayerInParty", "SUF_NoPlayerInParty") end
+				if _G[anchors["SUF_CF_PlayerInParty"][unitId]] or (type(anchors["SUF_CF_PlayerInParty"][unitId])=="table" and anchors["SUF_CF_PlayerInParty"][unitId]) or (type(anchors["SUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["SUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SUF_CF_PlayerInParty", "SUF_CF_PlayerInParty") end
+				if _G[anchors["SUF_NoPlayerInParty"][unitId]] or (type(anchors["SUF_NoPlayerInParty"][unitId])=="table" and anchors["SUF_NoPlayerInParty"][unitId]) or (type(anchors["SUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SUF_NoPlayerInParty", "SUF_NoPlayerInParty") end
 				if _G[anchors["PitBullUF"][unitId]] or (type(anchors["PitBullUF"][unitId])=="table" and anchors["PitBullUF"][unitId]) or (type(anchors["PitBullUF"][unitId])=="string" and _GF(anchors["PitBullUF"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF", "PitBullUF") end
+				if _G[anchors["PitBullUF_CF"][unitId]] or (type(anchors["PitBullUF_CF"][unitId])=="table" and anchors["PitBullUF_CF"][unitId]) or (type(anchors["PitBullUF_CF"][unitId])=="string" and _GF(anchors["PitBullUF_CF"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_CF", "PitBullUF_CF") end
+				if _G[anchors["PitBullUF_PlayerInParty"][unitId]] or (type(anchors["PitBullUF_PlayerInParty"][unitId])=="table" and anchors["PitBullUF_PlayerInParty"][unitId]) or (type(anchors["PitBullUF_PlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_PlayerInParty", "PitBullUF_PlayerInParty") end
+				if _G[anchors["PitBullUF_NoPlayerInParty"][unitId]] or (type(anchors["PitBullUF_NoPlayerInParty"][unitId])=="table" and anchors["PitBullUF_NoPlayerInParty"][unitId]) or (type(anchors["PitBullUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_NoPlayerInParty", "PitBullUF_NoPlayerInParty") end
+				if _G[anchors["PitBullUF_CF_PlayerInParty"][unitId]] or (type(anchors["PitBullUF_CF_PlayerInParty"][unitId])=="table" and anchors["PitBullUF_CF_PlayerInParty"][unitId]) or (type(anchors["PitBullUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_CF_PlayerInParty", "PitBullUF_CF_PlayerInParty") end
+				if _G[anchors["PitBullUF_CF_NoPlayerInParty"][unitId]] or (type(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])=="table" and anchors["PitBullUF_CF_NoPlayerInParty"][unitId]) or (type(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_CF_NoPlayerInParty", "PitBullUF_CF_NoPlayerInParty") end
 				if _G[anchors["SpartanUI_2D"][unitId]] or (type(anchors["SpartanUI_2D"][unitId])=="table" and anchors["SpartanUI_2D"][unitId]) or (type(anchors["SpartanUI_2D"][unitId])=="string" and _GF(anchors["SpartanUI_2D"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_2D", "SpartanUI_2D") end
 				if _G[anchors["SpartanUI_3D"][unitId]] or (type(anchors["SpartanUI_3D"][unitId])=="table" and anchors["SpartanUI_3D"][unitId]) or (type(anchors["SpartanUI_3D"][unitId])=="string" and _GF(anchors["SpartanUI_3D"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_3D", "SpartanUI_3D") end
-				if _G[anchors["SpartanUI_2D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_2D_NoPlayerInParty", "SpartanUI_2D_NoPlayerInParty") end
+				if _G[anchors["SpartanUI_CF"][unitId]] or (type(anchors["SpartanUI_CF"][unitId])=="table" and anchors["SpartanUI_CF"][unitId]) or (type(anchors["SpartanUI_CF"][unitId])=="string" and _GF(anchors["SpartanUI_CF"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_CF", "SpartanUI_CF") end
 				if _G[anchors["SpartanUI_2D_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_2D_PlayerInParty", "SpartanUI_2D_PlayerInParty") end
-				if _G[anchors["SpartanUI_3D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_3D_NoPlayerInParty", "SpartanUI_3D_NoPlayerInParty") end
+				if _G[anchors["SpartanUI_2D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_2D_NoPlayerInParty", "SpartanUI_2D_NoPlayerInParty") end
 				if _G[anchors["SpartanUI_3D_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_3D_PlayerInParty", "SpartanUI_3D_PlayerInParty") end
+				if _G[anchors["SpartanUI_3D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_3D_NoPlayerInParty", "SpartanUI_3D_NoPlayerInParty") end
+				if _G[anchors["SpartanUI_CF_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_CF_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_CF_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_CF_PlayerInParty", "SpartanUI_CF_PlayerInParty") end
+				if _G[anchors["SpartanUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_CF_NoPlayerInParty", "SpartanUI_CF_NoPlayerInParty") end
 				if _G[anchors["GW2"][unitId]] or (type(anchors["GW2"][unitId])=="table" and anchors["GW2"][unitId]) or (type(anchors["GW2"][unitId])=="string" and _GF(anchors["GW2"][unitId])) then AddItem(AnchorDropDown2, "GW2", "GW2") end
-				if _G[anchors["nUI"][unitId]] or (type(anchors["nUI"][unitId])=="table" and anchors["nUI"][unitId]) or (type(anchors["nUI"][unitId])=="string" and _GF(anchors["nUI"][unitId])) then AddItem(AnchorDropDown2, "nUI", "nUI") end
+				if _G[anchors["GW2_CF"][unitId]] or (type(anchors["GW2_CF"][unitId])=="table" and anchors["GW2_CF"][unitId]) or (type(anchors["GW2_CF"][unitId])=="string" and _GF(anchors["GW2_CF"][unitId])) then AddItem(AnchorDropDown2, "GW2_CF", "GW2_CF") end
+				if _G[anchors["GW2_PlayerInParty"][unitId]] or (type(anchors["GW2_PlayerInParty"][unitId])=="table" and anchors["GW2_PlayerInParty"][unitId]) or (type(anchors["GW2_PlayerInParty"][unitId])=="string" and _GF(anchors["GW2_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "GW2_PlayerInParty", "GW2_PlayerInParty") end
+				if _G[anchors["GW2_NoPlayerInParty"][unitId]] or (type(anchors["GW2_NoPlayerInParty"][unitId])=="table" and anchors["GW2_NoPlayerInParty"][unitId]) or (type(anchors["GW2_NoPlayerInParty"][unitId])=="string" and _GF(anchors["GW2_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "GW2_NoPlayerInParty", "GW2_NoPlayerInParty") end
+				if _G[anchors["GW2_CF_PlayerInParty"][unitId]] or (type(anchors["GW2_CF_PlayerInParty"][unitId])=="table" and anchors["GW2_CF_PlayerInParty"][unitId]) or (type(anchors["GW2_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["GW2_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "GW2_CF_PlayerInParty", "GW2_CF_PlayerInParty") end
+				if _G[anchors["GW2_CF_NoPlayerInParty"][unitId]] or (type(anchors["GW2_CF_NoPlayerInParty"][unitId])=="table" and anchors["GW2_CF_NoPlayerInParty"][unitId]) or (type(anchors["GW2_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["GW2_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "GW2_CF_NoPlayerInParty", "GW2_CF_NoPlayerInParty") end
+				if _G[anchors["GW2_PartyRaidStyle"][unitId]] or (type(anchors["GW2_PartyRaidStyle"][unitId])=="table" and anchors["GW2_PartyRaidStyle"][unitId]) or (type(anchors["GW2_PartyRaidStyle"][unitId])=="string" and _GF(anchors["GW2_PartyRaidStyle"][unitId])) then AddItem(AnchorDropDown2, "GW2_PartyRaidStyle", "GW2_PartyRaidStyle") end
+				if _G[anchors["nUI_Solo"][unitId]] or (type(anchors["nUI_Solo"][unitId])=="table" and anchors["nUI_Solo"][unitId]) or (type(anchors["nUI_Solo"][unitId])=="string" and _GF(anchors["nUI_Solo"][unitId])) then AddItem(AnchorDropDown2, "nUI_Solo", "nUI_Solo") end
+				if _G[anchors["nUI_Party"][unitId]] or (type(anchors["nUI_Party"][unitId])=="table" and anchors["nUI_Party"][unitId]) or (type(anchors["nUI_Party"][unitId])=="string" and _GF(anchors["nUI_Party"][unitId])) then AddItem(AnchorDropDown2, "nUI_Party", "nUI_Party") end
+				if _G[anchors["nUI_Raid10"][unitId]] or (type(anchors["nUI_Raid10"][unitId])=="table" and anchors["nUI_Raid10"][unitId]) or (type(anchors["nUI_Raid10"][unitId])=="string" and _GF(anchors["nUI_Raid10"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid10", "nUI_Raid10") end
+				if _G[anchors["nUI_Raid15"][unitId]] or (type(anchors["nUI_Raid15"][unitId])=="table" and anchors["nUI_Raid15"][unitId]) or (type(anchors["nUI_Raid15"][unitId])=="string" and _GF(anchors["nUI_Raid15"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid15", "nUI_Raid15") end
+				if _G[anchors["nUI_Raid20"][unitId]] or (type(anchors["nUI_Raid20"][unitId])=="table" and anchors["nUI_Raid20"][unitId]) or (type(anchors["nUI_Raid20"][unitId])=="string" and _GF(anchors["nUI_Raid20"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid20", "nUI_Raid20") end
+				if _G[anchors["nUI_Raid25"][unitId]] or (type(anchors["nUI_Raid25"][unitId])=="table" and anchors["nUI_Raid25"][unitId]) or (type(anchors["nUI_Raid25"][unitId])=="string" and _GF(anchors["nUI_Raid25"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid25", "nUI_Raid25") end
+				if _G[anchors["nUI_Raid40"][unitId]] or (type(anchors["nUI_Raid40"][unitId])=="table" and anchors["nUI_Raid40"][unitId]) or (type(anchors["nUI_Raid40"][unitId])=="string" and _GF(anchors["nUI_Raid40"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid40", "nUI_Raid40") end
 				if _G[anchors["Tukui"][unitId]] or (type(anchors["Tukui"][unitId])=="table" and anchors["Tukui"][unitId]) or (type(anchors["Tukui"][unitId])=="string" and _GF(anchors["Tukui"][unitId])) then AddItem(AnchorDropDown2, "Tukui", "Tukui") end
+				if _G[anchors["Tukui_CF"][unitId]] or (type(anchors["Tukui_CF"][unitId])=="table" and anchors["Tukui_CF"][unitId]) or (type(anchors["Tukui_CF"][unitId])=="string" and _GF(anchors["Tukui_CF"][unitId])) then AddItem(AnchorDropDown2, "Tukui_CF", "Tukui_CF") end
+				if _G[anchors["Tukui_CF_PlayerInParty"][unitId]] or (type(anchors["Tukui_CF_PlayerInParty"][unitId])=="table" and anchors["Tukui_CF_PlayerInParty"][unitId]) or (type(anchors["Tukui_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["Tukui_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "Tukui_CF_PlayerInParty", "Tukui_CF_PlayerInParty") end
+				if _G[anchors["Tukui_CF_NoPlayerInParty"][unitId]] or (type(anchors["Tukui_CF_NoPlayerInParty"][unitId])=="table" and anchors["Tukui_CF_NoPlayerInParty"][unitId]) or (type(anchors["Tukui_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["Tukui_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "Tukui_CF_NoPlayerInParty", "Tukui_CF_NoPlayerInParty") end
 				if _G[anchors["ElvUI"][unitId]] or (type(anchors["ElvUI"][unitId])=="table" and anchors["ElvUI"][unitId]) or (type(anchors["ElvUI"][unitId])=="string" and _GF(anchors["ElvUI"][unitId])) then AddItem(AnchorDropDown2, "ElvUI", "ElvUI") end
+				if _G[anchors["ElvUI_CF"][unitId]] or (type(anchors["ElvUI_CF"][unitId])=="table" and anchors["ElvUI_CF"][unitId]) or (type(anchors["ElvUI_CF"][unitId])=="string" and _GF(anchors["ElvUI_CF"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_CF", "ElvUI_CF") end
 				if _G[anchors["ElvUI_PlayerInParty"][unitId]] or (type(anchors["ElvUI_PlayerInParty"][unitId])=="table" and anchors["ElvUI_PlayerInParty"][unitId]) or (type(anchors["ElvUI_PlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_PlayerInParty", "ElvUI_PlayerInParty") end
 				if _G[anchors["ElvUI_NoPlayerInParty"][unitId]] or (type(anchors["ElvUI_NoPlayerInParty"][unitId])=="table" and anchors["ElvUI_NoPlayerInParty"][unitId]) or (type(anchors["ElvUI_NoPlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_NoPlayerInParty", "ElvUI_NoPlayerInParty") end
+				if _G[anchors["ElvUI_CF_PlayerInParty"][unitId]] or (type(anchors["ElvUI_CF_PlayerInParty"][unitId])=="table" and anchors["ElvUI_CF_PlayerInParty"][unitId]) or (type(anchors["ElvUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_CF_PlayerInParty", "ElvUI_CF_PlayerInParty") end
+				if _G[anchors["ElvUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["ElvUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["ElvUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["ElvUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_CF_NoPlayerInParty", "ElvUI_CF_NoPlayerInParty") end
 			end)
 			UIDropDownMenu_SetSelectedValue(AnchorDropDown2, LoseControlDB.frames.player2.anchor)
 		end
