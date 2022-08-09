@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl TBC
--- Version: 2.05
+-- Version: 2.06
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -105,8 +105,7 @@ local interruptsIds = {
 	[19675]  = 4,		-- Feral Charge (Druid)
 	[22570]  = 3,		-- Maim (Gladiator's Dragonhide Gloves) (rank 1) (Druid)
 	[29443]  = 10,		-- Counterspell (Clutch of Foresight)
-	-- NPC Classic Interrupts
-	--------------------------------------------------------
+	-- NPC Interrupts
 	[2676]   = 2,		-- Pulverize
 	[5133]   = 30,		-- Interrupt (PT)
 	[8714]   = 5,		-- Overwhelming Musk
@@ -218,7 +217,7 @@ local spellIds = {
 	[19972]  = "Root",				-- Entangling Roots (rank 4) (Nature's Grasp talent)
 	[19971]  = "Root",				-- Entangling Roots (rank 5) (Nature's Grasp talent)
 	[19970]  = "Root",				-- Entangling Roots (rank 6) (Nature's Grasp talent)
-	[27010]  = "Root",				-- Entangling Roots (rank 6) (Nature's Grasp talent)
+	[27010]  = "Root",				-- Entangling Roots (rank 7) (Nature's Grasp talent)
 	[22570]  = "CC",				-- Maim (rank 1)
 	[16922]  = "CC",				-- Starfire Stun (Improved Starfire talent)
 	[19675]  = "Root",				-- Feral Charge Effect (Feral Charge talent)
@@ -230,6 +229,7 @@ local spellIds = {
 	[16812]  = "Other",				-- Nature's Grasp (rank 4)
 	[16813]  = "Other",				-- Nature's Grasp (rank 5)
 	[17329]  = "Other",				-- Nature's Grasp (rank 6)
+	[27009]  = "Other",				-- Nature's Grasp (rank 7)
 	[22812]  = "Other",				-- Barkskin
 	[29166]  = "Other",				-- Innervate
 
@@ -268,14 +268,14 @@ local spellIds = {
 	[19574]  = "ImmuneSpell",		-- Bestial Wrath (talent) (not immuune to spells, only immune to some CC's)
 	[34471]  = "ImmuneSpell",		-- The Beast Within (talent) (not immuune to spells, only immune to some CC's)
 	[5384]   = "Other",				-- Feign Death
-	--[19434]  = "Other",				--Aimed Shot (rank 1) (healing effects reduced by 50%)
-	--[20900]  = "Other",				--Aimed Shot (rank 2) (healing effects reduced by 50%)
-	--[20901]  = "Other",				--Aimed Shot (rank 3) (healing effects reduced by 50%)
-	--[20902]  = "Other",				--Aimed Shot (rank 4) (healing effects reduced by 50%)
-	--[20903]  = "Other",				--Aimed Shot (rank 5) (healing effects reduced by 50%)
-	--[20904]  = "Other",				--Aimed Shot (rank 6) (healing effects reduced by 50%)
-	--[27065]  = "Other",				--Aimed Shot (rank 7) (healing effects reduced by 50%)
-	
+	--[19434]  = "Other",				-- Aimed Shot (rank 1) (healing effects reduced by 50%)
+	--[20900]  = "Other",				-- Aimed Shot (rank 2) (healing effects reduced by 50%)
+	--[20901]  = "Other",				-- Aimed Shot (rank 3) (healing effects reduced by 50%)
+	--[20902]  = "Other",				-- Aimed Shot (rank 4) (healing effects reduced by 50%)
+	--[20903]  = "Other",				-- Aimed Shot (rank 5) (healing effects reduced by 50%)
+	--[20904]  = "Other",				-- Aimed Shot (rank 6) (healing effects reduced by 50%)
+	--[27065]  = "Other",				-- Aimed Shot (rank 7) (healing effects reduced by 50%)
+
 		----------------
 		-- Hunter Pets
 		----------------
@@ -284,7 +284,7 @@ local spellIds = {
 		[4169]   = "Root",				-- Web III
 		[24394]  = "CC",				-- Intimidation (talent)
 		[25999]  = "Root",				-- Boar Charge (Boar)
-		[26064]  = "Immune",			-- Shell Shield (damage taken reduced 50%) (Turtle)
+		[26064]  = "Immune",			-- Shell Shield (not immune, damage taken reduced 50%) (Turtle)
 
 	----------------
 	-- Mage
@@ -343,6 +343,7 @@ local spellIds = {
 	[31589]  = "Snare",				-- Slow (talent)
 	[12043]  = "Other",				-- Presence of Mind (talent)
 	[12042]  = "Other",				-- Arcane Power (talent)
+	[12472]  = "Other",				-- Icy Veins (talent)
 
 		----------------
 		-- Mage Water Elemental
@@ -370,12 +371,12 @@ local spellIds = {
 	[10326]  = "CC",				-- Turn Evil (rank 1)
 	[20066]  = "CC",				-- Repentance (talent)
 	[1044]   = "Other",				-- Blessing of Freedom
-	[20216]  = "Other",				-- Divine Favor
+	[20216]  = "Other",				-- Divine Favor (talent)
 	[31935]  = "Snare",				-- Avenger's Shield (rank 1) (talent)
 	[32699]  = "Snare",				-- Avenger's Shield (rank 2) (talent)
 	[32700]  = "Snare",				-- Avenger's Shield (rank 3) (talent)
 	[31884]  = "Other",				-- Avenging Wrath
-	[31842]  = "Other",				-- Divine Illumination
+	[31842]  = "Other",				-- Divine Illumination (talent)
 	--[31854]  = "Other",				-- Ardent Defender (damage taken reduced by 30%)
 
 	----------------
@@ -442,8 +443,8 @@ local spellIds = {
 	[31224]  = "ImmuneSpell",		-- Cloak of Shadows
 	[45182]  = "Immune",			-- Cheating Death (talent) (damage taken reduced by 90%)
 	[14177]  = "Other",				-- Cold Blood (talent)
-	[13877]  = "Other",				-- Blade Flurry
-	[13750]  = "Other",				-- Adrenaline Rush
+	[13877]  = "Other",				-- Blade Flurry (talent)
+	[13750]  = "Other",				-- Adrenaline Rush (talent)
 
 	----------------
 	-- Shaman
@@ -479,7 +480,7 @@ local spellIds = {
 	[30283]  = "CC",				-- Shadowfury (rank 1) (talent)
 	[30413]  = "CC",				-- Shadowfury (rank 2) (talent)
 	[30414]  = "CC",				-- Shadowfury (rank 3) (talent)
-	[43523]  = "Silence",			-- Unstable Affliction
+	[31117]  = "Silence",			-- Unstable Affliction
 	[30300]  = "Other",				-- Nether Protection (immune to Fire and Shadow magic spells)
 	[18708]  = "Other",				-- Fel Domination (talent)
 	[18223]  = "Snare",				-- Curse of Exhaustion (talent)
@@ -525,7 +526,7 @@ local spellIds = {
 	[12323]  = "Snare",				-- Piercing Howl (talent)
 	[3411]   = "Other",				-- Intervene
 	[2565]   = "Other",				-- Shield Block
-	[12328]  = "Other",				-- Death Wish (talent)
+	[12292]  = "Other",				-- Death Wish (talent)
 	[12976]  = "Other",				-- Last Stand (talent)
 	[20230]  = "Other",				-- Retaliation
 	[18499]  = "Other",				-- Berserker Rage
@@ -807,7 +808,6 @@ local spellIds = {
 	[12943]  = "Silence",			-- Fell Curse Effect
 	[23417]  = "Silence",			-- Smother
 	[10851]  = "Disarm",			-- Grab Weapon
-	[27581]  = "Disarm",			-- Disarm
 	[25057]  = "Disarm",			-- Dropped Weapon
 	[25655]  = "Disarm",			-- Dropped Weapon
 	[14180]  = "Disarm",			-- Sticky Tar
@@ -852,6 +852,7 @@ local spellIds = {
 	[16600]  = "CC",				-- Might of Shahram (Blackblade of Shahram sword)
 	[16597]  = "Snare",				-- Curse of Shahram (Blackblade of Shahram sword)
 	[13496]  = "Snare",				-- Dazed (Mug O' Hurt mace)
+	[23600]  = "Snare",				-- Piercing Howl
 	[3238]   = "Other",				-- Nimble Reflexes
 	[5990]   = "Other",				-- Nimble Reflexes
 	[6615]   = "Other",				-- Free Action Potion
@@ -1375,7 +1376,7 @@ local spellIds = {
 	[33173]  = "CC",				-- Greater Polymorph
 	[33130]  = "CC",				-- Death Coil
 	[33175]  = "Disarm",			-- Arcane Shock
-	[33054]  = "ImmuneMagic",		-- Spell Shield (not immune, magic damage taken reduced by 75%)
+	[33054]  = "ImmuneSpell",		-- Spell Shield (not immune, magic damage taken reduced by 75%)
 	[33147]  = "Other",				-- Greater Power Word: Shield (immune to spell interrupt, immune to stun)
 	[33238]  = "Snare",				-- Whirlwind
 	[33061]  = "Snare",				-- Blast Wave
@@ -1386,7 +1387,6 @@ local spellIds = {
 	-- -- Magtheridon’s Lair Raid
 	-- -- Trash
 	[34437]  = "CC",				-- Death Coil
-	[31117]  = "Silence",			-- Unstable Affliction
 	-- -- Magtheridon
 	[30530]  = "CC",				-- Fear
 	[30168]  = "CC",				-- Shadow Cage
@@ -1603,6 +1603,7 @@ local spellIds = {
 	[43433]  = "CC",				-- Blind
 	[43550]  = "CC",				-- Mind Control
 	[43448]  = "CC",				-- Freezing Trap
+	[43523]  = "Silence",			-- Unstable Affliction
 	[43426]  = "Root",				-- Frost Nova
 	[43443]  = "ImmuneSpell",		-- Spell Reflection
 	[43421]  = "Other",				-- Lifebloom (big heal hot)
@@ -1999,6 +2000,7 @@ local spellIds = {
 	[24261]  = "CC",				-- Brain Wash
 	-- -- Edge of Madness: Gri'lek, Hazza'rah, Renataki, Wushoolay
 	[24648]  = "Root",				-- Entangling Roots
+	[24646]  = "Other",				-- Avatar
 	[24664]  = "CC",				-- Sleep
 	-- -- Hakkar
 	[24687]  = "Silence",			-- Aspect of Jeklik
@@ -2301,6 +2303,7 @@ local spellIds = {
 	[15621]  = "CC",				-- Skull Crack
 	[11831]  = "Root",				-- Frost Nova
 	[15499]  = "Snare",				-- Frost Shock
+	[27581]  = "Disarm",			-- Disarm
 	-- -- Blackrock Spire
 	[16097]  = "CC",				-- Hex
 	[22566]  = "CC",				-- Hex
@@ -2438,7 +2441,7 @@ local anchors = {
 		arena2       = "ArenaEnemyFrame2ClassPortrait",
 		arena3       = "ArenaEnemyFrame3ClassPortrait",
 		arena4       = "ArenaEnemyFrame4ClassPortrait",
-		arena5       = "ArenaEnemyFrame5ClassPortrait",
+		arena5       = "ArenaEnemyFrame5ClassPortrait"
 	},
 	BlizzardRaidFrames = {
 		raid1        = "CompactRaidFrame1",
@@ -2480,7 +2483,7 @@ local anchors = {
 		raid37       = "CompactRaidFrame37",
 		raid38       = "CompactRaidFrame38",
 		raid39       = "CompactRaidFrame39",
-		raid40       = "CompactRaidFrame40",
+		raid40       = "CompactRaidFrame40"
 	},
 	BlizzardNameplates = {
 		nameplate1   = "NamePlate1",
@@ -2531,26 +2534,84 @@ local anchors = {
 		target       = "Perl_Target_PortraitFrame",
 		targettarget = "Perl_Target_Target_PortraitFrame",
 		focus        = "Perl_Focus_PortraitFrame",
-		focustarget  = "Perl_Focus_Target_PortraitFrame",
+		focustarget  = "Perl_Party_Target5_PortraitFrame",
 		party1       = "Perl_Party_MemberFrame1_PortraitFrame",
 		party2       = "Perl_Party_MemberFrame2_PortraitFrame",
 		party3       = "Perl_Party_MemberFrame3_PortraitFrame",
-		party4       = "Perl_Party_MemberFrame4_PortraitFrame",
+		party4       = "Perl_Party_MemberFrame4_PortraitFrame"
+	},
+	Perl_CF = {
+		player       = "Perl_Player_StatsFrame",
+		player2      = "Perl_Player_StatsFrame",
+		pet          = "Perl_Player_Pet_StatsFrame",
+		target       = "Perl_Target_StatsFrame",
+		targettarget = "Perl_Target_Target_StatsFrame",
+		focus        = "Perl_Focus_StatsFrame",
+		focustarget  = "Perl_Party_Target5_StatsFrame",
+		party1       = "Perl_Party_MemberFrame1_StatsFrame",
+		party2       = "Perl_Party_MemberFrame2_StatsFrame",
+		party3       = "Perl_Party_MemberFrame3_StatsFrame",
+		party4       = "Perl_Party_MemberFrame4_StatsFrame"
 	},
 	XPerl = {	-- and Z-Perl
 		player       = "XPerl_PlayerportraitFrameportrait",
 		player2      = "XPerl_PlayerportraitFrameportrait",
 		pet          = "XPerl_Player_PetportraitFrameportrait",
 		target       = "XPerl_TargetportraitFrameportrait",
-		targettarget = "XPerl_TargettargetportraitFrameportrait",
+		targettarget = "XPerl_TargetTargetportraitFrameportrait",
 		focus        = "XPerl_FocusportraitFrameportrait",
-		focustarget  = "XPerl_FocustargetportraitFrameportrait",
+		focustarget  = "XPerl_FocusTargetportraitFrameportrait"
+	},
+	XPerl_CUF = {	-- and Z-Perl_CUF
+		player       = "XPerl_Player",
+		player2      = "XPerl_Player",
+		pet          = "XPerl_Player_Pet",
+		target       = "XPerl_Target",
+		targettarget = "XPerl_TargetTarget",
+		focus        = "XPerl_Focus",
+		focustarget  = "XPerl_FocusTarget"
+	},
+	XPerl_PlayerInParty = {	-- and Z-Perl_PlayerInParty
+		partyplayer  = "XPerl_party1portraitFrameportrait",
+		party1       = "XPerl_party2portraitFrameportrait",
+		party2       = "XPerl_party3portraitFrameportrait",
+		party3       = "XPerl_party4portraitFrameportrait",
+		party4       = "XPerl_party5portraitFrameportrait"
+	},
+	XPerl_NoPlayerInParty = {	-- and Z-Perl_NoPlayerInParty
 		party1       = "XPerl_party1portraitFrameportrait",
 		party2       = "XPerl_party2portraitFrameportrait",
 		party3       = "XPerl_party3portraitFrameportrait",
-		party4       = "XPerl_party4portraitFrameportrait",
+		party4       = "XPerl_party4portraitFrameportrait"
+	},
+	XPerl_CUF_PlayerInParty = {	-- and Z-Perl_CUF_PlayerInParty
+		partyplayer  = "XPerl_party1",
+		party1       = "XPerl_party2",
+		party2       = "XPerl_party3",
+		party3       = "XPerl_party4",
+		party4       = "XPerl_party5"
+	},
+	XPerl_CUF_NoPlayerInParty = {	-- and Z-Perl_CUF_NoPlayerInParty
+		party1       = "XPerl_party1",
+		party2       = "XPerl_party2",
+		party3       = "XPerl_party3",
+		party4       = "XPerl_party4"
 	},
 	LUI = {
+		player       = "oUF_LUI_player.Portrait",
+		player2      = "oUF_LUI_player.Portrait",
+		pet          = "oUF_LUI_pet.Portrait",
+		target       = "oUF_LUI_target.Portrait",
+		targettarget = "oUF_LUI_targettarget.Portrait",
+		focus        = "oUF_LUI_focus.Portrait",
+		focustarget  = "oUF_LUI_focustarget.Portrait",
+		arena1       = "oUF_LUI_arena1.Portrait",
+		arena2       = "oUF_LUI_arena2.Portrait",
+		arena3       = "oUF_LUI_arena3.Portrait",
+		arena4       = "oUF_LUI_arena4.Portrait",
+		arena5       = "oUF_LUI_arena5.Portrait"
+	},
+	LUI_CF = {
 		player       = "oUF_LUI_player",
 		player2      = "oUF_LUI_player",
 		pet          = "oUF_LUI_pet",
@@ -2558,17 +2619,44 @@ local anchors = {
 		targettarget = "oUF_LUI_targettarget",
 		focus        = "oUF_LUI_focus",
 		focustarget  = "oUF_LUI_focustarget",
+		arena1       = "oUF_LUI_arena1",
+		arena2       = "oUF_LUI_arena2",
+		arena3       = "oUF_LUI_arena3",
+		arena4       = "oUF_LUI_arena4",
+		arena5       = "oUF_LUI_arena5"
+	},
+	LUI_PlayerInParty = {
+		partyplayer  = "oUF_LUI_partyUnitButton1.Portrait",
+		party1       = "oUF_LUI_partyUnitButton2.Portrait",
+		party2       = "oUF_LUI_partyUnitButton3.Portrait",
+		party3       = "oUF_LUI_partyUnitButton4.Portrait",
+		party4       = "oUF_LUI_partyUnitButton5.Portrait"
+	},
+	LUI_NoPlayerInParty = {
+		party1       = "oUF_LUI_partyUnitButton1.Portrait",
+		party2       = "oUF_LUI_partyUnitButton2.Portrait",
+		party3       = "oUF_LUI_partyUnitButton3.Portrait",
+		party4       = "oUF_LUI_partyUnitButton4.Portrait"
+	},
+	LUI_CF_PlayerInParty = {
+		partyplayer  = "oUF_LUI_partyUnitButton1",
+		party1       = "oUF_LUI_partyUnitButton2",
+		party2       = "oUF_LUI_partyUnitButton3",
+		party3       = "oUF_LUI_partyUnitButton4",
+		party4       = "oUF_LUI_partyUnitButton5"
+	},
+	LUI_CF_NoPlayerInParty = {
 		party1       = "oUF_LUI_partyUnitButton1",
 		party2       = "oUF_LUI_partyUnitButton2",
 		party3       = "oUF_LUI_partyUnitButton3",
-		party4       = "oUF_LUI_partyUnitButton4",
+		party4       = "oUF_LUI_partyUnitButton4"
 	},
 	SyncFrames = {
 		arena1       = "SyncFrame1Class",
 		arena2       = "SyncFrame2Class",
 		arena3       = "SyncFrame3Class",
 		arena4       = "SyncFrame4Class",
-		arena5       = "SyncFrame5Class",
+		arena5       = "SyncFrame5Class"
 	},
 	SUF = {
 		player       = "SUFUnitplayer.portrait",
@@ -2578,15 +2666,51 @@ local anchors = {
 		targettarget = "SUFUnittargettarget.portrait",
 		focus        = "SUFUnitfocus.portrait",
 		focustarget  = "SUFUnitfocustarget.portrait",
-		party1       = "SUFHeaderpartyUnitButton1.portrait",
-		party2       = "SUFHeaderpartyUnitButton2.portrait",
-		party3       = "SUFHeaderpartyUnitButton3.portrait",
-		party4       = "SUFHeaderpartyUnitButton4.portrait",
 		arena1       = "SUFHeaderarenaUnitButton1.portrait",
 		arena2       = "SUFHeaderarenaUnitButton2.portrait",
 		arena3       = "SUFHeaderarenaUnitButton3.portrait",
 		arena4       = "SUFHeaderarenaUnitButton4.portrait",
-		arena5       = "SUFHeaderarenaUnitButton5.portrait",
+		arena5       = "SUFHeaderarenaUnitButton5.portrait"
+	},
+	SUF_CF = {
+		player       = "SUFUnitplayer",
+		player2      = "SUFUnitplayer",
+		pet          = "SUFUnitpet",
+		target       = "SUFUnittarget",
+		targettarget = "SUFUnittargettarget",
+		focus        = "SUFUnitfocus",
+		focustarget  = "SUFUnitfocustarget",
+		arena1       = "SUFHeaderarenaUnitButton1",
+		arena2       = "SUFHeaderarenaUnitButton2",
+		arena3       = "SUFHeaderarenaUnitButton3",
+		arena4       = "SUFHeaderarenaUnitButton4",
+		arena5       = "SUFHeaderarenaUnitButton5"
+	},
+	SUF_PlayerInParty = {
+		partyplayer  = "SUFHeaderpartyUnitButton1.portrait",
+		party1       = "SUFHeaderpartyUnitButton2.portrait",
+		party2       = "SUFHeaderpartyUnitButton3.portrait",
+		party3       = "SUFHeaderpartyUnitButton4.portrait",
+		party4       = "SUFHeaderpartyUnitButton5.portrait"
+	},
+	SUF_NoPlayerInParty = {
+		party1       = "SUFHeaderpartyUnitButton1.portrait",
+		party2       = "SUFHeaderpartyUnitButton2.portrait",
+		party3       = "SUFHeaderpartyUnitButton3.portrait",
+		party4       = "SUFHeaderpartyUnitButton4.portrait"
+	},
+	SUF_CF_PlayerInParty = {
+		partyplayer  = "SUFHeaderpartyUnitButton1",
+		party1       = "SUFHeaderpartyUnitButton2",
+		party2       = "SUFHeaderpartyUnitButton3",
+		party3       = "SUFHeaderpartyUnitButton4",
+		party4       = "SUFHeaderpartyUnitButton5"
+	},
+	SUF_CF_NoPlayerInParty = {
+		party1       = "SUFHeaderpartyUnitButton1",
+		party2       = "SUFHeaderpartyUnitButton2",
+		party3       = "SUFHeaderpartyUnitButton3",
+		party4       = "SUFHeaderpartyUnitButton4"
 	},
 	LUF = {
 		player       = "LUFUnitplayer.StatusPortrait.model",
@@ -2596,15 +2720,51 @@ local anchors = {
 		targettarget = "LUFUnittargettarget.StatusPortrait.model",
 		focus        = "LUFUnitfocus.StatusPortrait.model",
 		focustarget  = "LUFUnitfocustarget.StatusPortrait.model",
-		party1       = "LUFHeaderpartyUnitButton1.StatusPortrait.model",
-		party2       = "LUFHeaderpartyUnitButton2.StatusPortrait.model",
-		party3       = "LUFHeaderpartyUnitButton3.StatusPortrait.model",
-		party4       = "LUFHeaderpartyUnitButton4.StatusPortrait.model",
 		arena1       = "LUFHeaderarenaUnitButton1.StatusPortrait.model",
 		arena2       = "LUFHeaderarenaUnitButton2.StatusPortrait.model",
 		arena3       = "LUFHeaderarenaUnitButton3.StatusPortrait.model",
 		arena4       = "LUFHeaderarenaUnitButton4.StatusPortrait.model",
-		arena5       = "LUFHeaderarenaUnitButton5.StatusPortrait.model",
+		arena5       = "LUFHeaderarenaUnitButton5.StatusPortrait.model"
+	},
+	LUF_CF = {
+		player       = "LUFUnitplayer",
+		player2      = "LUFUnitplayer",
+		pet          = "LUFUnitpet",
+		target       = "LUFUnittarget",
+		targettarget = "LUFUnittargettarget",
+		focus        = "LUFUnitfocus",
+		focustarget  = "LUFUnitfocustarget",
+		arena1       = "LUFHeaderarenaUnitButton1",
+		arena2       = "LUFHeaderarenaUnitButton2",
+		arena3       = "LUFHeaderarenaUnitButton3",
+		arena4       = "LUFHeaderarenaUnitButton4",
+		arena5       = "LUFHeaderarenaUnitButton5"
+	},
+	LUF_PlayerInParty = {
+		partyplayer  = "LUFHeaderpartyUnitButton1.StatusPortrait.model",
+		party1       = "LUFHeaderpartyUnitButton2.StatusPortrait.model",
+		party2       = "LUFHeaderpartyUnitButton3.StatusPortrait.model",
+		party3       = "LUFHeaderpartyUnitButton4.StatusPortrait.model",
+		party4       = "LUFHeaderpartyUnitButton5.StatusPortrait.model"
+	},
+	LUF_NoPlayerInParty = {
+		party1       = "LUFHeaderpartyUnitButton1.StatusPortrait.model",
+		party2       = "LUFHeaderpartyUnitButton2.StatusPortrait.model",
+		party3       = "LUFHeaderpartyUnitButton3.StatusPortrait.model",
+		party4       = "LUFHeaderpartyUnitButton4.StatusPortrait.model"
+	},
+	LUF_CF_PlayerInParty = {
+		partyplayer  = "LUFHeaderpartyUnitButton1",
+		party1       = "LUFHeaderpartyUnitButton2",
+		party2       = "LUFHeaderpartyUnitButton3",
+		party3       = "LUFHeaderpartyUnitButton4",
+		party4       = "LUFHeaderpartyUnitButton5"
+	},
+	LUF_CF_NoPlayerInParty = {
+		party1       = "LUFHeaderpartyUnitButton1",
+		party2       = "LUFHeaderpartyUnitButton2",
+		party3       = "LUFHeaderpartyUnitButton3",
+		party4       = "LUFHeaderpartyUnitButton4"
 	},
 	PitBullUF = {
 		player       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player"]..".Portrait" or nil,
@@ -2613,11 +2773,42 @@ local anchors = {
 		target       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"]..".Portrait" or nil,
 		targettarget = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"])..".Portrait" or nil,
 		focus        = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"]..".Portrait" or nil,
-		focustarget  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"])..".Portrait" or nil,
+		focustarget  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"])..".Portrait" or nil
+	},
+	PitBullUF_CF = {
+		player       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player"] or nil,
+		player2      = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player"] or nil,
+		pet          = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Player's pet"] or nil,
+		target       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"] or nil,
+		targettarget = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Target"]) or nil,
+		focus        = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"] or nil,
+		focustarget  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Frames_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["%s's target"]:format(LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Focus"]) or nil
+	},
+	PitBullUF_PlayerInParty = {
+		partyplayer  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton1"..".Portrait" or nil,
+		party1       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton2"..".Portrait" or nil,
+		party2       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton3"..".Portrait" or nil,
+		party3       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4"..".Portrait" or nil,
+		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton5"..".Portrait" or nil
+	},
+	PitBullUF_NoPlayerInParty = {
 		party1       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton1"..".Portrait" or nil,
 		party2       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton2"..".Portrait" or nil,
 		party3       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton3"..".Portrait" or nil,
-		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4"..".Portrait" or nil,
+		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4"..".Portrait" or nil
+	},
+	PitBullUF_CF_PlayerInParty = {
+		partyplayer  = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton1" or nil,
+		party1       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton2" or nil,
+		party2       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton3" or nil,
+		party3       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4" or nil,
+		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton5" or nil
+	},
+	PitBullUF_CF_NoPlayerInParty = {
+		party1       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton1" or nil,
+		party2       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton2" or nil,
+		party3       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton3" or nil,
+		party4       = LibStub("AceLocale-3.0",true) and LibStub("AceLocale-3.0",true):GetLocale("PitBull4",true) and "PitBull4_Groups_"..LibStub("AceLocale-3.0"):GetLocale("PitBull4",true)["Party"].."UnitButton4" or nil
 	},
 	SpartanUI_2D = {
 		player       = "SUI_UF_player.Portrait2D",
@@ -2627,6 +2818,11 @@ local anchors = {
 		targettarget = "SUI_UF_targettarget.Portrait2D",
 		focus        = "SUI_UF_focus.Portrait2D",
 		focustarget  = "SUI_UF_focustarget.Portrait2D",
+		arena1       = "SUI_arena1.Portrait2D",
+		arena2       = "SUI_arena2.Portrait2D",
+		arena3       = "SUI_arena3.Portrait2D",
+		arena4       = "SUI_arena4.Portrait2D",
+		arena5       = "SUI_arena5.Portrait2D"
 	},
 	SpartanUI_3D = {
 		player       = "SUI_UF_player.Portrait3D",
@@ -2636,58 +2832,205 @@ local anchors = {
 		targettarget = "SUI_UF_targettarget.Portrait3D",
 		focus        = "SUI_UF_focus.Portrait3D",
 		focustarget  = "SUI_UF_focustarget.Portrait3D",
+		arena1       = "SUI_arena1.Portrait3D",
+		arena2       = "SUI_arena2.Portrait3D",
+		arena3       = "SUI_arena3.Portrait3D",
+		arena4       = "SUI_arena4.Portrait3D",
+		arena5       = "SUI_arena5.Portrait3D"
+	},
+	SpartanUI_CF = {
+		player       = "SUI_UF_player",
+		player2      = "SUI_UF_player",
+		pet          = "SUI_UF_pet",
+		target       = "SUI_UF_target",
+		targettarget = "SUI_UF_targettarget",
+		focus        = "SUI_UF_focus",
+		focustarget  = "SUI_UF_focustarget",
+		arena1       = "SUI_arena1",
+		arena2       = "SUI_arena2",
+		arena3       = "SUI_arena3",
+		arena4       = "SUI_arena4",
+		arena5       = "SUI_arena5"
 	},
 	SpartanUI_2D_PlayerInParty = {
 		partyplayer  = "SUI_partyFrameHeaderUnitButton1.Portrait2D",
 		party1       = "SUI_partyFrameHeaderUnitButton2.Portrait2D",
 		party2       = "SUI_partyFrameHeaderUnitButton3.Portrait2D",
 		party3       = "SUI_partyFrameHeaderUnitButton4.Portrait2D",
-		party4       = "SUI_partyFrameHeaderUnitButton5.Portrait2D",
+		party4       = "SUI_partyFrameHeaderUnitButton5.Portrait2D"
 	},
 	SpartanUI_2D_NoPlayerInParty = {
 		party1       = "SUI_partyFrameHeaderUnitButton1.Portrait2D",
 		party2       = "SUI_partyFrameHeaderUnitButton2.Portrait2D",
 		party3       = "SUI_partyFrameHeaderUnitButton3.Portrait2D",
-		party4       = "SUI_partyFrameHeaderUnitButton4.Portrait2D",
+		party4       = "SUI_partyFrameHeaderUnitButton4.Portrait2D"
 	},
 	SpartanUI_3D_PlayerInParty = {
 		partyplayer  = "SUI_partyFrameHeaderUnitButton1.Portrait3D",
 		party1       = "SUI_partyFrameHeaderUnitButton2.Portrait3D",
 		party2       = "SUI_partyFrameHeaderUnitButton3.Portrait3D",
 		party3       = "SUI_partyFrameHeaderUnitButton4.Portrait3D",
-		party4       = "SUI_partyFrameHeaderUnitButton5.Portrait3D",
+		party4       = "SUI_partyFrameHeaderUnitButton5.Portrait3D"
 	},
 	SpartanUI_3D_NoPlayerInParty = {
 		party1       = "SUI_partyFrameHeaderUnitButton1.Portrait3D",
 		party2       = "SUI_partyFrameHeaderUnitButton2.Portrait3D",
 		party3       = "SUI_partyFrameHeaderUnitButton3.Portrait3D",
-		party4       = "SUI_partyFrameHeaderUnitButton4.Portrait3D",
+		party4       = "SUI_partyFrameHeaderUnitButton4.Portrait3D"
+	},
+	SpartanUI_CF_PlayerInParty = {
+		partyplayer  = "SUI_partyFrameHeaderUnitButton1",
+		party1       = "SUI_partyFrameHeaderUnitButton2",
+		party2       = "SUI_partyFrameHeaderUnitButton3",
+		party3       = "SUI_partyFrameHeaderUnitButton4",
+		party4       = "SUI_partyFrameHeaderUnitButton5"
+	},
+	SpartanUI_CF_NoPlayerInParty = {
+		party1       = "SUI_partyFrameHeaderUnitButton1",
+		party2       = "SUI_partyFrameHeaderUnitButton2",
+		party3       = "SUI_partyFrameHeaderUnitButton3",
+		party4       = "SUI_partyFrameHeaderUnitButton4"
 	},
 	GW2 = {
 		player       = "GwPlayerUnitFrame.portrait",
 		player2      = "GwPlayerUnitFrame.portrait",
 		pet          = "GwPlayerPetFrame.portrait",
 		target       = "GwTargetUnitFrame.portrait",
-		focus        = "GwFocusUnitFrame.portrait",
+		focus        = "GwFocusUnitFrame.portrait"
+	},
+	GW2_CF = {
+		player       = "GwPlayerUnitFrame",
+		player2      = "GwPlayerUnitFrame",
+		pet          = "GwPlayerPetFrame",
+		target       = "GwTargetUnitFrame",
+		targettarget = "GwTargetTargetUnitFrame",
+		focus        = "GwFocusUnitFrame",
+		focustarget  = "GwFocusTargetUnitFrame"
+	},
+	GW2_PlayerInParty = {
+		partyplayer  = "GwPartyFrame0.portrait",
 		party1       = "GwPartyFrame1.portrait",
 		party2       = "GwPartyFrame2.portrait",
 		party3       = "GwPartyFrame3.portrait",
-		party4       = "GwPartyFrame4.portrait",
+		party4       = "GwPartyFrame4.portrait"
 	},
-	nUI = {
+	GW2_NoPlayerInParty = {
+		party1       = "GwPartyFrame1.portrait",
+		party2       = "GwPartyFrame2.portrait",
+		party3       = "GwPartyFrame3.portrait",
+		party4       = "GwPartyFrame4.portrait"
+	},
+	GW2_CF_PlayerInParty = {
+		partyplayer  = "GwPartyFrame0",
+		party1       = "GwPartyFrame1",
+		party2       = "GwPartyFrame2",
+		party3       = "GwPartyFrame3",
+		party4       = "GwPartyFrame4"
+	},
+	GW2_CF_NoPlayerInParty = {
+		party1       = "GwPartyFrame1",
+		party2       = "GwPartyFrame2",
+		party3       = "GwPartyFrame3",
+		party4       = "GwPartyFrame4"
+	},
+	GW2_PartyRaidStyle = {
+		partyplayer  = "GwCompactPartyFrame1",
+		party1       = "GwCompactPartyFrame2",
+		party2       = "GwCompactPartyFrame3",
+		party3       = "GwCompactPartyFrame4",
+		party4       = "GwCompactPartyFrame5"
+	},
+	nUI_Solo = {
+		player       = "nUI_SoloUnit_Player_Portrait",
+		player2      = "nUI_SoloUnit_Player_Portrait",
+		pet          = "nUI_SoloUnit_Pet_Portrait",
+		target       = "nUI_SoloUnit_Target_Portrait",
+		targettarget = "nUI_SoloUnit_ToT_Portrait",
+		focus        = "nUI_SoloUnit_Focus_Portrait"
+	},
+	nUI_Party = {
 		player       = "nUI_PartyUnit_Player_Portrait",
 		player2      = "nUI_PartyUnit_Player_Portrait",
+		pet          = "nUI_PartyUnit_Pet",
 		target       = "nUI_PartyUnit_Target_Portrait",
+		targettarget = "nUI_PartyUnit_ToT",
 		focus        = "nUI_PartyUnit_Focus_Portrait",
 		party1       = "nUI_PartyUnit_Party1_Portrait",
 		party2       = "nUI_PartyUnit_Party2_Portrait",
 		party3       = "nUI_PartyUnit_Party3_Portrait",
 		party4       = "nUI_PartyUnit_Party4_Portrait",
 	},
+	nUI_Raid10 = {
+		player       = "nUI_Raid10Unit_Player_Portrait",
+		player2      = "nUI_Raid10Unit_Player_Portrait",
+		pet          = "nUI_Raid10Unit_Pet",
+		target       = "nUI_Raid10Unit_Target_Portrait",
+		targettarget = "nUI_Raid10Unit_ToT",
+		focus        = "nUI_Raid10Unit_Focus_Portrait"
+	},
+	nUI_Raid15 = {
+		player       = "nUI_Raid15Unit_Player_Portrait",
+		player2      = "nUI_Raid15Unit_Player_Portrait",
+		pet          = "nUI_Raid15Unit_Pet",
+		target       = "nUI_Raid15Unit_Target_Portrait",
+		targettarget = "nUI_Raid15Unit_ToT",
+		focus        = "nUI_Raid15Unit_Focus_Portrait"
+	},
+	nUI_Raid20 = {
+		player       = "nUI_Raid20Unit_Player_Portrait",
+		player2      = "nUI_Raid20Unit_Player_Portrait",
+		pet          = "nUI_Raid20Unit_Pet",
+		target       = "nUI_Raid20Unit_Target_Portrait",
+		targettarget = "nUI_Raid20Unit_ToT",
+		focus        = "nUI_Raid20Unit_Focus_Portrait"
+	},
+	nUI_Raid25 = {
+		player       = "nUI_Raid25Unit_Player",
+		player2      = "nUI_Raid25Unit_Player",
+		pet          = "nUI_Raid25Unit_Pet",
+		target       = "nUI_Raid25Unit_Target",
+		targettarget = "nUI_Raid25Unit_ToT",
+		focus        = "nUI_Raid25Unit_Focus_Portrait"
+	},
+	nUI_Raid40 = {
+		player       = "nUI_Raid40Unit_Player",
+		player2      = "nUI_Raid40Unit_Player",
+		pet          = "nUI_Raid40Unit_Pet",
+		target       = "nUI_Raid40Unit_Target",
+		targettarget = "nUI_Raid40Unit_ToT",
+		focus        = "nUI_Raid40Unit_Focus_Portrait"
+	},
 	Tukui = {
 		player       = "TukuiPlayerFrame.Portrait",
 		player2      = "TukuiPlayerFrame.Portrait",
-		target       = "TukuiTargetFrame.Portrait",
+		target       = "TukuiTargetFrame.Portrait"
+	},
+	Tukui_CF = {
+		player       = "TukuiPlayerFrame",
+		player2      = "TukuiPlayerFrame",
+		pet          = "TukuiPetFrame",
+		target       = "TukuiTargetFrame",
+		targettarget = "TukuiTargetTargetFrame",
+		focus        = "TukuiFocusFrame",
+		focustarget  = "TukuiFocusTargetFrame",
+		arena1       = "TukuiArenaFrame1",
+		arena2       = "TukuiArenaFrame2",
+		arena3       = "TukuiArenaFrame3",
+		arena4       = "TukuiArenaFrame4",
+		arena5       = "TukuiArenaFrame5"
+	},
+	Tukui_CF_PlayerInParty = {
+		partyplayer  = "TukuiPartyUnitButton1",
+		party1       = "TukuiPartyUnitButton2",
+		party2       = "TukuiPartyUnitButton3",
+		party3       = "TukuiPartyUnitButton4",
+		party4       = "TukuiPartyUnitButton5"
+	},
+	Tukui_CF_NoPlayerInParty = {
+		party1       = "TukuiPartyUnitButton1",
+		party2       = "TukuiPartyUnitButton2",
+		party3       = "TukuiPartyUnitButton3",
+		party4       = "TukuiPartyUnitButton4"
 	},
 	ElvUI = {
 		player       = "ElvUF_Player.Portrait",
@@ -2697,26 +3040,58 @@ local anchors = {
 		targettarget = "ElvUF_TargetTarget.Portrait",
 		focus        = "ElvUF_Focus.Portrait",
 		focustarget  = "ElvUF_FocusTarget.Portrait",
+		arena1       = "ElvUF_Arena1.Portrait",
+		arena1       = "ElvUF_Arena2.Portrait",
+		arena1       = "ElvUF_Arena3.Portrait",
+		arena1       = "ElvUF_Arena4.Portrait",
+		arena1       = "ElvUF_Arena5.Portrait"
+	},
+	ElvUI_CF = {
+		player       = "ElvUF_Player",
+		player2      = "ElvUF_Player",
+		pet          = "ElvUF_Pet",
+		target       = "ElvUF_Target",
+		targettarget = "ElvUF_TargetTarget",
+		focus        = "ElvUF_Focus",
+		focustarget  = "ElvUF_FocusTarget",
+		arena1       = "ElvUF_Arena1",
+		arena1       = "ElvUF_Arena2",
+		arena1       = "ElvUF_Arena3",
+		arena1       = "ElvUF_Arena4",
+		arena1       = "ElvUF_Arena5"
 	},
 	ElvUI_PlayerInParty = {
 		partyplayer  = "ElvUF_PartyGroup1UnitButton1.Portrait",
 		party1       = "ElvUF_PartyGroup1UnitButton2.Portrait",
 		party2       = "ElvUF_PartyGroup1UnitButton3.Portrait",
 		party3       = "ElvUF_PartyGroup1UnitButton4.Portrait",
-		party4       = "ElvUF_PartyGroup1UnitButton5.Portrait",
+		party4       = "ElvUF_PartyGroup1UnitButton5.Portrait"
 	},
 	ElvUI_NoPlayerInParty = {
 		party1       = "ElvUF_PartyGroup1UnitButton1.Portrait",
 		party2       = "ElvUF_PartyGroup1UnitButton2.Portrait",
 		party3       = "ElvUF_PartyGroup1UnitButton3.Portrait",
-		party4       = "ElvUF_PartyGroup1UnitButton4.Portrait",
+		party4       = "ElvUF_PartyGroup1UnitButton4.Portrait"
+	},
+	ElvUI_CF_PlayerInParty = {
+		partyplayer  = "ElvUF_PartyGroup1UnitButton1",
+		party1       = "ElvUF_PartyGroup1UnitButton2",
+		party2       = "ElvUF_PartyGroup1UnitButton3",
+		party3       = "ElvUF_PartyGroup1UnitButton4",
+		party4       = "ElvUF_PartyGroup1UnitButton5"
+	},
+	ElvUI_CF_NoPlayerInParty = {
+		party1       = "ElvUF_PartyGroup1UnitButton1",
+		party2       = "ElvUF_PartyGroup1UnitButton2",
+		party3       = "ElvUF_PartyGroup1UnitButton3",
+		party4       = "ElvUF_PartyGroup1UnitButton4"
 	},
 	Gladius = {
 		arena1       = "GladiusClassIconFramearena1",
 		arena2       = "GladiusClassIconFramearena2",
 		arena3       = "GladiusClassIconFramearena3",
 		arena4       = "GladiusClassIconFramearena4",
-		arena5       = "GladiusClassIconFramearena5",
+		arena5       = "GladiusClassIconFramearena5"
 	},
 	GladiusEx = {
 		party1       = "GladiusExClassIconFrameparty1",
@@ -2727,7 +3102,7 @@ local anchors = {
 		arena2       = "GladiusExClassIconFramearena2",
 		arena3       = "GladiusExClassIconFramearena3",
 		arena4       = "GladiusExClassIconFramearena4",
-		arena5       = "GladiusExClassIconFramearena5",
+		arena5       = "GladiusExClassIconFramearena5"
 	}
 	-- more to come here?
 }
@@ -5536,7 +5911,7 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 						end
 						if (frame.anchor == "BlizzardRaidFrames" or (isPartyFrame and frame.anchor == "Blizzard")) then
 							icon.anchor = compactRaidFrame
-							icon.parent:SetParent(icon.anchor:GetParent())
+							icon.parent:SetParent(icon.anchor:GetParent() or UIParent or nil)
 							icon.defaultFrameStrata = icon:GetFrameStrata()
 							icon:GetParent():ClearAllPoints()
 							icon:GetParent():SetPoint(
@@ -5709,7 +6084,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "2.05"
+		self.VERSION = "2.06"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		if (LoseControlDB.duplicatePlayerPortrait and LoseControlDB.frames.player.anchor == "Blizzard") then
@@ -5857,7 +6232,7 @@ function LoseControl:CheckAnchor(forceCheck)
 			end
 			if (newAnchor ~= nil and updateFrame) then
 				local frame = self.frame
-				self.parent:SetParent(self.anchor:GetParent())
+				self.parent:SetParent(self.anchor:GetParent() or UIParent or nil)
 				self.defaultFrameStrata = self:GetFrameStrata()
 				self:GetParent():ClearAllPoints()
 				self:GetParent():SetPoint(
@@ -5938,7 +6313,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	end)
 	self.unitGUID = UnitGUID(unitId)
 	self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][self.fakeUnitId or unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or unitId])=="string") and _GF(anchors[frame.anchor][self.fakeUnitId or unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or unitId])=="table") and anchors[frame.anchor][self.fakeUnitId or unitId] or UIParent))
-	self.parent:SetParent(self.anchor:GetParent()) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
+	self.parent:SetParent(self.anchor:GetParent() or UIParent or nil) -- or LoseControl) -- If Hide() is called on the parent frame, its children are hidden too. This also sets the frame strata to be the same as the parent's.
 	self.defaultFrameStrata = self:GetFrameStrata()
 	self:ClearAllPoints() -- if we don't do this then the frame won't always move
 	self:GetParent():ClearAllPoints()
@@ -5947,7 +6322,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	self:GetParent():SetWidth(frame.size)
 	self:GetParent():SetHeight(frame.size)
 	self:RegisterUnitEvents(enabled)
-	
+
 	self:SetPoint("CENTER", self:GetParent(), "CENTER", 0, 0)
 	self:GetParent():SetPoint(
 		frame.point or "CENTER",
@@ -6003,9 +6378,9 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	if self.MasqueGroup then
 		self.MasqueGroup:ReSkin()
 	end
-	
+
 	SetInterruptIconsSize(self, frame.size)
-	
+
 	self.iconInterruptBackground:SetAlpha(frame.interruptBackgroundAlpha)
 	self.iconInterruptBackground:SetVertexColor(frame.interruptBackgroundVertexColor.r, frame.interruptBackgroundVertexColor.g, frame.interruptBackgroundVertexColor.b)
 	for _, v in pairs(self.iconInterruptList) do
@@ -6014,12 +6389,12 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	for _, v in ipairs(self.iconQueueInterruptList) do
 		v:SetAlpha(frame.interruptMiniIconsAlpha)
 	end
-	
+
 	if strfind((self.fakeUnitId or unitId), "party") then
 		self:CheckStatusPartyFrameChange()
 	end
 	C_Timer.After(0.01, MainHookCompactRaidFrames)	-- execute in some close next frame
-	
+
 	if frame.anchor == "Blizzard" and not(self.useCompactPartyFrames) then
 		if self.textureicon then
 			SetPortraitToTexture(self.texture, self.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
@@ -6034,11 +6409,11 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		self:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 		self.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 	end
-	
+
 	--self:SetAlpha(frame.alpha) -- doesn't seem to work; must manually set alpha after the cooldown is displayed, otherwise it doesn't apply.
 	self:Hide()
 	self:GetParent():Hide()
-	
+
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
 		self:UNIT_AURA(self.unitId, true, nil, 0)
@@ -6054,9 +6429,7 @@ function LoseControl:GROUP_ROSTER_UPDATE()
 	local enabled = self:GetEnabled()
 	self:RegisterUnitEvents(enabled)
 	self.unitGUID = UnitGUID(unitId)
-	if (self.fakeUnitId ~= "partyplayer") then
-		self:CheckAnchor(frame.anchor ~= "Blizzard" or self.useCompactPartyFrames)
-	end
+	self:CheckAnchor(frame.anchor ~= "Blizzard" or self.useCompactPartyFrames)
 	if (enabled and IsInRaid() and (frame.anchor == "Blizzard") and (self.useCompactPartyFrames) and strfind(self.fakeUnitId or self.unitId, "party") and GetCVarBool("useCompactPartyFrames") and UnitExists(self.unitId)) then
 		UpdateAllRaidIconsAnchorCompactRaidFrame()
 	end
@@ -6168,14 +6541,34 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 		local unitId = self.fakeUnitId or self.unitId
 		if not(strfind(unitId, "party")) then return end
 		self.useCompactPartyFrames = value
+		if (value) then
+			anchors.Blizzard[unitId] = nil
+		else
+			local numId = -1
+			if (unitId == "party1") then
+				numId = 1
+			elseif (unitId == "party2") then
+				numId = 2
+			elseif (unitId == "party3") then
+				numId = 3
+			elseif (unitId == "party4") then
+				numId = 4
+			elseif (unitId == "partyplayer") then
+				numId = 0
+			end
+			if (numId <= 0) then
+				anchors.Blizzard[unitId] = nil
+			else
+				anchors.Blizzard[unitId] = "PartyMemberFrame" .. numId .. "Portrait"
+			end
+		end
 		local frame = self.frame or LoseControlDB.frames[unitId]
 		if (frame.anchor == "Blizzard") or (unitId == "partyplayer") then
 			if (value) then
 				MainHookCompactRaidFrames()
-				anchors.Blizzard[unitId] = nil
 				UpdateAllRaidIconsAnchorCompactRaidFrame()
 				if not(frame.noCompactFrame) then
-					frame.noCompactFrame = { 
+					frame.noCompactFrame = {
 						["point"] = frame.point,
 						["relativePoint"] = frame.relativePoint,
 						["frameStrata"] = frame.frameStrata,
@@ -6196,29 +6589,10 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 					frame.size = frame.compactFrame.size
 					if (unitId == "partyplayer") then frame.anchor = frame.compactFrame.anchor or "Blizzard" end
 					frame.compactFrame = nil
-				else
-					if (unitId == "partyplayer") then frame.anchor = "Blizzard" end
 				end
 			else
-				local numId = -1
-				if (unitId == "party1") then
-					numId = 1
-				elseif (unitId == "party2") then
-					numId = 2
-				elseif (unitId == "party3") then
-					numId = 3
-				elseif (unitId == "party4") then
-					numId = 4
-				elseif (unitId == "partyplayer") then
-					numId = 0
-				end
-				if (numId <= 0) then
-					anchors.Blizzard[unitId] = nil
-				else
-					anchors.Blizzard[unitId] = "PartyMemberFrame" .. numId .. "Portrait"
-				end
 				if not(frame.compactFrame) then
-					frame.compactFrame = { 
+					frame.compactFrame = {
 						["point"] = frame.point,
 						["relativePoint"] = frame.relativePoint,
 						["frameStrata"] = frame.frameStrata,
@@ -6229,18 +6603,20 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 					}
 					if (unitId == "partyplayer") then frame.compactFrame.anchor = frame.anchor end
 				end
-				frame.point = (frame.noCompactFrame and frame.noCompactFrame.point) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].point) or nil
-				frame.relativePoint = (frame.noCompactFrame and frame.noCompactFrame.relativePoint) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].relativePoint) or nil
-				frame.frameStrata = (frame.noCompactFrame and frame.noCompactFrame.frameStrata) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameStrata) or nil
-				frame.frameLevel = (frame.noCompactFrame and frame.noCompactFrame.frameLevel) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameLevel) or 0
-				frame.x = (frame.noCompactFrame and frame.noCompactFrame.x) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].x) or nil
-				frame.y = (frame.noCompactFrame and frame.noCompactFrame.y) or (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].y) or nil
-				frame.size = (frame.noCompactFrame and frame.noCompactFrame.size) or 36
-				if (unitId == "partyplayer") then frame.anchor = (frame.noCompactFrame and frame.noCompactFrame.anchor) or "None" end
-				frame.noCompactFrame = nil
+				if frame.noCompactFrame then
+					frame.point = frame.noCompactFrame.point
+					frame.relativePoint = frame.noCompactFrame.relativePoint
+					frame.frameStrata = frame.noCompactFrame.frameStrata
+					frame.frameLevel = frame.noCompactFrame.frameLevel
+					frame.x = frame.noCompactFrame.x
+					frame.y = frame.noCompactFrame.y
+					frame.size = frame.noCompactFrame.size
+					if (unitId == "partyplayer") then frame.anchor = frame.noCompactFrame.anchor or "None" end
+					frame.noCompactFrame = nil
+				end
 			end
 			self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="string") and _GF(anchors[frame.anchor][unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][unitId])=="table") and anchors[frame.anchor][unitId] or UIParent))
-			self.parent:SetParent(self.anchor:GetParent())
+			self.parent:SetParent(self.anchor:GetParent() or UIParent or nil)
 			self.defaultFrameStrata = self:GetFrameStrata()
 			self:GetParent():ClearAllPoints()
 			self:GetParent():SetPoint(
@@ -6507,13 +6883,13 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 			if (self.unitId == "targettarget") or (self.unitId == "focustarget") then
 				if debug then print(unitId, "debuff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
 			end
-			
+
 			if duration == 0 and expirationTime == 0 then
 				expirationTime = GetTime() + 1 -- normal expirationTime = 0
 			elseif expirationTime > 0 then
 				localForceEventUnitAuraAtEnd = (self.unitId == "targettarget")
 			end
-			
+
 			local spellCategory = spellIds[spellId]
 			local Priority = priority[spellCategory]
 			if self.frame.categoriesEnabled.debuff[reactionToPlayer] and self.frame.categoriesEnabled.debuff[reactionToPlayer][spellCategory] then
@@ -6541,13 +6917,13 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 			local name, icon, _, _, duration, expirationTime, _, _, _, spellId = UnitAura(unitId, i) -- defaults to "HELPFUL" filter
 			if not spellId then break end -- no more debuffs, terminate the loop
 			if debug then print(unitId, "buff", i, ")", name, "|", duration, "|", expirationTime, "|", spellId) end
-			
+
 			if duration == 0 and expirationTime == 0 then
 				expirationTime = GetTime() + 1 -- normal expirationTime = 0
 			elseif expirationTime > 0 then
 				localForceEventUnitAuraAtEnd = (self.unitId == "targettarget")
 			end
-			
+
 			-- exceptions
 			if (spellId == 605) or (spellId == 10911) or (spellId == 10912) or (spellId == 24020) then	-- Mind Control and Axe Flurry
 				spellId = 1
@@ -6556,7 +6932,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 			elseif (spellId == 34471 and (self.unitId == "player" or (playerClass ~= 1 and playerClass ~= 2 and playerClass ~= 5 and playerClass ~= 9))) then	--  The Beast Within
 				newCategory = "Other"
 			end
-			
+
 			local spellCategory = newCategory or spellIds[spellId]
 			local Priority = priority[spellCategory]
 			if self.frame.categoriesEnabled.buff[reactionToPlayer] and self.frame.categoriesEnabled.buff[reactionToPlayer][spellCategory] then
@@ -6576,7 +6952,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 				end
 			end
 		end
-		
+
 		-- Check interrupts
 		if ((self.unitGUID ~= nil) and (priority.Interrupt > 0) and self.frame.categoriesEnabled.interrupt[reactionToPlayer] and (UnitIsPlayer(self.unitId) or (((self.unitId ~= "target") or (LoseControlDB.showNPCInterruptsTarget)) and ((self.unitId ~= "focus") or (LoseControlDB.showNPCInterruptsFocus)) and ((self.unitId ~= "targettarget") or (LoseControlDB.showNPCInterruptsTargetTarget)) and ((self.unitId ~= "focustarget") or (LoseControlDB.showNPCInterruptsFocusTarget)) and (not(strfind(self.unitId, "nameplate")) or (LoseControlDB.showNPCInterruptsNameplate))))) then
 			if (self.frame.useSpellInsteadSchoolMiniIcon) then
@@ -6739,7 +7115,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 			end
 		end
 	end
-	
+
 	if maxExpirationTime == 0 then -- no (de)buffs found
 		self.maxExpirationTime = 0
 		if self.anchor ~= UIParent and self.drawlayer then
@@ -6912,7 +7288,7 @@ function LoseControl:StopMoving()
 		end
 	end
 	self.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][self.fakeUnitId or self.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or self.unitId])=="string") and _GF(anchors[frame.anchor][self.fakeUnitId or self.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][self.fakeUnitId or self.unitId])=="table") and anchors[frame.anchor][self.fakeUnitId or self.unitId] or UIParent))
-	self.parent:SetParent(self.anchor:GetParent())
+	self.parent:SetParent(self.anchor:GetParent() or UIParent or nil)
 	self.defaultFrameStrata = self:GetFrameStrata()
 	self:ClearAllPoints()
 	self:GetParent():ClearAllPoints()
@@ -7012,13 +7388,13 @@ function LoseControl:new(unitId)
 	local op = CreateFrame("Button", addonName .. "ButtonParent" .. unitId, nil, 'ActionButtonTemplate')
 	op:EnableMouse(false)
 	HideTheButtonDefaultSkin(op)
-	
+
 	setmetatable(o, self)
 	self.__index = self
-	
+
 	o:SetParent(op)
 	o.parent = op
-	
+
 	o:SetDrawEdge(false)
 
 	-- Init class members
@@ -7121,7 +7497,7 @@ function LoseControl:new(unitId)
 		SetPortraitToTexture(v, v:GetTexture())
 		v:SetTexCoord(0.08,0.92,0.08,0.92)
 	end
-	
+
 	-- Handle events
 	o:SetScript("OnEvent", self.OnEvent)
 	o:SetScript("OnDragStart", self.StartMoving) -- this function is already built into the Frame class
@@ -7238,11 +7614,11 @@ OptionsPanel.scrollupbutton:ClearAllPoints()
 OptionsPanel.scrollupbutton:SetPoint("TOPRIGHT", OptionsPanel.scrollframe, "TOPRIGHT", -2, -2)
 OptionsPanel.scrolldownbutton:ClearAllPoints()
 OptionsPanel.scrolldownbutton:SetPoint("BOTTOMRIGHT", OptionsPanel.scrollframe, "BOTTOMRIGHT", -2, 2)
- 
+
 OptionsPanel.scrollbar:ClearAllPoints()
 OptionsPanel.scrollbar:SetPoint("TOP", OptionsPanel.scrollupbutton, "BOTTOM", 0, -2)
 OptionsPanel.scrollbar:SetPoint("BOTTOM", OptionsPanel.scrolldownbutton, "TOP", 0, 2)
- 
+
 OptionsPanel.scrollframe:SetScrollChild(OptionsPanel.scrollchild)
 OptionsPanel.scrollframe:SetAllPoints(OptionsPanel)
 OptionsPanel.scrollchild:SetSize(623, 568)
@@ -7299,7 +7675,7 @@ function Unlock:OnClick()
 						v:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 						v.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 					end
-					v.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
+					v.parent:SetParent(UIParent or nil) -- detach the frame from its parent or else it won't show if the parent is hidden
 					if (frame.frameStrata ~= nil) then
 						v:GetParent():SetFrameStrata(frame.frameStrata)
 						v:SetFrameStrata(frame.frameStrata)
@@ -7347,7 +7723,7 @@ function Unlock:OnClick()
 				LCframeplayer2:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
 				LCframeplayer2.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background.blp")
 			end
-			LCframeplayer2.parent:SetParent(nil) -- detach the frame from its parent or else it won't show if the parent is hidden
+			LCframeplayer2.parent:SetParent(UIParent or nil) -- detach the frame from its parent or else it won't show if the parent is hidden
 			if (frame.frameStrata ~= nil) then
 				LCframeplayer2:GetParent():SetFrameStrata(frame.frameStrata)
 				LCframeplayer2:SetFrameStrata(frame.frameStrata)
@@ -7496,7 +7872,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	local OptionsPanelFrame = CreateFrame("Frame", O..v)
 	OptionsPanelFrame.parent = addonName
 	OptionsPanelFrame.name = L[v]
-	
+
 	OptionsPanelFrame.scrollframe = OptionsPanelFrame.scrollframe or CreateFrame("ScrollFrame", OptionsPanelFrame:GetName().."ScrollFrame", OptionsPanelFrame, "UIPanelScrollFrameTemplate")
 	OptionsPanelFrame.scrollchild = OptionsPanelFrame.scrollchild or CreateFrame("Frame", OptionsPanelFrame:GetName().."ScrollChild")
 
@@ -7507,11 +7883,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	OptionsPanelFrame.scrollupbutton:SetPoint("TOPRIGHT", OptionsPanelFrame.scrollframe, "TOPRIGHT", -2, -2)
 	OptionsPanelFrame.scrolldownbutton:ClearAllPoints()
 	OptionsPanelFrame.scrolldownbutton:SetPoint("BOTTOMRIGHT", OptionsPanelFrame.scrollframe, "BOTTOMRIGHT", -2, 2)
-	 
+
 	OptionsPanelFrame.scrollbar:ClearAllPoints()
 	OptionsPanelFrame.scrollbar:SetPoint("TOP", OptionsPanelFrame.scrollupbutton, "BOTTOM", 0, -2)
 	OptionsPanelFrame.scrollbar:SetPoint("BOTTOM", OptionsPanelFrame.scrolldownbutton, "TOP", 0, 2)
-	 
+
 	OptionsPanelFrame.scrollframe:SetScrollChild(OptionsPanelFrame.scrollchild)
 	OptionsPanelFrame.scrollframe:SetAllPoints(OptionsPanelFrame)
 	OptionsPanelFrame.scrollchild:SetSize(623, 668)
@@ -7590,7 +7966,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		["Snare"] = CategoryEnabledSnareLabel,
 		["Other"] = CategoryEnabledOtherLabel
 	}
-	
+
 	local AnchorDropDown = CreateFrame("Frame", O..v.."AnchorDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
 	function AnchorDropDown:OnClick()
 		UIDropDownMenu_SetSelectedValue(AnchorDropDown, self.value)
@@ -7610,14 +7986,14 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (unitId ~= "partyplayer") then
 				frame.anchor = self.value
 			else
-				if (GetCVarBool("useCompactPartyFrames")) then
+				if ((self.value ~= "None" and self.value ~= "Blizzard" and anchors[self.value].partyplayer ~= nil) or (self.value == "Blizzard" and GetCVarBool("useCompactPartyFrames"))) then
 					frame.anchor = self.value
 				else
 					frame.anchor = "None"
 				end
 			end
 			icon.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][icon.fakeUnitId or icon.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="string") and _GF(anchors[frame.anchor][icon.fakeUnitId or icon.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="table") and anchors[frame.anchor][icon.fakeUnitId or icon.unitId] or UIParent))
-			icon.parent:SetParent(icon.anchor:GetParent())
+			icon.parent:SetParent(icon.anchor:GetParent() or UIParent or nil)
 			icon.defaultFrameStrata = icon:GetFrameStrata()
 			if frame.anchor ~= "None" then -- reset the frame position so it centers on the anchor frame
 				frame.point = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].point) or nil
@@ -7820,7 +8196,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			local icon = LCframeplayer2
 			frame.anchor = self.value
 			icon.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][icon.fakeUnitId or icon.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="string") and _GF(anchors[frame.anchor][icon.fakeUnitId or icon.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][icon.fakeUnitId or icon.unitId])=="table") and anchors[frame.anchor][icon.fakeUnitId or icon.unitId] or UIParent))
-			icon.parent:SetParent(icon.anchor:GetParent())
+			icon.parent:SetParent(icon.anchor:GetParent() or UIParent or nil)
 			icon.defaultFrameStrata = icon:GetFrameStrata()
 			if frame.anchor ~= "None" then -- reset the frame position so it centers on the anchor frame
 				frame.point = (DBdefaults.frames.player2 and frame.anchor == DBdefaults.frames.player2.anchor and DBdefaults.frames.player2.point) or nil
@@ -7901,7 +8277,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorPositionPartyDropDown
 	if v == "party" then
 		AnchorPositionPartyDropDown	= CreateFrame("Frame", O..v.."AnchorPositionPartyDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
@@ -7969,7 +8345,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorPositionArenaDropDown
 	if v == "arena" then
 		AnchorPositionArenaDropDown	= CreateFrame("Frame", O..v.."AnchorPositionArenaDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
@@ -8035,7 +8411,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorPositionRaidDropDown
 	if v == "raid" then
 		AnchorPositionRaidDropDown = CreateFrame("Frame", O..v.."AnchorPositionRaidDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
@@ -8149,7 +8525,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		self:SetTextColor(1, 1, 1)
 		self.labelObj:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
 	end)
-	
+
 	local PositionYEditBox = CreateEditBox(L["Position"], OptionsPanelFrame.container, 55, 20, OptionsPanelFrame:GetName() .. "PositionYEditBox")
 	PositionYEditBox.labelObj = PositionYEditBoxLabel
 	PositionYEditBox:SetScript("OnEnterPressed", function(self, value)
@@ -8254,7 +8630,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorIconPointDropDown = CreateFrame("Frame", O..v.."AnchorIconPointDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
 	function AnchorIconPointDropDown:OnClick()
 		UIDropDownMenu_SetSelectedValue(AnchorIconPointDropDown, self.value)
@@ -8299,7 +8675,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local AnchorFrameStrataDropDown = CreateFrame("Frame", O..v.."AnchorFrameStrataDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
 	function AnchorFrameStrataDropDown:OnClick()
 		UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, self.value)
@@ -8347,7 +8723,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end
 	end
-	
+
 	local FrameLevelEditBox = CreateEditBox(nil, OptionsPanelFrame.container, 55, 20, OptionsPanelFrame:GetName() .. "FrameLevelEditBox")
 	FrameLevelEditBox.labelObj = FrameLevelEditBoxLabel
 	FrameLevelEditBox:SetScript("OnEnterPressed", function(self, value)
@@ -8403,7 +8779,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			frames = { "nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10", "nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20", "nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30", "nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40" }
 		end
 		for _, frame in ipairs(frames) do
-			if (v ~= "party" or GetCVarBool("useCompactPartyFrames") or not(LoseControlDB.showPartyplayerIcon) or frame == "partyplayer") then
+			if (v ~= "party" or GetCVarBool("useCompactPartyFrames") or not(LoseControlDB.showPartyplayerIcon) or LoseControlDB.frames[frame].anchor ~= "Blizzard" or frame == "partyplayer") then
 				LoseControlDB.frames[frame].size = value
 				LCframes[frame]:SetWidth(value)
 				LCframes[frame]:SetHeight(value)
@@ -8426,7 +8802,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			self:Func(value)
 		end
 	end)
-	
+
 	local SizeSlider2
 	if v == "player" then
 		SizeSlider2 = CreateSlider(L["Icon Size"], OptionsPanelFrame.container, 4, 256, 1, 160, true, OptionsPanelFrame:GetName() .. "IconSizeSlider2")
@@ -8548,7 +8924,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end)
 	end
-	
+
 	local DisableInArena
 	if v == "party" then
 		DisableInArena = CreateFrame("CheckButton", O..v.."DisableInArena", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
@@ -8604,7 +8980,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	if v == "target" or v == "focus" or v == "targettarget" or v == "focustarget" or v == "nameplate" then
 		ShowNPCInterrupts = CreateFrame("CheckButton", O..v.."ShowNPCInterrupts", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
 		_G[O..v.."ShowNPCInterruptsText"]:SetText(L["ShowNPCInterrupts"])
-		ShowNPCInterrupts:SetScript("OnClick", function(self)		
+		ShowNPCInterrupts:SetScript("OnClick", function(self)
 			if v == "target" then
 				LoseControlDB.showNPCInterruptsTarget = self:GetChecked()
 			elseif v == "focus" then
@@ -8694,7 +9070,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			end
 		end)
 	end
-	
+
 	local DisableFocusFocusTarget
 	if v == "focustarget" then
 		DisableFocusFocusTarget = CreateFrame("CheckButton", O..v.."DisableFocusFocusTarget", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
@@ -8790,7 +9166,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			self:Func(value)
 		end
 	end)
-	
+
 	local AlphaSliderInterruptMiniIcons = CreateSlider(L["InterruptMiniIconsOpacity"], OptionsPanelFrame.container, 0, 100, 1, 200, true, OptionsPanelFrame:GetName() .. "InterruptMiniIconsOpacitySlider") -- I was going to use a range of 0 to 1 but Blizzard's slider chokes on decimal values
 	AlphaSliderInterruptMiniIcons.Func = function(self, value)
 		if value == nil then value = self:GetValue() end
@@ -8855,7 +9231,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			self:Func(value)
 		end
 	end)
-	
+
 	local ColorPickerBackgroundInterrupt = CreateFrame("Button", OptionsPanelFrame:GetName() .. "ColorPickerBackgroundInterrupt", OptionsPanelFrame.container, "GlowBoxTemplate")
 	ColorPickerBackgroundInterrupt:SetSize(25, 25)
 	ColorPickerBackgroundInterrupt:SetPoint("LEFT")
@@ -8889,7 +9265,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		end
 		ShowColorPicker(self.texture, LoseControlDB.frames[frames[1]].interruptBackgroundVertexColor.r, LoseControlDB.frames[frames[1]].interruptBackgroundVertexColor.g, LoseControlDB.frames[frames[1]].interruptBackgroundVertexColor.b, nil, InterruptBackgroundColorPickerChangeCallback, InterruptBackgroundColorPickerCancelCallback)
 	end)
-	
+
 	local ColorPickerBackgroundInterruptREditBox = CreateEditBox(nil, OptionsPanelFrame.container, 30, 3, OptionsPanelFrame:GetName() .. "ColorPickerBackgroundInterruptREditBox")
 	ColorPickerBackgroundInterruptREditBox.labelObj = ColorPickerBackgroundInterruptREditBoxLabel
 	ColorPickerBackgroundInterruptREditBox:SetScript("OnEnterPressed", function(self, value)
@@ -8954,7 +9330,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		self:SetTextColor(1, 1, 1)
 		self.labelObj:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
 	end)
-	
+
 	local ColorPickerBackgroundInterruptGEditBox = CreateEditBox(nil, OptionsPanelFrame.container, 30, 3, OptionsPanelFrame:GetName() .. "ColorPickerBackgroundInterruptGEditBox")
 	ColorPickerBackgroundInterruptGEditBox.labelObj = ColorPickerBackgroundInterruptGEditBoxLabel
 	ColorPickerBackgroundInterruptGEditBox:SetScript("OnEnterPressed", function(self, value)
@@ -9019,7 +9395,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		self:SetTextColor(1, 1, 1)
 		self.labelObj:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
 	end)
-	
+
 	local ColorPickerBackgroundInterruptBEditBox = CreateEditBox(nil, OptionsPanelFrame.container, 30, 3, OptionsPanelFrame:GetName() .. "ColorPickerBackgroundInterruptBEditBox")
 	ColorPickerBackgroundInterruptBEditBox.labelObj = ColorPickerBackgroundInterruptBEditBoxLabel
 	ColorPickerBackgroundInterruptBEditBox:SetScript("OnEnterPressed", function(self, value)
@@ -9084,7 +9460,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		self:SetTextColor(1, 1, 1)
 		self.labelObj:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
 	end)
-	
+
 	function ColorPickerBackgroundInterrupt.texture:UpdateColor(frame)
 		self:SetVertexColor(frame.interruptBackgroundVertexColor.r, frame.interruptBackgroundVertexColor.g, frame.interruptBackgroundVertexColor.b)
 		ColorPickerBackgroundInterruptREditBox:SetText(mathfloor(frame.interruptBackgroundVertexColor.r * 255 + 0.5))
@@ -9094,7 +9470,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		ColorPickerBackgroundInterruptBEditBox:SetText(mathfloor(frame.interruptBackgroundVertexColor.b * 255 + 0.5))
 		ColorPickerBackgroundInterruptBEditBox:SetCursorPosition(0)
 	end
-	
+
 	local UseSpellInsteadSchoolMiniIcon = CreateFrame("CheckButton", OptionsPanelFrame:GetName().."UseSpellInsteadSchoolMiniIcon", OptionsPanelFrame.container, "OptionsCheckButtonTemplate")
 	_G[OptionsPanelFrame:GetName().."UseSpellInsteadSchoolMiniIconText"]:SetText(L["UseSpellInsteadSchoolMiniIcon"])
 	function UseSpellInsteadSchoolMiniIcon:Check(value)
@@ -9159,7 +9535,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			else
 				LCframes[frame]:SetSwipeColor(0, 0, 0, value / 100)
 			end
-			
+
 			if (frame == "player") then
 				LoseControlDB.frames.player2.swipeAlpha = value / 100 -- the real alpha value
 				if (LoseControlDB.frames.player2.anchor == "Blizzard" and not(LCframes[frame].useCompactPartyFrames)) then
@@ -9436,7 +9812,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					}, "Button", true)
 				end
 				LCframes.player.anchor = anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId]] or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId])=="string") and _GF(anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId])=="table") and anchors[frame.anchor][LCframes.player.fakeUnitId or LCframes.player.unitId] or UIParent))
-				LCframes.player.parent:SetParent(LCframes.player.anchor:GetParent())
+				LCframes.player.parent:SetParent(LCframes.player.anchor:GetParent() or UIParent or nil)
 				LCframes.player.defaultFrameStrata = LCframes.player:GetFrameStrata()
 				LCframes.player:GetParent():ClearAllPoints()
 				LCframes.player:GetParent():SetPoint(
@@ -9974,23 +10350,70 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				AddItem(AnchorDropDown, "Blizzard", "Blizzard")
 			end
 			if _G[anchors["Perl"][unitId]] or (type(anchors["Perl"][unitId])=="table" and anchors["Perl"][unitId]) or (type(anchors["Perl"][unitId])=="string" and _GF(anchors["Perl"][unitId])) then AddItem(AnchorDropDown, "Perl", "Perl") end
+			if _G[anchors["Perl_CF"][unitId]] or (type(anchors["Perl_CF"][unitId])=="table" and anchors["Perl_CF"][unitId]) or (type(anchors["Perl_CF"][unitId])=="string" and _GF(anchors["Perl_CF"][unitId])) then AddItem(AnchorDropDown, "Perl_CF", "Perl_CF") end
 			if _G[anchors["XPerl"][unitId]] or (type(anchors["XPerl"][unitId])=="table" and anchors["XPerl"][unitId]) or (type(anchors["XPerl"][unitId])=="string" and _GF(anchors["XPerl"][unitId])) then AddItem(AnchorDropDown, "XPerl", "XPerl") end
+			if _G[anchors["XPerl_CUF"][unitId]] or (type(anchors["XPerl_CUF"][unitId])=="table" and anchors["XPerl_CUF"][unitId]) or (type(anchors["XPerl_CUF"][unitId])=="string" and _GF(anchors["XPerl_CUF"][unitId])) then AddItem(AnchorDropDown, "XPerl_CUF", "XPerl_CUF") end
+			if _G[anchors["XPerl_PlayerInParty"][unitId]] or (type(anchors["XPerl_PlayerInParty"][unitId])=="table" and anchors["XPerl_PlayerInParty"][unitId]) or (type(anchors["XPerl_PlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "XPerl_PlayerInParty", "XPerl_PlayerInParty") end
+			if _G[anchors["XPerl_NoPlayerInParty"][unitId]] or (type(anchors["XPerl_NoPlayerInParty"][unitId])=="table" and anchors["XPerl_NoPlayerInParty"][unitId]) or (type(anchors["XPerl_NoPlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "XPerl_NoPlayerInParty", "XPerl_NoPlayerInParty") end
+			if _G[anchors["XPerl_CUF_PlayerInParty"][unitId]] or (type(anchors["XPerl_CUF_PlayerInParty"][unitId])=="table" and anchors["XPerl_CUF_PlayerInParty"][unitId]) or (type(anchors["XPerl_CUF_PlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_CUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "XPerl_CUF_PlayerInParty", "XPerl_CUF_PlayerInParty") end
+			if _G[anchors["XPerl_CUF_NoPlayerInParty"][unitId]] or (type(anchors["XPerl_CUF_NoPlayerInParty"][unitId])=="table" and anchors["XPerl_CUF_NoPlayerInParty"][unitId]) or (type(anchors["XPerl_CUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_CUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "XPerl_CUF_NoPlayerInParty", "XPerl_CUF_NoPlayerInParty") end
 			if _G[anchors["LUI"][unitId]] or (type(anchors["LUI"][unitId])=="table" and anchors["LUI"][unitId]) or (type(anchors["LUI"][unitId])=="string" and _GF(anchors["LUI"][unitId])) then AddItem(AnchorDropDown, "LUI", "LUI") end
+			if _G[anchors["LUI_CF"][unitId]] or (type(anchors["LUI_CF"][unitId])=="table" and anchors["LUI_CF"][unitId]) or (type(anchors["LUI_CF"][unitId])=="string" and _GF(anchors["LUI_CF"][unitId])) then AddItem(AnchorDropDown, "LUI_CF", "LUI_CF") end
+			if _G[anchors["LUI_PlayerInParty"][unitId]] or (type(anchors["LUI_PlayerInParty"][unitId])=="table" and anchors["LUI_PlayerInParty"][unitId]) or (type(anchors["LUI_PlayerInParty"][unitId])=="string" and _GF(anchors["LUI_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUI_PlayerInParty", "LUI_PlayerInParty") end
+			if _G[anchors["LUI_NoPlayerInParty"][unitId]] or (type(anchors["LUI_NoPlayerInParty"][unitId])=="table" and anchors["LUI_NoPlayerInParty"][unitId]) or (type(anchors["LUI_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUI_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUI_NoPlayerInParty", "LUI_NoPlayerInParty") end
+			if _G[anchors["LUI_CF_PlayerInParty"][unitId]] or (type(anchors["LUI_CF_PlayerInParty"][unitId])=="table" and anchors["LUI_CF_PlayerInParty"][unitId]) or (type(anchors["LUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["LUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUI_CF_PlayerInParty", "LUI_CF_PlayerInParty") end
+			if _G[anchors["LUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["LUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["LUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["LUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUI_CF_NoPlayerInParty", "LUI_CF_NoPlayerInParty") end
 			if _G[anchors["SUF"][unitId]] or (type(anchors["SUF"][unitId])=="table" and anchors["SUF"][unitId]) or (type(anchors["SUF"][unitId])=="string" and _GF(anchors["SUF"][unitId])) then AddItem(AnchorDropDown, "SUF", "SUF") end
+			if _G[anchors["SUF_CF"][unitId]] or (type(anchors["SUF_CF"][unitId])=="table" and anchors["SUF_CF"][unitId]) or (type(anchors["SUF_CF"][unitId])=="string" and _GF(anchors["SUF_CF"][unitId])) then AddItem(AnchorDropDown, "SUF_CF", "SUF_CF") end
+			if _G[anchors["SUF_PlayerInParty"][unitId]] or (type(anchors["SUF_PlayerInParty"][unitId])=="table" and anchors["SUF_PlayerInParty"][unitId]) or (type(anchors["SUF_PlayerInParty"][unitId])=="string" and _GF(anchors["SUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SUF_PlayerInParty", "SUF_PlayerInParty") end
+			if _G[anchors["SUF_NoPlayerInParty"][unitId]] or (type(anchors["SUF_NoPlayerInParty"][unitId])=="table" and anchors["SUF_NoPlayerInParty"][unitId]) or (type(anchors["SUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SUF_NoPlayerInParty", "SUF_NoPlayerInParty") end
+			if _G[anchors["SUF_CF_PlayerInParty"][unitId]] or (type(anchors["SUF_CF_PlayerInParty"][unitId])=="table" and anchors["SUF_CF_PlayerInParty"][unitId]) or (type(anchors["SUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["SUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SUF_CF_PlayerInParty", "SUF_CF_PlayerInParty") end
+			if _G[anchors["SUF_CF_NoPlayerInParty"][unitId]] or (type(anchors["SUF_CF_NoPlayerInParty"][unitId])=="table" and anchors["SUF_CF_NoPlayerInParty"][unitId]) or (type(anchors["SUF_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SUF_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SUF_CF_NoPlayerInParty", "SUF_CF_NoPlayerInParty") end
 			if _G[anchors["LUF"][unitId]] or (type(anchors["LUF"][unitId])=="table" and anchors["LUF"][unitId]) or (type(anchors["LUF"][unitId])=="string" and _GF(anchors["LUF"][unitId])) then AddItem(AnchorDropDown, "LUF", "LUF") end
+			if _G[anchors["LUF_CF"][unitId]] or (type(anchors["LUF_CF"][unitId])=="table" and anchors["LUF_CF"][unitId]) or (type(anchors["LUF_CF"][unitId])=="string" and _GF(anchors["LUF_CF"][unitId])) then AddItem(AnchorDropDown, "LUF_CF", "LUF_CF") end
+			if _G[anchors["LUF_PlayerInParty"][unitId]] or (type(anchors["LUF_PlayerInParty"][unitId])=="table" and anchors["LUF_PlayerInParty"][unitId]) or (type(anchors["LUF_PlayerInParty"][unitId])=="string" and _GF(anchors["LUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUF_PlayerInParty", "LUF_PlayerInParty") end
+			if _G[anchors["LUF_NoPlayerInParty"][unitId]] or (type(anchors["LUF_NoPlayerInParty"][unitId])=="table" and anchors["LUF_NoPlayerInParty"][unitId]) or (type(anchors["LUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUF_NoPlayerInParty", "LUF_NoPlayerInParty") end
+			if _G[anchors["LUF_CF_PlayerInParty"][unitId]] or (type(anchors["LUF_CF_PlayerInParty"][unitId])=="table" and anchors["LUF_CF_PlayerInParty"][unitId]) or (type(anchors["LUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["LUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUF_CF_PlayerInParty", "LUF_CF_PlayerInParty") end
+			if _G[anchors["LUF_CF_NoPlayerInParty"][unitId]] or (type(anchors["LUF_CF_NoPlayerInParty"][unitId])=="table" and anchors["LUF_CF_NoPlayerInParty"][unitId]) or (type(anchors["LUF_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUF_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "LUF_CF_NoPlayerInParty", "LUF_CF_NoPlayerInParty") end
 			if _G[anchors["PitBullUF"][unitId]] or (type(anchors["PitBullUF"][unitId])=="table" and anchors["PitBullUF"][unitId]) or (type(anchors["PitBullUF"][unitId])=="string" and _GF(anchors["PitBullUF"][unitId])) then AddItem(AnchorDropDown, "PitBullUF", "PitBullUF") end
+			if _G[anchors["PitBullUF_CF"][unitId]] or (type(anchors["PitBullUF_CF"][unitId])=="table" and anchors["PitBullUF_CF"][unitId]) or (type(anchors["PitBullUF_CF"][unitId])=="string" and _GF(anchors["PitBullUF_CF"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_CF", "PitBullUF_CF") end
+			if _G[anchors["PitBullUF_PlayerInParty"][unitId]] or (type(anchors["PitBullUF_PlayerInParty"][unitId])=="table" and anchors["PitBullUF_PlayerInParty"][unitId]) or (type(anchors["PitBullUF_PlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_PlayerInParty", "PitBullUF_PlayerInParty") end
+			if _G[anchors["PitBullUF_NoPlayerInParty"][unitId]] or (type(anchors["PitBullUF_NoPlayerInParty"][unitId])=="table" and anchors["PitBullUF_NoPlayerInParty"][unitId]) or (type(anchors["PitBullUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_NoPlayerInParty", "PitBullUF_NoPlayerInParty") end
+			if _G[anchors["PitBullUF_CF_PlayerInParty"][unitId]] or (type(anchors["PitBullUF_CF_PlayerInParty"][unitId])=="table" and anchors["PitBullUF_CF_PlayerInParty"][unitId]) or (type(anchors["PitBullUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_CF_PlayerInParty", "PitBullUF_CF_PlayerInParty") end
+			if _G[anchors["PitBullUF_CF_NoPlayerInParty"][unitId]] or (type(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])=="table" and anchors["PitBullUF_CF_NoPlayerInParty"][unitId]) or (type(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "PitBullUF_CF_NoPlayerInParty", "PitBullUF_CF_NoPlayerInParty") end
 			if _G[anchors["SpartanUI_2D"][unitId]] or (type(anchors["SpartanUI_2D"][unitId])=="table" and anchors["SpartanUI_2D"][unitId]) or (type(anchors["SpartanUI_2D"][unitId])=="string" and _GF(anchors["SpartanUI_2D"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_2D", "SpartanUI_2D") end
 			if _G[anchors["SpartanUI_3D"][unitId]] or (type(anchors["SpartanUI_3D"][unitId])=="table" and anchors["SpartanUI_3D"][unitId]) or (type(anchors["SpartanUI_3D"][unitId])=="string" and _GF(anchors["SpartanUI_3D"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_3D", "SpartanUI_3D") end
-			if _G[anchors["SpartanUI_2D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_2D_NoPlayerInParty", "SpartanUI_2D_NoPlayerInParty") end
+			if _G[anchors["SpartanUI_CF"][unitId]] or (type(anchors["SpartanUI_CF"][unitId])=="table" and anchors["SpartanUI_CF"][unitId]) or (type(anchors["SpartanUI_CF"][unitId])=="string" and _GF(anchors["SpartanUI_CF"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_CF", "SpartanUI_CF") end
 			if _G[anchors["SpartanUI_2D_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_2D_PlayerInParty", "SpartanUI_2D_PlayerInParty") end
-			if _G[anchors["SpartanUI_3D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_3D_NoPlayerInParty", "SpartanUI_3D_NoPlayerInParty") end
+			if _G[anchors["SpartanUI_2D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_2D_NoPlayerInParty", "SpartanUI_2D_NoPlayerInParty") end
 			if _G[anchors["SpartanUI_3D_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_3D_PlayerInParty", "SpartanUI_3D_PlayerInParty") end
+			if _G[anchors["SpartanUI_3D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_3D_NoPlayerInParty", "SpartanUI_3D_NoPlayerInParty") end
+			if _G[anchors["SpartanUI_CF_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_CF_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_CF_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_CF_PlayerInParty", "SpartanUI_CF_PlayerInParty") end
+			if _G[anchors["SpartanUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "SpartanUI_CF_NoPlayerInParty", "SpartanUI_CF_NoPlayerInParty") end
 			if _G[anchors["GW2"][unitId]] or (type(anchors["GW2"][unitId])=="table" and anchors["GW2"][unitId]) or (type(anchors["GW2"][unitId])=="string" and _GF(anchors["GW2"][unitId])) then AddItem(AnchorDropDown, "GW2", "GW2") end
-			if _G[anchors["nUI"][unitId]] or (type(anchors["nUI"][unitId])=="table" and anchors["nUI"][unitId]) or (type(anchors["nUI"][unitId])=="string" and _GF(anchors["nUI"][unitId])) then AddItem(AnchorDropDown, "nUI", "nUI") end
+			if _G[anchors["GW2_CF"][unitId]] or (type(anchors["GW2_CF"][unitId])=="table" and anchors["GW2_CF"][unitId]) or (type(anchors["GW2_CF"][unitId])=="string" and _GF(anchors["GW2_CF"][unitId])) then AddItem(AnchorDropDown, "GW2_CF", "GW2_CF") end
+			if _G[anchors["GW2_PlayerInParty"][unitId]] or (type(anchors["GW2_PlayerInParty"][unitId])=="table" and anchors["GW2_PlayerInParty"][unitId]) or (type(anchors["GW2_PlayerInParty"][unitId])=="string" and _GF(anchors["GW2_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "GW2_PlayerInParty", "GW2_PlayerInParty") end
+			if _G[anchors["GW2_NoPlayerInParty"][unitId]] or (type(anchors["GW2_NoPlayerInParty"][unitId])=="table" and anchors["GW2_NoPlayerInParty"][unitId]) or (type(anchors["GW2_NoPlayerInParty"][unitId])=="string" and _GF(anchors["GW2_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "GW2_NoPlayerInParty", "GW2_NoPlayerInParty") end
+			if _G[anchors["GW2_CF_PlayerInParty"][unitId]] or (type(anchors["GW2_CF_PlayerInParty"][unitId])=="table" and anchors["GW2_CF_PlayerInParty"][unitId]) or (type(anchors["GW2_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["GW2_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "GW2_CF_PlayerInParty", "GW2_CF_PlayerInParty") end
+			if _G[anchors["GW2_CF_NoPlayerInParty"][unitId]] or (type(anchors["GW2_CF_NoPlayerInParty"][unitId])=="table" and anchors["GW2_CF_NoPlayerInParty"][unitId]) or (type(anchors["GW2_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["GW2_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "GW2_CF_NoPlayerInParty", "GW2_CF_NoPlayerInParty") end
+			if _G[anchors["GW2_PartyRaidStyle"][unitId]] or (type(anchors["GW2_PartyRaidStyle"][unitId])=="table" and anchors["GW2_PartyRaidStyle"][unitId]) or (type(anchors["GW2_PartyRaidStyle"][unitId])=="string" and _GF(anchors["GW2_PartyRaidStyle"][unitId])) then AddItem(AnchorDropDown, "GW2_PartyRaidStyle", "GW2_PartyRaidStyle") end
+			if _G[anchors["nUI_Solo"][unitId]] or (type(anchors["nUI_Solo"][unitId])=="table" and anchors["nUI_Solo"][unitId]) or (type(anchors["nUI_Solo"][unitId])=="string" and _GF(anchors["nUI_Solo"][unitId])) then AddItem(AnchorDropDown, "nUI_Solo", "nUI_Solo") end
+			if _G[anchors["nUI_Party"][unitId]] or (type(anchors["nUI_Party"][unitId])=="table" and anchors["nUI_Party"][unitId]) or (type(anchors["nUI_Party"][unitId])=="string" and _GF(anchors["nUI_Party"][unitId])) then AddItem(AnchorDropDown, "nUI_Party", "nUI_Party") end
+			if _G[anchors["nUI_Raid10"][unitId]] or (type(anchors["nUI_Raid10"][unitId])=="table" and anchors["nUI_Raid10"][unitId]) or (type(anchors["nUI_Raid10"][unitId])=="string" and _GF(anchors["nUI_Raid10"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid10", "nUI_Raid10") end
+			if _G[anchors["nUI_Raid15"][unitId]] or (type(anchors["nUI_Raid15"][unitId])=="table" and anchors["nUI_Raid15"][unitId]) or (type(anchors["nUI_Raid15"][unitId])=="string" and _GF(anchors["nUI_Raid15"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid15", "nUI_Raid15") end
+			if _G[anchors["nUI_Raid20"][unitId]] or (type(anchors["nUI_Raid20"][unitId])=="table" and anchors["nUI_Raid20"][unitId]) or (type(anchors["nUI_Raid20"][unitId])=="string" and _GF(anchors["nUI_Raid20"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid20", "nUI_Raid20") end
+			if _G[anchors["nUI_Raid25"][unitId]] or (type(anchors["nUI_Raid25"][unitId])=="table" and anchors["nUI_Raid25"][unitId]) or (type(anchors["nUI_Raid25"][unitId])=="string" and _GF(anchors["nUI_Raid25"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid25", "nUI_Raid25") end
+			if _G[anchors["nUI_Raid40"][unitId]] or (type(anchors["nUI_Raid40"][unitId])=="table" and anchors["nUI_Raid40"][unitId]) or (type(anchors["nUI_Raid40"][unitId])=="string" and _GF(anchors["nUI_Raid40"][unitId])) then AddItem(AnchorDropDown, "nUI_Raid40", "nUI_Raid40") end
 			if _G[anchors["Tukui"][unitId]] or (type(anchors["Tukui"][unitId])=="table" and anchors["Tukui"][unitId]) or (type(anchors["Tukui"][unitId])=="string" and _GF(anchors["Tukui"][unitId])) then AddItem(AnchorDropDown, "Tukui", "Tukui") end
+			if _G[anchors["Tukui_CF"][unitId]] or (type(anchors["Tukui_CF"][unitId])=="table" and anchors["Tukui_CF"][unitId]) or (type(anchors["Tukui_CF"][unitId])=="string" and _GF(anchors["Tukui_CF"][unitId])) then AddItem(AnchorDropDown, "Tukui_CF", "Tukui_CF") end
+			if _G[anchors["Tukui_CF_PlayerInParty"][unitId]] or (type(anchors["Tukui_CF_PlayerInParty"][unitId])=="table" and anchors["Tukui_CF_PlayerInParty"][unitId]) or (type(anchors["Tukui_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["Tukui_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "Tukui_CF_PlayerInParty", "Tukui_CF_PlayerInParty") end
+			if _G[anchors["Tukui_CF_NoPlayerInParty"][unitId]] or (type(anchors["Tukui_CF_NoPlayerInParty"][unitId])=="table" and anchors["Tukui_CF_NoPlayerInParty"][unitId]) or (type(anchors["Tukui_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["Tukui_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "Tukui_CF_NoPlayerInParty", "Tukui_CF_NoPlayerInParty") end
 			if _G[anchors["ElvUI"][unitId]] or (type(anchors["ElvUI"][unitId])=="table" and anchors["ElvUI"][unitId]) or (type(anchors["ElvUI"][unitId])=="string" and _GF(anchors["ElvUI"][unitId])) then AddItem(AnchorDropDown, "ElvUI", "ElvUI") end
+			if _G[anchors["ElvUI_CF"][unitId]] or (type(anchors["ElvUI_CF"][unitId])=="table" and anchors["ElvUI_CF"][unitId]) or (type(anchors["ElvUI_CF"][unitId])=="string" and _GF(anchors["ElvUI_CF"][unitId])) then AddItem(AnchorDropDown, "ElvUI_CF", "ElvUI_CF") end
 			if _G[anchors["ElvUI_PlayerInParty"][unitId]] or (type(anchors["ElvUI_PlayerInParty"][unitId])=="table" and anchors["ElvUI_PlayerInParty"][unitId]) or (type(anchors["ElvUI_PlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "ElvUI_PlayerInParty", "ElvUI_PlayerInParty") end
 			if _G[anchors["ElvUI_NoPlayerInParty"][unitId]] or (type(anchors["ElvUI_NoPlayerInParty"][unitId])=="table" and anchors["ElvUI_NoPlayerInParty"][unitId]) or (type(anchors["ElvUI_NoPlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "ElvUI_NoPlayerInParty", "ElvUI_NoPlayerInParty") end
+			if _G[anchors["ElvUI_CF_PlayerInParty"][unitId]] or (type(anchors["ElvUI_CF_PlayerInParty"][unitId])=="table" and anchors["ElvUI_CF_PlayerInParty"][unitId]) or (type(anchors["ElvUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown, "ElvUI_CF_PlayerInParty", "ElvUI_CF_PlayerInParty") end
+			if _G[anchors["ElvUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["ElvUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["ElvUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["ElvUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown, "ElvUI_CF_NoPlayerInParty", "ElvUI_CF_NoPlayerInParty") end
 			if _G[anchors["Gladius"][unitId]] or (type(anchors["Gladius"][unitId])=="table" and anchors["Gladius"][unitId]) or (type(anchors["Gladius"][unitId])=="string" and _GF(anchors["Gladius"][unitId])) then AddItem(AnchorDropDown, "Gladius", "Gladius") end
 			if _G[anchors["GladiusEx"][unitId]] or (type(anchors["GladiusEx"][unitId])=="table" and anchors["GladiusEx"][unitId]) or (type(anchors["GladiusEx"][unitId])=="string" and _GF(anchors["GladiusEx"][unitId])) then AddItem(AnchorDropDown, "GladiusEx", "GladiusEx") end
 			if _G[anchors["SyncFrames"][unitId]] or (type(anchors["SyncFrames"][unitId])=="table" and anchors["SyncFrames"][unitId]) or (type(anchors["SyncFrames"][unitId])=="string" and _GF(anchors["SyncFrames"][unitId])) then AddItem(AnchorDropDown, "SyncFrames", "SyncFrames") end
@@ -10000,23 +10423,70 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			UIDropDownMenu_Initialize(AnchorDropDown2, function() -- called on refresh and also every time the drop down menu is opened
 				AddItem(AnchorDropDown2, "Blizzard", "Blizzard")
 				if _G[anchors["Perl"][unitId]] or (type(anchors["Perl"][unitId])=="table" and anchors["Perl"][unitId]) or (type(anchors["Perl"][unitId])=="string" and _GF(anchors["Perl"][unitId])) then AddItem(AnchorDropDown2, "Perl", "Perl") end
+				if _G[anchors["Perl_CF"][unitId]] or (type(anchors["Perl_CF"][unitId])=="table" and anchors["Perl_CF"][unitId]) or (type(anchors["Perl_CF"][unitId])=="string" and _GF(anchors["Perl_CF"][unitId])) then AddItem(AnchorDropDown2, "Perl_CF", "Perl_CF") end
 				if _G[anchors["XPerl"][unitId]] or (type(anchors["XPerl"][unitId])=="table" and anchors["XPerl"][unitId]) or (type(anchors["XPerl"][unitId])=="string" and _GF(anchors["XPerl"][unitId])) then AddItem(AnchorDropDown2, "XPerl", "XPerl") end
+				if _G[anchors["XPerl_CUF"][unitId]] or (type(anchors["XPerl_CUF"][unitId])=="table" and anchors["XPerl_CUF"][unitId]) or (type(anchors["XPerl_CUF"][unitId])=="string" and _GF(anchors["XPerl_CUF"][unitId])) then AddItem(AnchorDropDown2, "XPerl_CUF", "XPerl_CUF") end
+				if _G[anchors["XPerl_PlayerInParty"][unitId]] or (type(anchors["XPerl_PlayerInParty"][unitId])=="table" and anchors["XPerl_PlayerInParty"][unitId]) or (type(anchors["XPerl_PlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "XPerl_PlayerInParty", "XPerl_PlayerInParty") end
+				if _G[anchors["XPerl_NoPlayerInParty"][unitId]] or (type(anchors["XPerl_NoPlayerInParty"][unitId])=="table" and anchors["XPerl_NoPlayerInParty"][unitId]) or (type(anchors["XPerl_NoPlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "XPerl_NoPlayerInParty", "XPerl_NoPlayerInParty") end
+				if _G[anchors["XPerl_CUF_PlayerInParty"][unitId]] or (type(anchors["XPerl_CUF_PlayerInParty"][unitId])=="table" and anchors["XPerl_CUF_PlayerInParty"][unitId]) or (type(anchors["XPerl_CUF_PlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_CUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "XPerl_CUF_PlayerInParty", "XPerl_CUF_PlayerInParty") end
+				if _G[anchors["XPerl_CUF_NoPlayerInParty"][unitId]] or (type(anchors["XPerl_CUF_NoPlayerInParty"][unitId])=="table" and anchors["XPerl_CUF_NoPlayerInParty"][unitId]) or (type(anchors["XPerl_CUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["XPerl_CUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "XPerl_CUF_NoPlayerInParty", "XPerl_CUF_NoPlayerInParty") end
 				if _G[anchors["LUI"][unitId]] or (type(anchors["LUI"][unitId])=="table" and anchors["LUI"][unitId]) or (type(anchors["LUI"][unitId])=="string" and _GF(anchors["LUI"][unitId])) then AddItem(AnchorDropDown2, "LUI", "LUI") end
+				if _G[anchors["LUI_CF"][unitId]] or (type(anchors["LUI_CF"][unitId])=="table" and anchors["LUI_CF"][unitId]) or (type(anchors["LUI_CF"][unitId])=="string" and _GF(anchors["LUI_CF"][unitId])) then AddItem(AnchorDropDown2, "LUI_CF", "LUI_CF") end
+				if _G[anchors["LUI_PlayerInParty"][unitId]] or (type(anchors["LUI_PlayerInParty"][unitId])=="table" and anchors["LUI_PlayerInParty"][unitId]) or (type(anchors["LUI_PlayerInParty"][unitId])=="string" and _GF(anchors["LUI_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUI_PlayerInParty", "LUI_PlayerInParty") end
+				if _G[anchors["LUI_NoPlayerInParty"][unitId]] or (type(anchors["LUI_NoPlayerInParty"][unitId])=="table" and anchors["LUI_NoPlayerInParty"][unitId]) or (type(anchors["LUI_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUI_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUI_NoPlayerInParty", "LUI_NoPlayerInParty") end
+				if _G[anchors["LUI_CF_PlayerInParty"][unitId]] or (type(anchors["LUI_CF_PlayerInParty"][unitId])=="table" and anchors["LUI_CF_PlayerInParty"][unitId]) or (type(anchors["LUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["LUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUI_CF_PlayerInParty", "LUI_CF_PlayerInParty") end
+				if _G[anchors["LUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["LUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["LUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["LUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUI_CF_NoPlayerInParty", "LUI_CF_NoPlayerInParty") end
 				if _G[anchors["SUF"][unitId]] or (type(anchors["SUF"][unitId])=="table" and anchors["SUF"][unitId]) or (type(anchors["SUF"][unitId])=="string" and _GF(anchors["SUF"][unitId])) then AddItem(AnchorDropDown2, "SUF", "SUF") end
+				if _G[anchors["SUF_CF"][unitId]] or (type(anchors["SUF_CF"][unitId])=="table" and anchors["SUF_CF"][unitId]) or (type(anchors["SUF_CF"][unitId])=="string" and _GF(anchors["SUF_CF"][unitId])) then AddItem(AnchorDropDown2, "SUF_CF", "SUF_CF") end
+				if _G[anchors["SUF_PlayerInParty"][unitId]] or (type(anchors["SUF_PlayerInParty"][unitId])=="table" and anchors["SUF_PlayerInParty"][unitId]) or (type(anchors["SUF_PlayerInParty"][unitId])=="string" and _GF(anchors["SUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SUF_PlayerInParty", "SUF_PlayerInParty") end
+				if _G[anchors["SUF_NoPlayerInParty"][unitId]] or (type(anchors["SUF_NoPlayerInParty"][unitId])=="table" and anchors["SUF_NoPlayerInParty"][unitId]) or (type(anchors["SUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SUF_NoPlayerInParty", "SUF_NoPlayerInParty") end
+				if _G[anchors["SUF_CF_PlayerInParty"][unitId]] or (type(anchors["SUF_CF_PlayerInParty"][unitId])=="table" and anchors["SUF_CF_PlayerInParty"][unitId]) or (type(anchors["SUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["SUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SUF_CF_PlayerInParty", "SUF_CF_PlayerInParty") end
+				if _G[anchors["SUF_NoPlayerInParty"][unitId]] or (type(anchors["SUF_NoPlayerInParty"][unitId])=="table" and anchors["SUF_NoPlayerInParty"][unitId]) or (type(anchors["SUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SUF_NoPlayerInParty", "SUF_NoPlayerInParty") end
 				if _G[anchors["LUF"][unitId]] or (type(anchors["LUF"][unitId])=="table" and anchors["LUF"][unitId]) or (type(anchors["LUF"][unitId])=="string" and _GF(anchors["LUF"][unitId])) then AddItem(AnchorDropDown2, "LUF", "LUF") end
+				if _G[anchors["LUF_CF"][unitId]] or (type(anchors["LUF_CF"][unitId])=="table" and anchors["LUF_CF"][unitId]) or (type(anchors["LUF_CF"][unitId])=="string" and _GF(anchors["LUF_CF"][unitId])) then AddItem(AnchorDropDown2, "LUF_CF", "LUF_CF") end
+				if _G[anchors["LUF_PlayerInParty"][unitId]] or (type(anchors["LUF_PlayerInParty"][unitId])=="table" and anchors["LUF_PlayerInParty"][unitId]) or (type(anchors["LUF_PlayerInParty"][unitId])=="string" and _GF(anchors["LUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUF_PlayerInParty", "LUF_PlayerInParty") end
+				if _G[anchors["LUF_NoPlayerInParty"][unitId]] or (type(anchors["LUF_NoPlayerInParty"][unitId])=="table" and anchors["LUF_NoPlayerInParty"][unitId]) or (type(anchors["LUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUF_NoPlayerInParty", "LUF_NoPlayerInParty") end
+				if _G[anchors["LUF_CF_PlayerInParty"][unitId]] or (type(anchors["LUF_CF_PlayerInParty"][unitId])=="table" and anchors["LUF_CF_PlayerInParty"][unitId]) or (type(anchors["LUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["LUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUF_CF_PlayerInParty", "LUF_CF_PlayerInParty") end
+				if _G[anchors["LUF_CF_NoPlayerInParty"][unitId]] or (type(anchors["LUF_CF_NoPlayerInParty"][unitId])=="table" and anchors["LUF_CF_NoPlayerInParty"][unitId]) or (type(anchors["LUF_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["LUF_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "LUF_CF_NoPlayerInParty", "LUF_CF_NoPlayerInParty") end
 				if _G[anchors["PitBullUF"][unitId]] or (type(anchors["PitBullUF"][unitId])=="table" and anchors["PitBullUF"][unitId]) or (type(anchors["PitBullUF"][unitId])=="string" and _GF(anchors["PitBullUF"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF", "PitBullUF") end
+				if _G[anchors["PitBullUF_CF"][unitId]] or (type(anchors["PitBullUF_CF"][unitId])=="table" and anchors["PitBullUF_CF"][unitId]) or (type(anchors["PitBullUF_CF"][unitId])=="string" and _GF(anchors["PitBullUF_CF"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_CF", "PitBullUF_CF") end
+				if _G[anchors["PitBullUF_PlayerInParty"][unitId]] or (type(anchors["PitBullUF_PlayerInParty"][unitId])=="table" and anchors["PitBullUF_PlayerInParty"][unitId]) or (type(anchors["PitBullUF_PlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_PlayerInParty", "PitBullUF_PlayerInParty") end
+				if _G[anchors["PitBullUF_NoPlayerInParty"][unitId]] or (type(anchors["PitBullUF_NoPlayerInParty"][unitId])=="table" and anchors["PitBullUF_NoPlayerInParty"][unitId]) or (type(anchors["PitBullUF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_NoPlayerInParty", "PitBullUF_NoPlayerInParty") end
+				if _G[anchors["PitBullUF_CF_PlayerInParty"][unitId]] or (type(anchors["PitBullUF_CF_PlayerInParty"][unitId])=="table" and anchors["PitBullUF_CF_PlayerInParty"][unitId]) or (type(anchors["PitBullUF_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_CF_PlayerInParty", "PitBullUF_CF_PlayerInParty") end
+				if _G[anchors["PitBullUF_CF_NoPlayerInParty"][unitId]] or (type(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])=="table" and anchors["PitBullUF_CF_NoPlayerInParty"][unitId]) or (type(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["PitBullUF_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "PitBullUF_CF_NoPlayerInParty", "PitBullUF_CF_NoPlayerInParty") end
 				if _G[anchors["SpartanUI_2D"][unitId]] or (type(anchors["SpartanUI_2D"][unitId])=="table" and anchors["SpartanUI_2D"][unitId]) or (type(anchors["SpartanUI_2D"][unitId])=="string" and _GF(anchors["SpartanUI_2D"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_2D", "SpartanUI_2D") end
 				if _G[anchors["SpartanUI_3D"][unitId]] or (type(anchors["SpartanUI_3D"][unitId])=="table" and anchors["SpartanUI_3D"][unitId]) or (type(anchors["SpartanUI_3D"][unitId])=="string" and _GF(anchors["SpartanUI_3D"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_3D", "SpartanUI_3D") end
-				if _G[anchors["SpartanUI_2D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_2D_NoPlayerInParty", "SpartanUI_2D_NoPlayerInParty") end
+				if _G[anchors["SpartanUI_CF"][unitId]] or (type(anchors["SpartanUI_CF"][unitId])=="table" and anchors["SpartanUI_CF"][unitId]) or (type(anchors["SpartanUI_CF"][unitId])=="string" and _GF(anchors["SpartanUI_CF"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_CF", "SpartanUI_CF") end
 				if _G[anchors["SpartanUI_2D_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_2D_PlayerInParty", "SpartanUI_2D_PlayerInParty") end
-				if _G[anchors["SpartanUI_3D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_3D_NoPlayerInParty", "SpartanUI_3D_NoPlayerInParty") end
+				if _G[anchors["SpartanUI_2D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_2D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_2D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_2D_NoPlayerInParty", "SpartanUI_2D_NoPlayerInParty") end
 				if _G[anchors["SpartanUI_3D_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_3D_PlayerInParty", "SpartanUI_3D_PlayerInParty") end
+				if _G[anchors["SpartanUI_3D_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_3D_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_3D_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_3D_NoPlayerInParty", "SpartanUI_3D_NoPlayerInParty") end
+				if _G[anchors["SpartanUI_CF_PlayerInParty"][unitId]] or (type(anchors["SpartanUI_CF_PlayerInParty"][unitId])=="table" and anchors["SpartanUI_CF_PlayerInParty"][unitId]) or (type(anchors["SpartanUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_CF_PlayerInParty", "SpartanUI_CF_PlayerInParty") end
+				if _G[anchors["SpartanUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["SpartanUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["SpartanUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "SpartanUI_CF_NoPlayerInParty", "SpartanUI_CF_NoPlayerInParty") end
 				if _G[anchors["GW2"][unitId]] or (type(anchors["GW2"][unitId])=="table" and anchors["GW2"][unitId]) or (type(anchors["GW2"][unitId])=="string" and _GF(anchors["GW2"][unitId])) then AddItem(AnchorDropDown2, "GW2", "GW2") end
-				if _G[anchors["nUI"][unitId]] or (type(anchors["nUI"][unitId])=="table" and anchors["nUI"][unitId]) or (type(anchors["nUI"][unitId])=="string" and _GF(anchors["nUI"][unitId])) then AddItem(AnchorDropDown2, "nUI", "nUI") end
+				if _G[anchors["GW2_CF"][unitId]] or (type(anchors["GW2_CF"][unitId])=="table" and anchors["GW2_CF"][unitId]) or (type(anchors["GW2_CF"][unitId])=="string" and _GF(anchors["GW2_CF"][unitId])) then AddItem(AnchorDropDown2, "GW2_CF", "GW2_CF") end
+				if _G[anchors["GW2_PlayerInParty"][unitId]] or (type(anchors["GW2_PlayerInParty"][unitId])=="table" and anchors["GW2_PlayerInParty"][unitId]) or (type(anchors["GW2_PlayerInParty"][unitId])=="string" and _GF(anchors["GW2_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "GW2_PlayerInParty", "GW2_PlayerInParty") end
+				if _G[anchors["GW2_NoPlayerInParty"][unitId]] or (type(anchors["GW2_NoPlayerInParty"][unitId])=="table" and anchors["GW2_NoPlayerInParty"][unitId]) or (type(anchors["GW2_NoPlayerInParty"][unitId])=="string" and _GF(anchors["GW2_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "GW2_NoPlayerInParty", "GW2_NoPlayerInParty") end
+				if _G[anchors["GW2_CF_PlayerInParty"][unitId]] or (type(anchors["GW2_CF_PlayerInParty"][unitId])=="table" and anchors["GW2_CF_PlayerInParty"][unitId]) or (type(anchors["GW2_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["GW2_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "GW2_CF_PlayerInParty", "GW2_CF_PlayerInParty") end
+				if _G[anchors["GW2_CF_NoPlayerInParty"][unitId]] or (type(anchors["GW2_CF_NoPlayerInParty"][unitId])=="table" and anchors["GW2_CF_NoPlayerInParty"][unitId]) or (type(anchors["GW2_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["GW2_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "GW2_CF_NoPlayerInParty", "GW2_CF_NoPlayerInParty") end
+				if _G[anchors["GW2_PartyRaidStyle"][unitId]] or (type(anchors["GW2_PartyRaidStyle"][unitId])=="table" and anchors["GW2_PartyRaidStyle"][unitId]) or (type(anchors["GW2_PartyRaidStyle"][unitId])=="string" and _GF(anchors["GW2_PartyRaidStyle"][unitId])) then AddItem(AnchorDropDown2, "GW2_PartyRaidStyle", "GW2_PartyRaidStyle") end
+				if _G[anchors["nUI_Solo"][unitId]] or (type(anchors["nUI_Solo"][unitId])=="table" and anchors["nUI_Solo"][unitId]) or (type(anchors["nUI_Solo"][unitId])=="string" and _GF(anchors["nUI_Solo"][unitId])) then AddItem(AnchorDropDown2, "nUI_Solo", "nUI_Solo") end
+				if _G[anchors["nUI_Party"][unitId]] or (type(anchors["nUI_Party"][unitId])=="table" and anchors["nUI_Party"][unitId]) or (type(anchors["nUI_Party"][unitId])=="string" and _GF(anchors["nUI_Party"][unitId])) then AddItem(AnchorDropDown2, "nUI_Party", "nUI_Party") end
+				if _G[anchors["nUI_Raid10"][unitId]] or (type(anchors["nUI_Raid10"][unitId])=="table" and anchors["nUI_Raid10"][unitId]) or (type(anchors["nUI_Raid10"][unitId])=="string" and _GF(anchors["nUI_Raid10"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid10", "nUI_Raid10") end
+				if _G[anchors["nUI_Raid15"][unitId]] or (type(anchors["nUI_Raid15"][unitId])=="table" and anchors["nUI_Raid15"][unitId]) or (type(anchors["nUI_Raid15"][unitId])=="string" and _GF(anchors["nUI_Raid15"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid15", "nUI_Raid15") end
+				if _G[anchors["nUI_Raid20"][unitId]] or (type(anchors["nUI_Raid20"][unitId])=="table" and anchors["nUI_Raid20"][unitId]) or (type(anchors["nUI_Raid20"][unitId])=="string" and _GF(anchors["nUI_Raid20"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid20", "nUI_Raid20") end
+				if _G[anchors["nUI_Raid25"][unitId]] or (type(anchors["nUI_Raid25"][unitId])=="table" and anchors["nUI_Raid25"][unitId]) or (type(anchors["nUI_Raid25"][unitId])=="string" and _GF(anchors["nUI_Raid25"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid25", "nUI_Raid25") end
+				if _G[anchors["nUI_Raid40"][unitId]] or (type(anchors["nUI_Raid40"][unitId])=="table" and anchors["nUI_Raid40"][unitId]) or (type(anchors["nUI_Raid40"][unitId])=="string" and _GF(anchors["nUI_Raid40"][unitId])) then AddItem(AnchorDropDown2, "nUI_Raid40", "nUI_Raid40") end
 				if _G[anchors["Tukui"][unitId]] or (type(anchors["Tukui"][unitId])=="table" and anchors["Tukui"][unitId]) or (type(anchors["Tukui"][unitId])=="string" and _GF(anchors["Tukui"][unitId])) then AddItem(AnchorDropDown2, "Tukui", "Tukui") end
+				if _G[anchors["Tukui_CF"][unitId]] or (type(anchors["Tukui_CF"][unitId])=="table" and anchors["Tukui_CF"][unitId]) or (type(anchors["Tukui_CF"][unitId])=="string" and _GF(anchors["Tukui_CF"][unitId])) then AddItem(AnchorDropDown2, "Tukui_CF", "Tukui_CF") end
+				if _G[anchors["Tukui_CF_PlayerInParty"][unitId]] or (type(anchors["Tukui_CF_PlayerInParty"][unitId])=="table" and anchors["Tukui_CF_PlayerInParty"][unitId]) or (type(anchors["Tukui_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["Tukui_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "Tukui_CF_PlayerInParty", "Tukui_CF_PlayerInParty") end
+				if _G[anchors["Tukui_CF_NoPlayerInParty"][unitId]] or (type(anchors["Tukui_CF_NoPlayerInParty"][unitId])=="table" and anchors["Tukui_CF_NoPlayerInParty"][unitId]) or (type(anchors["Tukui_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["Tukui_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "Tukui_CF_NoPlayerInParty", "Tukui_CF_NoPlayerInParty") end
 				if _G[anchors["ElvUI"][unitId]] or (type(anchors["ElvUI"][unitId])=="table" and anchors["ElvUI"][unitId]) or (type(anchors["ElvUI"][unitId])=="string" and _GF(anchors["ElvUI"][unitId])) then AddItem(AnchorDropDown2, "ElvUI", "ElvUI") end
+				if _G[anchors["ElvUI_CF"][unitId]] or (type(anchors["ElvUI_CF"][unitId])=="table" and anchors["ElvUI_CF"][unitId]) or (type(anchors["ElvUI_CF"][unitId])=="string" and _GF(anchors["ElvUI_CF"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_CF", "ElvUI_CF") end
 				if _G[anchors["ElvUI_PlayerInParty"][unitId]] or (type(anchors["ElvUI_PlayerInParty"][unitId])=="table" and anchors["ElvUI_PlayerInParty"][unitId]) or (type(anchors["ElvUI_PlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_PlayerInParty", "ElvUI_PlayerInParty") end
 				if _G[anchors["ElvUI_NoPlayerInParty"][unitId]] or (type(anchors["ElvUI_NoPlayerInParty"][unitId])=="table" and anchors["ElvUI_NoPlayerInParty"][unitId]) or (type(anchors["ElvUI_NoPlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_NoPlayerInParty", "ElvUI_NoPlayerInParty") end
+				if _G[anchors["ElvUI_CF_PlayerInParty"][unitId]] or (type(anchors["ElvUI_CF_PlayerInParty"][unitId])=="table" and anchors["ElvUI_CF_PlayerInParty"][unitId]) or (type(anchors["ElvUI_CF_PlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_CF_PlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_CF_PlayerInParty", "ElvUI_CF_PlayerInParty") end
+				if _G[anchors["ElvUI_CF_NoPlayerInParty"][unitId]] or (type(anchors["ElvUI_CF_NoPlayerInParty"][unitId])=="table" and anchors["ElvUI_CF_NoPlayerInParty"][unitId]) or (type(anchors["ElvUI_CF_NoPlayerInParty"][unitId])=="string" and _GF(anchors["ElvUI_CF_NoPlayerInParty"][unitId])) then AddItem(AnchorDropDown2, "ElvUI_CF_NoPlayerInParty", "ElvUI_CF_NoPlayerInParty") end
 			end)
 			UIDropDownMenu_SetSelectedValue(AnchorDropDown2, LoseControlDB.frames.player2.anchor)
 		end
