@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 7.11
+-- Version: 7.12
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -140,9 +140,9 @@ local interruptsIds = {
 	[356915] = 3,		-- Erratic Howl (Anima Power)
 	[312419] = 3,		-- Soul-Devouring Howl (Torghast Anima Power)
 	[341580] = 4,		-- Wailing Blast (Torghast Anima Power)
-	[334452] = 0.250,	-- Unbound Shriek (Shrieker's Voicebox Shadowlands Item)
+	[334452] = 0.25,	-- Unbound Shriek (Shrieker's Voicebox Shadowlands Item)
 	[345608] = 8,		-- Forgotten Forgehammer (Necrotic Wake Item)
-	-- NPC Classic Interrupts
+	-- NPC Interrupts
 	[8714]   = 5,		-- Overwhelming Musk
 	[10887]  = 4,		-- Crowd Pummel
 	[11972]  = 3,		-- Shield Bash
@@ -169,7 +169,6 @@ local interruptsIds = {
 	[20537]  = 15,		-- Counterspell
 	[19715]  = 10,		-- Counterspell
 	[20788]  = 0.001,	-- Counterspell
-	-- NPC Interrupts
 	[2676]   = 2,		-- Pulverize
 	[7074]   = 2,		-- Screams of the Past
 	[27880]  = 3,		-- Stun
@@ -215,9 +214,6 @@ local interruptsIds = {
 	[41180]  = 3,		-- Shield Bash
 	[41197]  = 3,		-- Shield Bash
 	[41395]  = 5,		-- Kick
-	[42708]  = 6,		-- Staggering Roar
-	[42729]  = 8,		-- Dreadful Roar
-	[42780]  = 5,		-- Ringing Slap
 	[43305]  = 2,		-- Earth Shock
 	[43518]  = 2,		-- Kick
 	[44418]  = 2,		-- Massive Tremor
@@ -226,6 +222,9 @@ local interruptsIds = {
 	[46182]  = 2,		-- Snap Kick
 	[47071]  = 2,		-- Earth Shock
 	[47081]  = 5,		-- Pummel
+	[42708]  = 6,		-- Staggering Roar
+	[42729]  = 8,		-- Dreadful Roar
+	[42780]  = 5,		-- Ringing Slap
 	[50504]  = 2,		-- Arcane Jolt
 	[50854]  = 5,		-- Side Kick
 	[51591]  = 1.5,		-- Stormhammer
@@ -575,7 +574,7 @@ local interruptsIds = {
 	[358210] = 0.1,		-- Mawforged Halberd
 	[358344] = 6,		-- Disruptive Shout
 	[360096] = 3,		-- Disabling Howl
-	[363388] = 3,		-- Wallop
+	[363388] = 3		-- Wallop
 }
 
 local spellIds = {
@@ -790,6 +789,7 @@ local spellIds = {
 	[28272]  = "CC",				-- Polymorph: Pig
 	[61721]  = "CC",				-- Polymorph: Rabbit
 	[61780]  = "CC",				-- Polymorph: Turkey
+	[71319]  = "CC",				-- Polymorph: Turkey
 	[28271]  = "CC",				-- Polymorph: Turtle
 	[161353] = "CC",				-- Polymorph: Polar bear cub
 	[126819] = "CC",				-- Polymorph: Porcupine
@@ -920,7 +920,8 @@ local spellIds = {
 	[47788]  = "Other",				-- Guardian Spirit (prevent the target from dying)
 	[200183] = "Other",				-- Apotheosis
 	[197268] = "Other",				-- Ray of Hope
-	[33206]  = "Other",				-- Pain Suppression
+	[10060]  = "Other",				-- Power Infusion
+	[33206]  = "Other",				-- Pain Suppression (damage taken reduced by 40%)
 	[27827]  = "Immune",			-- Spirit of Redemption
 	[290114] = "Immune",			-- Spirit of Redemption	(pvp honor talent)
 	[215769] = "Immune",			-- Spirit of Redemption	(pvp honor talent)
@@ -1027,7 +1028,6 @@ local spellIds = {
 	[6789]   = "CC",				-- Mortal Coil
 	[30283]  = "CC",				-- Shadowfury
 	[31117]  = "Silence",			-- Unstable Affliction
-	[65813]  = "Silence",			-- Unstable Affliction
 	[196364] = "Silence",			-- Unstable Affliction
 	[285155] = "Silence",			-- Unstable Affliction
 	[104773] = "Other",				-- Unending Resolve
@@ -1140,8 +1140,6 @@ local spellIds = {
 	----------------
 	-- Other
 	----------------
-	[67769]  = "CC",				-- Cobalt Frag Bomb
-	[67890]  = "CC",				-- Cobalt Frag Bomb (belt)
 	[224074] = "CC",				-- Devilsaur's Bite (trinket)
 	[127723] = "Root",				-- Covered In Watermelon (trinket)
 	[42803]  = "Snare",				-- Frostbolt (trinket)
@@ -1153,7 +1151,6 @@ local spellIds = {
 	[302731] = "Other",				-- Ripple in Space (azerite essence)
 	[214459] = "Silence",			-- Choking Flames (trinket)
 	[131510] = "Immune",			-- Uncontrolled Banish
-	[55536]  = "Root",				-- Frostweave Net
 	[148526] = "Root",				-- Sticky Silk
 	[295048] = "Immune",			-- Touch of the Everlasting (not immune, damage taken reduced 85%)
 	[221792] = "CC",				-- Kidney Shot (Vanessa VanCleef (Rogue Bodyguard))
@@ -1269,7 +1266,6 @@ local spellIds = {
 	[129032] = "Snare",				-- Frostbolt
 	[121547] = "CC",				-- Polymorph: Sheep
 	[278575] = "CC",				-- Steel-Toed Boots
-	[58729]  = "Immune",			-- Spiritual Immunity
 	[95332]  = "Immune",			-- Spiritual Immunity
 	[171496] = "Immune",			-- Hallowed Ground
 	[178266] = "Immune",			-- Hallowed Ground
@@ -1277,7 +1273,6 @@ local spellIds = {
 	[298272] = "CC",				-- Massive Stone
 	[293935] = "CC",				-- Overcharged!
 	[281923] = "CC",				-- Super Heroic Landing
-	[52696]  = "CC",				-- Constricting Chains
 	[97164]  = "CC",				-- Charge
 	[176278] = "CC",				-- Deep Freeze
 	[176169] = "Root",				-- Freezing Field
@@ -1295,10 +1290,9 @@ local spellIds = {
 	[164092] = "CC",				-- Shockwave
 	[164444] = "Immune",			-- Dispersion
 	[164443] = "CC",				-- Psychic Scream
+	[168338] = "CC",				-- Artillery Blast
 	[178064] = "CC",				-- Hex
 	[79899]  = "Snare",				-- Chains of Ice
-	[79850]  = "Root",				-- Frost Nova
-	[79858]  = "Snare",				-- Frostbolt
 	[177606] = "Root",				-- Entangling Roots
 	[164067] = "Root",				-- Frost Nova
 	[162608] = "Snare",				-- Frostbolt
@@ -1593,7 +1587,6 @@ local spellIds = {
 	[359991] = "CC",				-- Nommed (decreased damage done by 100%)
 	[367316] = "CC",				-- Overcharge
 	[364808] = "CC",				-- Overwhelming Effusion
-	[362481] = "CC",				-- Overwhelming Guilt
 	[365020] = "CC",				-- Paralytic Goo
 	[362983] = "CC",				-- Paralyzed!
 	[362479] = "CC",				-- Perseverence
@@ -1682,7 +1675,6 @@ local spellIds = {
 	[328286] = "ImmunePhysical",	-- Nimble Dodge (increased dodge chance by 100%)
 	[340398] = "ImmunePhysical",	-- Aura of Protection
 	[372298] = "ImmunePhysical",	-- Aegis of Protection (not immune, physical damage taken reduced by 80%)
-	[63861]  = "Root",				-- Chains of Law
 	[311077] = "Root",				-- Deep Introspection
 	[311068] = "Root",				-- Deep Introspection
 	[311113] = "Root",				-- Gotta Dance
@@ -1726,7 +1718,6 @@ local spellIds = {
 	--[358259] = "Other",				-- Gladiator's Maledict
 	--[363715] = "Other",				-- Gladiator's Maledict
 	[362699] = "ImmuneSpell",		-- Gladiator's Resolve (immune to crowd control effects)
-	[51878]  = "Snare",				-- Ice Slash
 	[329158] = "Snare",				-- Frigid Blast
 	[321525] = "Snare",				-- Spectral Shackle
 	[320028] = "Snare",				-- Ground Pound
@@ -1894,11 +1885,9 @@ local spellIds = {
 	[10794]  = "CC",				-- Spirit Shock
 	[9915]   = "Root",				-- Frost Nova
 	[14907]  = "Root",				-- Frost Nova
-	[22645]  = "Root",				-- Frost Nova
 	[15091]  = "Snare",				-- Blast Wave
 	[17277]  = "Snare",				-- Blast Wave
 	[23039]  = "Snare",				-- Blast Wave
-	[23113]  = "Snare",				-- Blast Wave
 	[23115]  = "Snare",				-- Frost Shock
 	[19133]  = "Snare",				-- Frost Shock
 	[21030]  = "Snare",				-- Frost Shock
@@ -1907,16 +1896,12 @@ local spellIds = {
 	[20297]  = "Snare",				-- Frostbolt
 	[20806]  = "Snare",				-- Frostbolt
 	[20819]  = "Snare",				-- Frostbolt
-	[12737]  = "Snare",				-- Frostbolt
 	[20792]  = "Snare",				-- Frostbolt
 	[23412]  = "Snare",				-- Frostbolt
 	[24942]  = "Snare",				-- Frostbolt
 	[23102]  = "Snare",				-- Frostbolt
-	[20828]  = "Snare",				-- Cone of Cold
-	[22746]  = "Snare",				-- Cone of Cold
 	[20717]  = "Snare",				-- Sand Breath
 	[16568]  = "Snare",				-- Mind Flay
-	[29407]  = "Snare",				-- Mind Flay
 	[16094]  = "Snare",				-- Frost Breath
 	[16340]  = "Snare",				-- Frost Breath
 	[17174]  = "Snare",				-- Concussive Shot
@@ -2006,7 +1991,6 @@ local spellIds = {
 	[17276]  = "CC",				-- Scald
 	[13360]  = "CC",				-- Knockdown
 	[11430]  = "CC",				-- Slam
-	[28335]  = "CC",				-- Whirlwind
 	[16451]  = "CC",				-- Judge's Gavel
 	[25260]  = "CC",				-- Wings of Despair
 	[23275]  = "CC",				-- Dreadful Fright
@@ -2019,7 +2003,6 @@ local spellIds = {
 	[31365]  = "CC",				-- Self Fear
 	[25815]  = "CC",				-- Frightening Shriek
 	[12134]  = "CC",				-- Atal'ai Corpse Eat
-	[22427]  = "CC",				-- Concussion Blow
 	[16096]  = "CC",				-- Cowering Roar
 	[27177]  = "CC",				-- Defile
 	[18395]  = "CC",				-- Dismounting Shot
@@ -2141,11 +2124,14 @@ local spellIds = {
 	[34088]  = "CC",				-- Feeble Weapons (chance to hit reduced by 75%)
 	[45078]  = "Other",				-- Berserk (damage increased by 500%)
 	[32378]  = "Other",				-- Filet (healing effects reduced by 50%)
-	[32736]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
 	[39595]  = "Other",				-- Mortal Cleave (healing effects reduced by 50%)
 	[40220]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
 	[44268]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
 	[34625]  = "Other",				-- Demolish (healing effects reduced by 75%)
+	[38031]  = "Other",				-- Shield Block (chance to block increased by 75%)
+	[31905]  = "Other",				-- Shield Stance (chance to block increased by 100%)
+	[37683]  = "Other",				-- Evasion (chance to dodge increased by 50%)
+	[38541]  = "Other",				-- Evasion (chance to dodge increased by 50%)
 	[36513]  = "ImmunePhysical",	-- Intangible Presence (not immune, physical damage taken reduced by 40%)
 	[45954]  = "Immune",			-- Ahune's Shield (not immune, damage taken reduced by 90%)
 	[46416]  = "Immune",			-- Ahune Self Stun
@@ -2188,6 +2174,7 @@ local spellIds = {
 	[36576]  = "ImmuneSpell",		-- Shaleskin (not immune, magic damage taken reduced by 50%)
 	[39804]  = "ImmuneSpell",		-- Damage Immunity: Magic
 	[39811]  = "ImmuneSpell",		-- Damage Immunity: Fire, Frost, Shadow, Nature, Arcane
+	[37538]  = "ImmuneSpell",		-- Anti-Magic Shield
 	[32904]  = "CC",				-- Pacifying Dust
 	[37748]  = "CC",				-- Teron Gorefiend
 	[38177]  = "CC",				-- Blackwhelp Net
@@ -2198,7 +2185,6 @@ local spellIds = {
 	[33810]  = "CC",				-- Rock Shell
 	[37450]  = "CC",				-- Dimensius Feeding
 	[38318]  = "CC",				-- Transformation - Blackwhelp
-	[30849]  = "Silence",			-- Spell Lock
 	[35892]  = "Silence",			-- Suppression
 	[34087]  = "Silence",			-- Chilling Words
 	[35334]  = "Silence",			-- Nether Shock
@@ -2219,7 +2205,6 @@ local spellIds = {
 	[31533]  = "ImmuneSpell",		-- Spell Reflection (50% chance to reflect a spell)
 	[33719]  = "ImmuneSpell",		-- Perfect Spell Reflection
 	[34783]  = "ImmuneSpell",		-- Spell Reflection
-	[36096]  = "ImmuneSpell",		-- Spell Reflection
 	[37885]  = "ImmuneSpell",		-- Spell Reflection
 	[38331]  = "ImmuneSpell",		-- Spell Reflection
 	[28516]  = "Silence",			-- Sunwell Torrent (Sunwell Blade & Sunwell Orb items)
@@ -2335,7 +2320,6 @@ local spellIds = {
 	[35382]  = "CC",				-- Rushing Charge
 	[35424]  = "CC",				-- Soul Shadows
 	[35492]  = "CC",				-- Exhaustion
-	[35570]  = "CC",				-- Charge
 	[35614]  = "CC",				-- Kaylan's Wrath
 	[35856]  = "CC",				-- Stun
 	[35957]  = "CC",				-- Mana Bomb Explosion
@@ -2428,7 +2412,6 @@ local spellIds = {
 	[33844]  = "Root",				-- Entangling Roots
 	[34080]  = "Root",				-- Riposte Stance
 	[34569]  = "Root",				-- Chilled Earth
-	[34779]  = "Root",				-- Freezing Circle
 	[35234]  = "Root",				-- Strangling Roots
 	[35247]  = "Root",				-- Choking Wound
 	[35327]  = "Root",				-- Jackhammer
@@ -2455,7 +2438,6 @@ local spellIds = {
 	[29957]  = "Snare",				-- Frostbolt Volley
 	[30600]  = "Snare",				-- Blast Wave
 	[30942]  = "Snare",				-- Frostbolt
-	[30981]  = "Snare",				-- Crippling Poison
 	[31296]  = "Snare",				-- Frostbolt
 	[32334]  = "Snare",				-- Cyclone
 	[32417]  = "Snare",				-- Mind Flay
@@ -2507,6 +2489,420 @@ local spellIds = {
 	[46984]  = "Snare",				-- Cone of Cold
 	[46987]  = "Snare",				-- Frostbolt
 	[47106]  = "Snare",				-- Soul Flay
+	[57546]  = "CC",				-- Greater Turn Evil
+	[53570]  = "CC",				-- Hungering Cold
+	[61058]  = "CC",				-- Hungering Cold
+	[67769]  = "CC",				-- Cobalt Frag Bomb
+	[67890]  = "CC",				-- Cobalt Frag Bomb (engineering belt enchant)
+	[54735]  = "CC",				-- Electromagnetic Pulse (engineering enchant)
+	[67810]  = "CC",				-- Mental Battle (engineering enchant)
+	[52207]  = "CC",				-- Devour Humanoid
+	[60074]  = "CC",				-- Time Stop
+	[60077]  = "CC",				-- Stop Time
+	[54132]  = "CC",				-- Concussion Blow
+	[61819]  = "CC",				-- Manabonked!
+	[61834]  = "CC",				-- Manabonked!
+	[48288]  = "CC",				-- Mace Smash
+	[49735]  = "CC",				-- Terrifying Countenance
+	[43348]  = "CC",				-- Head Crush
+	[58974]  = "CC",				-- Crushing Leap
+	[56747]  = "CC",				-- Stomp
+	[49675]  = "CC",				-- Stone Stomp
+	[51756]  = "CC",				-- Charge
+	[51752]  = "CC",				-- Stampy's Stompy-Stomp
+	[59705]  = "CC",				-- War Stomp
+	[60960]  = "CC",				-- War Stomp
+	[70199]  = "CC",				-- Blinding Retreat
+	[71750]  = "CC",				-- Blind!
+	[50283]  = "CC",				-- Blinding Swarm (chance to hit reduced by 75%)
+	[52856]  = "CC",				-- Charge
+	[54460]  = "CC",				-- Charge
+	[52577]  = "CC",				-- Charge
+	[55982]  = "CC",				-- Mammoth Charge
+	[46315]  = "CC",				-- Mammoth Charge
+	[52601]  = "CC",				-- Rushing Charge
+	[52169]  = "CC",				-- Magnataur Charge
+	[52061]  = "CC",				-- Lightning Fear
+	[68326]  = "CC",				-- Fear Self
+	[62628]  = "CC",				-- Fear Self
+	[59669]  = "CC",				-- Fear
+	[47534]  = "CC",				-- Cower in Fear
+	[54196]  = "CC",				-- Cower in Fear
+	[75343]  = "CC",				-- Shockwave
+	[55918]  = "CC",				-- Shockwave
+	[57741]  = "CC",				-- Shockwave
+	[48376]  = "CC",				-- Hammer Blow
+	[61662]  = "CC",				-- Cyclone
+	[53103]  = "CC",				-- Charm Blightblood Troll
+	[52488]  = "CC",				-- Charm Bloated Abomination
+	[52390]  = "CC",				-- Charm Drakuru Servant
+	[52244]  = "CC",				-- Charm Geist
+	[42790]  = "CC",				-- Charm Plaguehound
+	[53070]  = "CC",				-- Worgen's Command
+	[48558]  = "CC",				-- Backfire
+	[44424]  = "CC",				-- Escape
+	[42320]  = "CC",				-- Head Butt
+	[53439]  = "CC",				-- Hex
+	[49935]  = "CC",				-- Hex of the Murloc
+	[50396]  = "CC",				-- Psychosis
+	[53325]  = "CC",				-- SelfSheep
+	[58283]  = "CC",				-- Throw Rock
+	[54683]  = "CC",				-- Ablaze
+	[60983]  = "CC",				-- Bright Flare
+	[62951]  = "CC",				-- Dodge
+	[74472]  = "CC",				-- Guard Fear
+	[53438]  = "CC",				-- Incite Horror
+	[48696]  = "CC",				-- Intimidating Roar
+	[51467]  = "CC",				-- Intimidating Roar
+	[62585]  = "CC",				-- Mulgore Hatchling
+	[58958]  = "CC",				-- Presence of the Master
+	[51343]  = "CC",				-- Razorpine's Fear Effect
+	[51846]  = "CC",				-- Scared Chicken
+	[50979]  = "CC",				-- Scared Softknuckle
+	[50497]  = "CC",				-- Scream of Chaos
+	[56404]  = "CC",				-- Startling Flare
+	[62000]  = "CC",				-- Stinker Periodic
+	[52716]  = "CC",				-- Terrified
+	[46316]  = "CC",				-- Thundering Roar
+	[68506]  = "CC",				-- Crushing Leap
+	[58203]  = "CC",				-- Iron Chain
+	[63726]  = "CC",				-- Pacify Self
+	[59880]  = "CC",				-- Suppression Charge
+	[62026]  = "CC",				-- Test of Strength Building
+	[58891]  = "CC",				-- Wild Magic
+	[58893]  = "CC",				-- Wild Magic
+	[52151]  = "CC",				-- Bat Net
+	[71103]  = "CC",				-- Combobulating Spray
+	[67691]  = "CC",				-- Feign Death
+	[43489]  = "CC",				-- Grasp of the Lich King
+	[51788]  = "CC",				-- Lost Soul
+	[66490]  = "CC",				-- P3Wx2 Laser Barrage
+	[60778]  = "CC",				-- Serenity
+	[44848]  = "CC",				-- Tumbling
+	[49946]  = "CC",				-- Chaff
+	[51899]  = "CC",				-- Banshee Curse (chance to hit reduced by 40%)
+	[58269]  = "CC",				-- Iceskin Stoneform
+	[52182]  = "CC",				-- Tomb of the Heartless
+	[51897]  = "CC",				-- Banshee Screech
+	[57490]  = "CC",				-- Librarian's Shush
+	[51316]  = "CC",				-- Lobotomize
+	[43612]  = "CC",				-- Bash
+	[48620]  = "CC",				-- Wing Buffet
+	[49342]  = "CC",				-- Frost Breath
+	[49842]  = "CC",				-- Perturbed Mind
+	[52271]  = "CC",				-- Violent Crash
+	[52402]  = "CC",				-- Stunning Force
+	[52457]  = "CC",				-- Drak'aguul's Soldiers
+	[52584]  = "CC",				-- Influence of the Old God
+	[52939]  = "CC",				-- Pungent Slime Vomit
+	[54477]  = "CC",				-- Exhausted
+	[54506]  = "CC",				-- Heroic Leap
+	[54888]  = "CC",				-- Elemental Spawn Effect
+	[55929]  = "CC",				-- Impale
+	[57488]  = "CC",				-- Squall
+	[57794]  = "CC",				-- Heroic Leap
+	[57854]  = "CC",				-- Raging Shadows
+	[58154]  = "CC",				-- Hammer of Injustice
+	[59689]  = "CC",				-- Heroic Leap
+	[60109]  = "CC",				-- Heroic Leap
+	[61065]  = "CC",				-- War Stomp
+	[61143]  = "CC",				-- Crazed Chop
+	[61557]  = "CC",				-- Plant Spawn Effect
+	[61881]  = "CC",				-- Ice Shriek
+	[62891]  = "CC",				-- Vulnerable!
+	[62999]  = "CC",				-- Scourge Stun
+	[64141]  = "CC",				-- Flash Freeze
+	[67806]  = "CC",				-- Mental Combat
+	[68980]  = "CC",				-- Harvest Soul
+	[71960]  = "CC",				-- Heroic Leap
+	[74785]  = "CC",				-- Wrench Throw
+	[42166]  = "CC",				-- Plagued Blood Explosion
+	[42167]  = "CC",				-- Plagued Blood Explosion
+	[43416]  = "CC",				-- Throw Shield
+	[44532]  = "CC",				-- Knockdown
+	[44542]  = "CC",				-- Eagle Swoop
+	[45419]  = "CC",				-- Nerub'ar Web Wrap
+	[45587]  = "CC",				-- Web Bolt
+	[45876]  = "CC",				-- Stampede
+	[45922]  = "CC",				-- Shadow Prison
+	[45995]  = "CC",				-- Bloodspore Ruination
+	[46010]  = "CC",				-- Bloodspore Ruination
+	[46383]  = "CC",				-- Cenarion Stun
+	[46441]  = "CC",				-- Stun
+	[46895]  = "CC",				-- Boulder Impact
+	[47007]  = "CC",				-- Boulder Impact
+	[47035]  = "CC",				-- Out Cold
+	[47415]  = "CC",				-- Freezing Breath
+	[47591]  = "CC",				-- Frozen Solid
+	[47923]  = "CC",				-- Stunned
+	[48323]  = "CC",				-- Indisposed
+	[48596]  = "CC",				-- Spirit Dies
+	[49025]  = "CC",				-- Self Destruct
+	[49215]  = "CC",				-- Self-Destruct
+	[49333]  = "CC",				-- Ice Prison
+	[49481]  = "CC",				-- Glaive Throw
+	[49616]  = "CC",				-- Kidney Shot
+	[50100]  = "CC",				-- Stormbolt
+	[50597]  = "CC",				-- Ice Stalagmite
+	[50839]  = "CC",				-- Stun Self
+	[51020]  = "CC",				-- Time Lapse
+	[51319]  = "CC",				-- Sandfern Disguise
+	[51329]  = "CC",				-- Feign Death
+	[52287]  = "CC",				-- Quetz'lun's Hex of Frost
+	[52318]  = "CC",				-- Lumberjack Slam
+	[52459]  = "CC",				-- End of Round
+	[52497]  = "CC",				-- Flatulate
+	[52593]  = "CC",				-- Bloated Abomination Feign Death
+	[52640]  = "CC",				-- Forge Force
+	[52743]  = "CC",				-- Head Smack
+	[52781]  = "CC",				-- Persuasive Strike
+	[52908]  = "CC",				-- Backhand
+	[52989]  = "CC",				-- Akali's Stun
+	[53017]  = "CC",				-- Indisposed
+	[53211]  = "CC",				-- Post-Apocalypse
+	[53437]  = "CC",				-- Backbreaker
+	[53625]  = "CC",				-- Heroic Leap
+	[54028]  = "CC",				-- Trespasser!
+	[54029]  = "CC",				-- Trespasser!
+	[54426]  = "CC",				-- Decimate
+	[54526]  = "CC",				-- Torment
+	[55224]  = "CC",				-- Archivist's Scan
+	[55240]  = "CC",				-- Towering Chains
+	[55467]  = "CC",				-- Arcane Explosion
+	[55891]  = "CC",				-- Flame Sphere Spawn Effect
+	[55947]  = "CC",				-- Flame Sphere Death Effect
+	[55958]  = "CC",				-- Storm Bolt
+	[56448]  = "CC",				-- Storm Hammer
+	[56485]  = "CC",				-- The Storm's Fury
+	[56756]  = "CC",				-- Fall Asleep Standing
+	[57395]  = "CC",				-- Desperate Blow
+	[57515]  = "CC",				-- Waking from a Fitful Dream
+	[57626]  = "CC",				-- Feign Death
+	[57685]  = "CC",				-- Permanent Feign Death
+	[57886]  = "CC",				-- Defense System Spawn Effect
+	[58119]  = "CC",				-- Geist Control End
+	[58351]  = "CC",				-- Teach: Death Gate
+	[58540]  = "CC",				-- Eidolon Prison
+	[58563]  = "CC",				-- Assassinate Restless Lookout
+	[58664]  = "CC",				-- Shade Control End
+	[58672]  = "CC",				-- Impale
+	[59047]  = "CC",				-- Backhand
+	[59564]  = "CC",				-- Flatulate
+	[60511]  = "CC",				-- Deep Freeze
+	[60642]  = "CC",				-- Annihilate
+	[61224]  = "CC",				-- Deep Freeze
+	[61628]  = "CC",				-- Storm Bolt
+	[62487]  = "CC",				-- Throw Grenade
+	[62973]  = "CC",				-- Foam Sword Attack
+	[63124]  = "CC",				-- Incapacitate Maloric
+	[63228]  = "CC",				-- Talon Strike
+	[63846]  = "CC",				-- Arm of Law
+	[63986]  = "CC",				-- Trespasser!
+	[63987]  = "CC",				-- Trespasser!
+	[65400]  = "CC",				-- Food Coma
+	[65578]  = "CC",				-- Right in the eye!
+	[66514]  = "CC",				-- Frost Breath
+	[66533]  = "CC",				-- Fel Shock
+	[67366]  = "CC",				-- C-14 Gauss Rifle
+	[67575]  = "CC",				-- Frost Breath
+	[67576]  = "CC",				-- Spirit Drain
+	[67780]  = "CC",				-- Transporter Arrival
+	[67791]  = "CC",				-- Transporter Arrival
+	[69006]  = "CC",				-- Onyxian Whelpling
+	[69681]  = "CC",				-- Lil' Frost Blast
+	[70296]  = "CC",				-- Caught!
+	[70525]  = "CC",				-- Jaina's Call
+	[70540]  = "CC",				-- Icy Prison
+	[70583]  = "CC",				-- Lich King Stun
+	[70592]  = "CC",				-- Permanent Feign Death
+	[70628]  = "CC",				-- Permanent Feign Death
+	[70630]  = "CC",				-- Frozen Aftermath - Feign Death
+	[71988]  = "CC",				-- Vile Fumes (Vile Fumigator's Mask item)
+	[74412]  = "CC",				-- Emergency Recall
+	[74490]  = "CC",				-- Permanent Feign Death
+	[74735]  = "CC",				-- Gnomerconfidance
+	[74808]  = "CC",				-- Twilight Phasing
+	[75448]  = "CC",				-- Bwonsamdi's Boot
+	[75496]  = "CC",				-- Zalazane's Fool
+	[75510]  = "CC",				-- Emergency Recall
+	[53261]  = "CC",				-- Saronite Grenade
+	[71590]  = "CC",				-- Rocket Launch
+	[71755]  = "CC",				-- Crafty Bomb
+	[71715]  = "CC",				-- Snivel's Rocket
+	[71786]  = "CC",				-- Rocket Launch
+	[59124]  = "Root",				-- Crystalline Bonds
+	[49981]  = "CC",				-- Machine Gun (chance to hit reduced by 50%)
+	[50188]  = "CC",				-- Wildly Flailing (chance to hit reduced by 50%)
+	[50701]  = "CC",				-- Sling Mortar (chance to hit reduced by 50%)
+	[51356]  = "CC",				-- Vile Vomit (chance to hit reduced by 50%)
+	[54770]  = "CC",				-- Bone Saw (chance to hit reduced by 50%)
+	[60906]  = "CC",				-- Machine Gun (chance to hit reduced by 50%)
+	[53645]  = "CC",				-- The Light of Dawn (damage done reduced by 1500%)
+	[70339]  = "CC",				-- Friendly Boss Damage Mod (damage done reduced by 95%)
+	[43952]  = "CC",				-- Bonegrinder (physical damage done reduced by 75%)
+	[65925]  = "CC",				-- Unrelenting Assault (damage done reduced by 50%)
+	[68780]  = "CC",				-- Frozen Visage (damage done reduced by 50%)
+	[72341]  = "CC",				-- Hallucinatory Creature (damage done reduced by 50%)
+	[58976]  = "Disarm",			-- Assaulter Slam, Throw Axe Disarm
+	[54159]  = "Disarm",			-- Ritual of the Sword
+	[54059]  = "Disarm",			-- You're a ...! (Effects4)
+	[57590]  = "Disarm",			-- Steal Ranged (only disarm ranged weapon)
+	[65802]  = "Immune",			-- Ice Block
+	[52982]  = "Immune",			-- Akali's Immunity
+	[64505]  = "Immune",			-- Dark Shield
+	[52972]  = "Immune",			-- Dispersal
+	[54322]  = "Immune",			-- Divine Shield
+	[47922]  = "Immune",			-- Furyhammer's Immunity
+	[54166]  = "Immune",			-- Maker's Sanctuary
+	[53052]  = "Immune",			-- Phase Out
+	[74458]  = "Immune",			-- Power Shield XL-1
+	[50161]  = "Immune",			-- Protection Sphere
+	[50494]  = "Immune",			-- Shroud of Lightning
+	[54434]  = "Immune",			-- Sparksocket AA: Periodic Aura
+	[58729]  = "Immune",			-- Spiritual Immunity
+	[52185]  = "Immune",			-- Bindings of Submission
+	[62336]  = "Immune",			-- Hookshot Aura
+	[48695]  = "Immune",			-- Imbue Power Shield State
+	[48325]  = "Immune",			-- Rune Shield
+	[62371]  = "Immune",			-- Spirit of Redemption
+	[75099]  = "Immune",			-- Zalazane's Shield
+	[75223]  = "Immune",			-- Zalazane's Shield
+	[66776]  = "Immune",			-- Rage (not immune, damage taken decreased by 95%)
+	[62733]  = "Immune",			-- Hardened (not immune, damage taken decreased by 90%)
+	[57057]  = "Immune",			-- Torvald's Deterrence (not immune, damage taken decreased by 60%)
+	[63214]  = "Immune",			-- Scourge Damage Reduction (not immune, damage taken decreased by 60%)
+	[53058]  = "Immune",			-- Crystalline Essence (not immune, damage taken decreased by 50%)
+	[53355]  = "Immune",			-- Strength of the Frenzyheart (not immune, damage taken decreased by 50%)
+	[53371]  = "Immune",			-- Power of the Great Ones (not immune, damage taken decreased by 50%)
+	[58130]  = "Immune",			-- Icebound Fortitude (not immune, damage taken decreased by 50%)
+	[61088]  = "Immune",			-- Zombie Horde (not immune, damage taken decreased by 50%)
+	[61099]  = "Immune",			-- Zombie Horde (not immune, damage taken decreased by 50%)
+	[61144]  = "Immune",			-- Fire Shield (not immune, damage taken decreased by 50%)
+	[54467]  = "Immune",			-- Bone Armor (not immune, damage taken decreased by 40%)
+	[71822]  = "Immune",			-- Shadow Resonance (not immune, damage taken decreased by 35%)
+	[62712]  = "ImmunePhysical",	-- Grab
+	[54386]  = "ImmunePhysical",	-- Darmuk's Vigilance (chance to dodge increased by 75%)
+	[57643]  = "ImmuneSpell",		-- Spell Reflection
+	[63089]  = "ImmuneSpell",		-- Spell Deflection
+	[55976]  = "ImmuneSpell",		-- Spell Deflection
+	[51131]  = "Silence",			-- Strangulate
+	[51609]  = "Silence",			-- Arcane Lightning
+	[62826]  = "Silence",			-- Energy Orb
+	[61734]  = "Silence",			-- Noblegarden Bunny
+	[61716]  = "Silence",			-- Rabbit Costume
+	[42671]  = "Silence",			-- Silencing Shot
+	[64140]  = "Silence",			-- Sonic Burst
+	[68922]  = "Silence",			-- Unstable Air Nova
+	[53095]  = "Silence",			-- Worgen's Call
+	[55536]  = "Root",				-- Frostweave Net
+	[54453]  = "Root",				-- Web Wrap
+	[57668]  = "Root",				-- Frost Nova
+	[61376]  = "Root",				-- Frost Nova
+	[62597]  = "Root",				-- Frost Nova
+	[65792]  = "Root",				-- Frost Nova
+	[69571]  = "Root",				-- Frost Nova
+	[71929]  = "Root",				-- Frost Nova
+	[47021]  = "Root",				-- Net
+	[62312]  = "Root",				-- Net
+	[51959]  = "Root",				-- Chicken Net
+	[52761]  = "Root",				-- Barbed Net
+	[49453]  = "Root",				-- Wolvar Net
+	[54997]  = "Root",				-- Cast Net
+	[66474]  = "Root",				-- Throw Net
+	[52973]  = "Root",				-- Frost Breath
+	[53019]  = "Root",				-- Earth's Grasp
+	[53077]  = "Root",				-- Ensnaring Trap
+	[53218]  = "Root",				-- Frozen Grip
+	[53534]  = "Root",				-- Chains of Ice
+	[58464]  = "Root",				-- Chains of Ice
+	[61385]  = "Root",				-- Bear Trap
+	[62573]  = "Root",				-- Locked Lance
+	[68821]  = "Root",				-- Chain Reaction
+	[48416]  = "Root",				-- Rune Detonation
+	[48601]  = "Root",				-- Rune of Binding
+	[49978]  = "Root",				-- Claw Grasp
+	[52713]  = "Root",				-- Rune Weaving
+	[53442]  = "Root",				-- Claw Grasp
+	[54047]  = "Root",				-- Light Lamp
+	[55030]  = "Root",				-- Rune Detonation
+	[55284]  = "Root",				-- Siege Ram
+	[56425]  = "Root",				-- Earth's Grasp
+	[58447]  = "Root",				-- Drakefire Chile Ale
+	[61043]  = "Root",				-- The Raising of Sindragosa
+	[62187]  = "CC",				-- Touchdown!
+	[63861]  = "Root",				-- Chains of Law
+	[71713]  = "Root",				-- Searching the Bank
+	[71745]  = "Root",				-- Searching the Auction House
+	[71752]  = "Root",				-- Searching the Barber Shop
+	[71758]  = "Root",				-- Searching the Barber Shop
+	[71759]  = "Root",				-- Searching the Bank
+	[71760]  = "Root",				-- Searching the Auction House
+	[75215]  = "Root",				-- Root
+	[50822]  = "Other",				-- Fervor
+	[54615]  = "Other",				-- Aimed Shot (healing effects reduced by 50%)
+	[54657]  = "Other",				-- Incorporeal (chance to dodge increased by 50%)
+	[60617]  = "Other",				-- Parry (chance to parry increased by 100%)
+	[60084]  = "Other",				-- The Veil of Shadows (healing effects reduced by 50%)
+	[61042]  = "Other",				-- Mortal Smash (healing effects reduced by 50%)
+	[68881]  = "Other",				-- Unstable Water Nova (healing effects reduced by 50%)
+	[51372]  = "Snare",				-- Dazed
+	[43512]  = "Snare",				-- Mind Flay
+	[60472]  = "Snare",				-- Mind Flay
+	[57665]  = "Snare",				-- Frostbolt
+	[59258]  = "Snare",				-- Cone of Cold
+	[48783]  = "Snare",				-- Trample
+	[53113]  = "Snare",				-- Thunderclap
+	[61359]  = "Snare",				-- Thunderclap
+	[54996]  = "Snare",				-- Ice Slick
+	[61087]  = "Snare",				-- Frostbolt
+	[42719]  = "Snare",				-- Frostbolt
+	[61730]  = "Snare",				-- Frostbolt
+	[69274]  = "Snare",				-- Frostbolt
+	[70327]  = "Snare",				-- Frostbolt
+	[62583]  = "Snare",				-- Frostbolt
+	[58970]  = "Snare",				-- Blast Wave
+	[60290]  = "Snare",				-- Blast Wave
+	[52436]  = "Snare",				-- Scarlet Cannon Assault
+	[57383]  = "Snare",				-- Argent Cannon Assault
+	[44622]  = "Snare",				-- Tendon Rip
+	[51315]  = "Snare",				-- Leprous Touch
+	[68902]  = "Snare",				-- Unstable Earth Nova
+	[69769]  = "Snare",				-- Ice Prison
+	[50304]  = "Snare",				-- Outbreak
+	[58606]  = "Snare",				-- Self Snare
+	[70866]  = "Snare",				-- Shadow Blast
+	[61578]  = "Snare",				-- Incapacitating Shout
+	[43562]  = "Snare",				-- Frost Breath
+	[43568]  = "Snare",				-- Frost Strike
+	[43569]  = "Snare",				-- Frost
+	[47425]  = "Snare",				-- Frost Breath
+	[49316]  = "Snare",				-- Ice Cannon
+	[51676]  = "Snare",				-- Wavering Will
+	[51681]  = "Snare",				-- Rearing Stomp
+	[51938]  = "Snare",				-- Wing Beat
+	[52744]  = "Snare",				-- Piercing Howl
+	[52807]  = "Snare",				-- Avenger's Shield
+	[52889]  = "Snare",				-- Envenomed Shot
+	[54193]  = "Snare",				-- Earth's Fury
+	[54340]  = "Snare",				-- Vile Vomit
+	[54399]  = "Snare",				-- Water Bubble
+	[54451]  = "Snare",				-- Withered Touch
+	[54632]  = "Snare",				-- Claws of Ice
+	[54687]  = "Snare",				-- Cold Feet
+	[56138]  = "Snare",				-- Sprained Ankle
+	[56143]  = "Snare",				-- Acidic Retch
+	[56147]  = "Snare",				-- Aching Bones
+	[57477]  = "Snare",				-- Freezing Breath
+	[60667]  = "Snare",				-- Frost Breath
+	[60814]  = "Snare",				-- Frost Blast
+	[61166]  = "Snare",				-- Frostbite Weapon
+	[61572]  = "Snare",				-- Frostbite
+	[61577]  = "Snare",				-- Molten Blast
+	[63004]  = "Snare",				-- [DND] NPC Slow
+	[68551]  = "Snare",				-- Dan's Avenger's Shield
+	[71361]  = "Snare",				-- Frost Blast
+	[50522]  = "Snare",				-- Gorloc Stomp
+	[69984]  = "Snare",				-- Frostfire Bolt
 
 	-- PvE
 	--[123456] = "PvE",				-- This is just an example, not a real spell
@@ -2587,10 +2983,11 @@ local spellIds = {
 	[363235] = "CC",				-- Horrifying Shadows
 	[360241] = "CC",				-- Unsettling Dreams
 	[360516] = "CC",				-- Infiltration
+	[362481] = "CC",				-- Overwhelming Guilt
 	[361934] = "Immune",			-- Incomplete Form (cannot be killed)
 	[362020] = "Immune",			-- Incomplete Form (cannot be killed)
-	[360300] = "Other",				-- Swarm of Decay (100% increased damage from AoE abilities)
-	[360304] = "Other",				-- Swarm of Darkness (100% increased damage from AoE abilities)
+	[360300] = "Other",				-- Swarm of Decay (100% increased damage)
+	[360304] = "Other",				-- Swarm of Darkness (100% increased damage)
 	-- -- Rygelon
 	[369571] = "Immune",			-- Burned Out
 	[365381] = "Immune",			-- Nebular Cloud (not immune, damage taken reduced by 99%)
@@ -3569,7 +3966,6 @@ local spellIds = {
 	[210131] = "CC",				-- Trampling Charge
 	[269680] = "Root",				-- Entanglement
 	[262610] = "Root",				-- Weighted Net
-	[20822]  = "Snare",				-- Frostbolt
 	[141619] = "Snare",				-- Frostbolt
 	[183081] = "Snare",				-- Frostbolt
 	[266985] = "Snare",				-- Oil Slick
@@ -3769,14 +4165,16 @@ local spellIds = {
 	[295170] = "CC",				-- Capacitor Discharge
 	[295182] = "CC",				-- Capacitor Discharge
 	[295183] = "CC",				-- Capacitor Discharge
+	[296080] = "CC",				-- Haywire
+	[303540] = "CC",				-- Haywire
 	[300436] = "Root",				-- Grasping Hex
 	[299475] = "Snare",				-- B.O.R.K
 	[300764] = "Snare",				-- Slimebolt
 	[296560] = "Snare",				-- Clinging Static
 	[285388] = "Snare",				-- Vent Jets
 	[298602] = "Immune",			-- Smoke Cloud (interferes with targeting)
-	[300675] = "Other",				-- Toxic Fog
-	[296080] = "Other",				-- Haywire
+	[300675] = "Other",				-- Toxic Fog (healing received reduced by 50%)
+	[301629] = "Other",				-- Enlarge (health and damage dealt increased by 100%)
 	[300011] = "Immune",			-- Force Shield
 	-- -- Atal'Dazar
 	[255371] = "CC",				-- Terrifying Visage
@@ -3935,7 +4333,6 @@ local spellIds = {
 	[205043] = "CC",				-- Infested Mind
 	-- -- Ursoc
 	[197980] = "CC",				-- Nightmarish Cacophony
-	[26662]  = "Other",				-- Berserk
 	-- -- Dragons of Nightmare
 	[205341] = "CC",				-- Seeping Fog
 	[225356] = "CC",				-- Seeping Fog
@@ -4096,6 +4493,7 @@ local spellIds = {
 	[247730] = "Root",				-- Faith's Fetters
 	[245822] = "CC",				-- Inescapable Nightmare
 	[245126] = "Silence",			-- Soul Burn
+	[51878]  = "Snare",				-- Ice Slash
 	------------------------
 	-- Legion Dungeons
 	-- -- Assault on Violet Hold
@@ -4158,6 +4556,12 @@ local spellIds = {
 	[228837] = "CC",				-- Bellowing Roar
 	[227592] = "CC",				-- Frostbite
 	[228239] = "CC",				-- Terrifying Wail
+	[228555] = "CC",				-- Horrific Visage
+	[229495] = "CC",				-- Vulnerable
+	[228578] = "CC",				-- Lured
+	[228607] = "CC",				-- Lured
+	[228277] = "CC",				-- Shackles of Servitude (damage done reduced by 70% and movement speed slowed by 70%)
+	[227254] = "CC",				-- Evocation (not cc, evocating and taking 100% increased damage)
 	[241774] = "CC",				-- Shield Smash
 	[230122] = "Silence",			-- Garrote - Silence
 	[39331]  = "Silence",			-- Game In Session
@@ -4167,6 +4571,8 @@ local spellIds = {
 	[230083] = "CC",				-- Nullification
 	[232156] = "Immune",			-- Spectral Service
 	[229489] = "Immune",			-- Royalty (90% dmg reduction)
+	[228895] = "Other",				-- Enrage
+	[238606] = "Snare",				-- Arcane Eruption
 	-- -- Maw of Souls
 	[193364] = "CC",				-- Screams of the Dead
 	[198551] = "CC",				-- Fragment
@@ -4181,7 +4587,6 @@ local spellIds = {
 	[202455] = "Immune",			-- Void Shield
 	[212565] = "CC",				-- Inquisitive Stare
 	[225416] = "CC",				-- Intercept
-	[6726]   = "Silence",			-- Silence
 	[201488] = "CC",				-- Frightening Shout
 	[203774] = "Immune",			-- Focusing
 	[192517] = "CC",				-- Brittle
@@ -4196,6 +4601,7 @@ local spellIds = {
 	[202658] = "CC",				-- Drain
 	[193969] = "Root",				-- Razors
 	[204282] = "CC",				-- Dark Trap
+	[205004] = "Immune",			-- Vengeance (not immune, damage taken reduced by 99%)
 	-- -- Eye of Azshara
 	[191975] = "CC",				-- Impaling Spear
 	[191977] = "CC",				-- Impaling Spear
@@ -4336,6 +4742,9 @@ local spellIds = {
 	[162057] = "CC",				-- Spinning Spear
 	[162065] = "Root",				-- Freezing Snare
 	[164192] = "CC",				-- 50,000 Volts
+	[166335] = "Other",				-- Storm Shield
+	[161091] = "Other",				-- New Plan!
+	[161092] = "Other",				-- Unmanaged Aggression
 	-- -- Iron Docks
 	[164504] = "CC",				-- Intimidated
 	[172631] = "CC",				-- Knocked Down
@@ -4343,6 +4752,8 @@ local spellIds = {
 	[173455] = "Disarm",			-- Pit Fighter
 	[162415] = "Root",				-- Time to Feed
 	[163689] = "Other",				-- Sanguine Sphere
+	[164426] = "Other",				-- Reckless Provocation
+	[172636] = "Other",				-- Slippery Grease
 	[164837] = "Snare",				-- Savage Mauling
 	[167240] = "Snare",				-- Leg Shot
 	[173324] = "Snare",				-- Jagged Caltrops
@@ -4609,7 +5020,7 @@ local spellIds = {
 	[103023] = "CC",				-- Hungering Shadows
 	[102990] = "CC",				-- Bash
 	[43415]  = "CC",				-- Freezing Trap
-	[51946]  = "ImmunePhysical",	-- Evasive Maneuver (dodge chance increased by 75%)
+	[51946]  = "ImmunePhysical",	-- Evasive Maneuver (chance to dodge increased by 75%)
 	[103587] = "Silence",			-- Silenced
 	[102926] = "Silence",			-- Garrote - Silence
 	[102582] = "Root",				-- Chains of Frost
@@ -4617,6 +5028,708 @@ local spellIds = {
 	[103904] = "Snare",				-- Torrent of Frost
 	[102226] = "Snare",				-- Corrupted Bite
 	[103024] = "Snare",				-- Mind Flay
+	------------------------
+	---- PVE WOTLK
+	------------------------
+	-- Vault of Archavon Raid
+	-- -- Archavon the Stone Watcher
+	[58965]  = "CC",				-- Choking Cloud (chance to hit with melee and ranged attacks reduced by 50%)
+	[61672]  = "CC",				-- Choking Cloud (chance to hit with melee and ranged attacks reduced by 50%)
+	[58663]  = "CC",				-- Stomp
+	[60880]  = "CC",				-- Stomp
+	-- -- Emalon the Storm Watcher
+	[63080]  = "CC",				-- Stoned (!)
+	-- -- Toravon the Ice Watcher
+	[72090]  = "Root",				-- Freezing Ground
+	------------------------
+	-- Naxxramas (WotLK) Raid
+	-- -- Trash
+	[56427]  = "CC",				-- War Stomp
+	[55314]  = "Silence",			-- Strangulate
+	[55334]  = "Silence",			-- Strangulate
+	[54722]  = "Immune",			-- Stoneskin (not immune, big health regeneration)
+	[53803]  = "Other",				-- Veil of Shadow
+	[55315]  = "Other",				-- Bone Armor
+	[55336]  = "Other",				-- Bone Armor
+	[55848]  = "Other",				-- Invisibility
+	[54769]  = "Snare",				-- Slime Burst
+	[54339]  = "Snare",				-- Mind Flay
+	[29407]  = "Snare",				-- Mind Flay
+	[54805]  = "Snare",				-- Mind Flay
+	-- -- Anub'Rekhan
+	[54022]  = "CC",				-- Locust Swarm
+	-- -- Grand Widow Faerlina
+	[54093]  = "Silence",			-- Silence
+	-- -- Maexxna
+	[54125]  = "CC",				-- Web Spray
+	[54121]  = "Other",				-- Necrotic Poison (healing taken reduced by 75%)
+	-- -- Noth the Plaguebringer
+	[54814]  = "Snare",				-- Cripple
+	-- -- Heigan the Unclean
+	[29310]  = "Other",				-- Spell Disruption (casting speed decreased by 300%)
+	-- -- Loatheb
+	[55593]  = "Other",				-- Necrotic Aura (healing taken reduced by 100%)
+	-- -- Sapphiron
+	[55699]  = "Snare",				-- Chill
+	-- -- Kel'Thuzad
+	[55802]  = "Snare",				-- Frostbolt
+	[55807]  = "Snare",				-- Frostbolt
+	------------------------
+	-- The Obsidian Sanctum Raid
+	-- -- Trash
+	[57835]  = "Immune",			-- Gift of Twilight
+	[39647]  = "Other",				-- Curse of Mending (20% chance to heal enemy target on spell or melee hit)
+	[58948]  = "Other",				-- Curse of Mending (20% chance to heal enemy target on spell or melee hit)
+	[57728]  = "CC",				-- Shockwave
+	[58947]  = "CC",				-- Shockwave
+	-- -- Sartharion
+	[56910]  = "CC",				-- Tail Lash
+	[58957]  = "CC",				-- Tail Lash
+	[58766]  = "Immune",			-- Gift of Twilight
+	[61632]  = "Other",				-- Berserk
+	[57491]  = "Snare",				-- Flame Tsunami
+	------------------------
+	-- The Eye of Eternity Raid
+	-- -- Malygos
+	[57108]  = "Immune",			-- Flame Shield (not immune, damage taken decreased by 80%)
+	[55853]  = "Root",				-- Vortex
+	[56263]  = "Root",				-- Vortex
+	[56264]  = "Root",				-- Vortex
+	[56265]  = "Root",				-- Vortex
+	[56266]  = "Root",				-- Vortex
+	[61071]  = "Root",				-- Vortex
+	[61072]  = "Root",				-- Vortex
+	[61073]  = "Root",				-- Vortex
+	[61074]  = "Root",				-- Vortex
+	[61075]  = "Root",				-- Vortex
+	[56438]  = "Other",				-- Arcane Overload (reduces magic damage taken by 50%)
+	[55849]  = "Other",				-- Power Spark
+	[56152]  = "Other",				-- Power Spark
+	[57060]  = "Other",				-- Haste
+	[47008]  = "Other",				-- Berserk
+	------------------------
+	-- Ulduar Raid
+	-- -- Trash
+	[64010]  = "CC",				-- Nondescript
+	[64013]  = "CC",				-- Nondescript
+	[64781]  = "CC",				-- Charged Leap
+	[64819]  = "CC",				-- Devastating Leap
+	[64942]  = "CC",				-- Devastating Leap
+	[64649]  = "CC",				-- Freezing Breath
+	[62310]  = "CC",				-- Impale
+	[62928]  = "CC",				-- Impale
+	[63713]  = "CC",				-- Dominate Mind
+	[64918]  = "CC",				-- Electro Shock
+	[64971]  = "CC",				-- Electro Shock
+	[64647]  = "CC",				-- Snow Blindness
+	[64654]  = "CC",				-- Snow Blindness
+	[65078]  = "CC",				-- Compacted
+	[65105]  = "CC",				-- Compacted
+	[64697]  = "Silence",			-- Earthquake
+	[64663]  = "Silence",			-- Arcane Burst
+	[63710]  = "Immune",			-- Void Barrier
+	[63784]  = "Immune",			-- Bladestorm (not immune to dmg, only to LoC)
+	[63006]  = "Immune",			-- Aggregation Pheromones (not immune, damage taken reduced by 90%)
+	[65070]  = "Immune",			-- Defense Matrix (not immune, damage taken reduced by 90%)
+	[64903]  = "Root",				-- Fuse Lightning
+	[64970]  = "Root",				-- Fuse Lightning
+	[64877]  = "Root",				-- Harden Fists
+	[63912]  = "Root",				-- Frost Nova
+	[63272]  = "Other",				-- Hurricane (slow attacks and spells by 67%)
+	[63557]  = "Other",				-- Hurricane (slow attacks and spells by 67%)
+	[64644]  = "Other",				-- Shield of the Winter Revenant (damage taken from AoE attacks reduced by 90%)
+	[63136]  = "Other",				-- Winter's Embrace
+	[63564]  = "Other",				-- Winter's Embrace
+	[63539]  = "Other",				-- Separation Anxiety
+	[63630]  = "Other",				-- Vengeful Surge
+	[62845]  = "Snare",				-- Hamstring
+	[63913]  = "Snare",				-- Frostbolt
+	[64645]  = "Snare",				-- Cone of Cold
+	[64655]  = "Snare",				-- Cone of Cold
+	[62287]  = "Snare",				-- Tar
+	-- -- Flame Leviathan
+	[62297]  = "CC",				-- Hodir's Fury
+	[62475]  = "CC",				-- Systems Shutdown
+	-- -- Ignis the Furnace Master
+	[62717]  = "CC",				-- Slag Pot
+	[65722]  = "CC",				-- Slag Pot
+	[63477]  = "CC",				-- Slag Pot
+	[65720]  = "CC",				-- Slag Pot
+	[65723]  = "CC",				-- Slag Pot
+	[62382]  = "CC",				-- Brittle
+	-- -- Razorscale
+	[62794]  = "CC",				-- Harpooned
+	[64774]  = "CC",				-- Fused Armor
+	-- -- XT-002 Deconstructor
+	[63849]  = "Other",				-- Exposed Heart
+	[62775]  = "Snare",				-- Tympanic Tantrum
+	-- -- Assembly of Iron
+	[61878]  = "CC",				-- Overload
+	[63480]  = "CC",				-- Overload
+	--[64320]  = "Other",				-- Rune of Power
+	[63489]  = "Other",				-- Shield of Runes
+	[62274]  = "Other",				-- Shield of Runes
+	[63967]  = "Other",				-- Shield of Runes
+	[62277]  = "Other",				-- Shield of Runes
+	[61888]  = "Other",				-- Overwhelming Power
+	[64637]  = "Other",				-- Overwhelming Power
+	-- -- Kologarn
+	[64238]  = "Other",				-- Berserk
+	[62056]  = "CC",				-- Stone Grip
+	[63985]  = "CC",				-- Stone Grip
+	[64290]  = "CC",				-- Stone Grip
+	[64292]  = "CC",				-- Stone Grip
+	-- -- Auriaya
+	[64386]  = "CC",				-- Terrifying Screech
+	[64478]  = "CC",				-- Feral Pounce
+	[64669]  = "CC",				-- Feral Pounce
+	-- -- Freya
+	[62532]  = "CC",				-- Conservator's Grip
+	[62467]  = "CC",				-- Drained of Power
+	[62283]  = "Root",				-- Iron Roots
+	[62438]  = "Root",				-- Iron Roots
+	[62861]  = "Root",				-- Iron Roots
+	[62930]  = "Root",				-- Iron Roots
+	-- -- Hodir
+	[61968]  = "CC",				-- Flash Freeze
+	[61969]  = "CC",				-- Flash Freeze
+	[61170]  = "CC",				-- Flash Freeze
+	[61990]  = "CC",				-- Flash Freeze
+	[62469]  = "Root",				-- Freeze
+	-- -- Mimiron
+	[64436]  = "CC",				-- Magnetic Core
+	[64616]  = "Silence",			-- Deafening Siren
+	[64668]  = "Root",				-- Magnetic Field
+	[64570]  = "Other",				-- Flame Suppressant (casting speed slowed by 50%)
+	[65192]  = "Other",				-- Flame Suppressant (casting speed slowed by 50%)
+	-- -- Thorim
+	[62241]  = "CC",				-- Paralytic Field
+	[63540]  = "CC",				-- Paralytic Field
+	[62042]  = "CC",				-- Stormhammer
+	[62332]  = "CC",				-- Shield Smash
+	[62420]  = "CC",				-- Shield Smash
+	[64151]  = "CC",				-- Whirling Trip
+	[62316]  = "CC",				-- Sweep
+	[62417]  = "CC",				-- Sweep
+	[62276]  = "Immune",			-- Sheath of Lightning (not immune, damage taken reduced by 99%)
+	[62338]  = "Immune",			-- Runic Barrier (not immune, damage taken reduced by 50%)
+	[62321]  = "Immune",			-- Runic Shield (not immune, physical damage taken reduced by 50% and absorbing magical damage)
+	[62529]  = "Immune",			-- Runic Shield (not immune, physical damage taken reduced by 50% and absorbing magical damage)
+	[62470]  = "Other",				-- Deafening Thunder (spell casting times increased by 75%)
+	[62555]  = "Other",				-- Berserk
+	[62560]  = "Other",				-- Berserk
+	[62526]  = "Root",				-- Rune Detonation
+	[62605]  = "Root",				-- Frost Nova
+	[62576]  = "Snare",				-- Blizzard
+	[62602]  = "Snare",				-- Blizzard
+	[62601]  = "Snare",				-- Frostbolt
+	[62580]  = "Snare",				-- Frostbolt Volley
+	[62604]  = "Snare",				-- Frostbolt Volley
+	-- -- General Vezax
+	[63364]  = "Immune",			-- Saronite Barrier (not immune, damage taken reduced by 99%)
+	[63276]  = "Other",				-- Mark of the Faceless
+	[62662]  = "Snare",				-- Surge of Darkness
+	-- -- Yogg-Saron
+	[64189]  = "CC",				-- Deafening Roar
+	[64173]  = "CC",				-- Shattered Illusion
+	[64155]  = "CC",				-- Black Plague
+	[63830]  = "CC",				-- Malady of the Mind
+	[63881]  = "CC",				-- Malady of the Mind
+	[63042]  = "CC",				-- Dominate Mind
+	[63120]  = "CC",				-- Insane
+	[63894]  = "Immune",			-- Shadowy Barrier
+	[64775]  = "Immune",			-- Shadowy Barrier
+	[64175]  = "Immune",			-- Flash Freeze
+	[64156]  = "Snare",				-- Apathy
+	------------------------
+	-- Trial of the Crusader Raid
+	-- -- Northrend Beasts
+	[66407]  = "CC",				-- Head Crack
+	[66689]  = "CC",				-- Arctic Breath
+	[72848]  = "CC",				-- Arctic Breath
+	[66770]  = "CC",				-- Ferocious Butt
+	[66683]  = "CC",				-- Massive Crash
+	[66758]  = "CC",				-- Staggered Daze
+	[66830]  = "CC",				-- Paralysis
+	[66759]  = "Other",				-- Frothing Rage
+	[66823]  = "Snare",				-- Paralytic Toxin
+	-- -- Lord Jaraxxus
+	[66237]  = "CC",				-- Incinerate Flesh (reduces damage dealt by 50%)
+	[66283]  = "CC",				-- Spinning Pain Spike (!)
+	[66334]  = "Other",				-- Mistress' Kiss
+	[66336]  = "Other",				-- Mistress' Kiss
+	-- -- Faction Champions
+	[65930]  = "CC",				-- Intimidating Shout
+	[65931]  = "CC",				-- Intimidating Shout
+	[65929]  = "CC",				-- Charge Stun
+	[65809]  = "CC",				-- Fear
+	[65820]  = "CC",				-- Death Coil
+	[66054]  = "CC",				-- Hex
+	[65960]  = "CC",				-- Blind
+	[65545]  = "CC",				-- Psychic Horror
+	[65543]  = "CC",				-- Psychic Scream
+	[66008]  = "CC",				-- Repentance
+	[66007]  = "CC",				-- Hammer of Justice
+	[66613]  = "CC",				-- Hammer of Justice
+	[65801]  = "CC",				-- Polymorph
+	[65877]  = "CC",				-- Wyvern Sting
+	[65859]  = "CC",				-- Cyclone
+	[65935]  = "Disarm",			-- Disarm
+	[65542]  = "Silence",			-- Silence
+	[65813]  = "Silence",			-- Unstable Affliction
+	[66018]  = "Silence",			-- Strangulate
+	[65857]  = "Root",				-- Entangling Roots
+	[66070]  = "Root",				-- Entangling Roots (Nature's Grasp)
+	[66010]  = "Immune",			-- Divine Shield
+	[65871]  = "Immune",			-- Deterrence
+	[66023]  = "Immune",			-- Icebound Fortitude (not immune, damage taken reduced by 45%)
+	[65544]  = "Immune",			-- Dispersion (not immune, damage taken reduced by 90%)
+	[65947]  = "Immune",			-- Bladestorm (not immune to dmg, only to LoC)
+	[66009]  = "ImmunePhysical",	-- Hand of Protection
+	[65961]  = "ImmuneSpell",		-- Cloak of Shadows
+	[66071]  = "Other",				-- Nature's Grasp
+	[65883]  = "Other",				-- Aimed Shot (healing effects reduced by 50%)
+	[65926]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
+	[65962]  = "Other",				-- Wound Poison (healing effects reduced by 50%)
+	[66011]  = "Other",				-- Avenging Wrath
+	[65932]  = "Other",				-- Retaliation
+	--[65983]  = "Other",				-- Heroism
+	--[65980]  = "Other",				-- Bloodlust
+	[66020]  = "Snare",				-- Chains of Ice
+	[66207]  = "Snare",				-- Wing Clip
+	[65488]  = "Snare",				-- Mind Flay
+	[65815]  = "Snare",				-- Curse of Exhaustion
+	[65807]  = "Snare",				-- Frostbolt
+	-- -- Twin Val'kyr
+	[65724]  = "Other",				-- Empowered Darkness
+	[65748]  = "Other",				-- Empowered Light
+	[65874]  = "Other",				-- Shield of Darkness
+	[65858]  = "Other",				-- Shield of Lights
+	-- -- Anub'arak
+	[66012]  = "CC",				-- Freezing Slash
+	[66193]  = "Snare",				-- Permafrost
+	------------------------
+	-- Icecrown Citadel Raid
+	-- -- Trash
+	[71784]  = "CC",				-- Hammer of Betrayal
+	[71785]  = "CC",				-- Conflagration
+	[71592]  = "CC",				-- Fel Iron Bomb
+	[71787]  = "CC",				-- Fel Iron Bomb
+	[70410]  = "CC",				-- Polymorph: Spider
+	[70645]  = "CC",				-- Chains of Shadow
+	[70432]  = "CC",				-- Blood Sap
+	[71010]  = "CC",				-- Web Wrap
+	[71330]  = "CC",				-- Ice Tomb
+	[69903]  = "CC",				-- Shield Slam
+	[71123]  = "CC",				-- Decimate
+	[71163]  = "CC",				-- Devour Humanoid
+	[71298]  = "CC",				-- Banish
+	[71443]  = "CC",				-- Impaling Spear
+	[71847]  = "CC",				-- Critter-Killer Attack
+	[71955]  = "CC",				-- Focused Attacks
+	[70781]  = "CC",				-- Light's Hammer Teleport
+	[70856]  = "CC",				-- Oratory of the Damned Teleport
+	[70857]  = "CC",				-- Rampart of Skulls Teleport
+	[70858]  = "CC",				-- Deathbringer's Rise Teleport
+	[70859]  = "CC",				-- Upper Spire Teleport
+	[70861]  = "CC",				-- Sindragosa's Lair Teleport
+	[72106]  = "Disarm",			-- Polymorph: Spider
+	[71325]  = "Disarm",			-- Frostblade
+	[70714]  = "Immune",			-- Icebound Armor
+	[71550]  = "Immune",			-- Divine Shield
+	[71463]  = "Immune",			-- Aether Shield
+	[69910]  = "Immune",			-- Pain Suppression (not immune, damage taken reduced by 40%)
+	[69634]  = "Immune",			-- Taste of Blood (not immune, damage taken reduced by 50%)
+	[72065]  = "ImmunePhysical",	-- Shroud of Protection
+	[72066]  = "ImmuneSpell",		-- Shroud of Spell Warding
+	[69901]  = "ImmuneSpell",		-- Spell Reflect
+	[70299]  = "Root",				-- Siphon Essence
+	[70431]  = "Root",				-- Shadowstep
+	[71320]  = "Root",				-- Frost Nova
+	[70980]  = "Root",				-- Web Wrap
+	[71327]  = "Root",				-- Web
+	[71647]  = "Root",				-- Ice Trap
+	[69483]  = "Other",				-- Dark Reckoning
+	[71552]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
+	[70711]  = "Other",				-- Empowered Blood
+	[69871]  = "Other",				-- Plague Stream
+	[70407]  = "Snare",				-- Blast Wave
+	[69405]  = "Snare",				-- Consuming Shadows
+	[71318]  = "Snare",				-- Frostbolt
+	[61747]  = "Snare",				-- Frostbolt
+	[69869]  = "Snare",				-- Frostfire Bolt
+	[69927]  = "Snare",				-- Avenger's Shield
+	[70536]  = "Snare",				-- Spirit Alarm
+	[70545]  = "Snare",				-- Spirit Alarm
+	[70546]  = "Snare",				-- Spirit Alarm
+	[70547]  = "Snare",				-- Spirit Alarm
+	[70739]  = "Snare",				-- Geist Alarm
+	[70740]  = "Snare",				-- Geist Alarm
+	[221243] = "Root",				-- Cleaver Smash
+	[221218] = "Snare",				-- Bile Spray
+	-- -- Lord Marrowgar
+	[69065]  = "CC",				-- Impaled
+	-- -- Lady Deathwhisper
+	[71289]  = "CC",				-- Dominate Mind
+	[70768]  = "ImmuneSpell",		-- Shroud of the Occult (reflects harmful spells)
+	[71234]  = "ImmuneSpell",		-- Adherent's Determination (not immune, magic damage taken reduced by 99%)
+	[71235]  = "ImmunePhysical",	-- Adherent's Determination (not immune, physical damage taken reduced by 99%)
+	[71237]  = "Other",				-- Curse of Torpor (ability cooldowns increased by 15 seconds)
+	[70674]  = "Other",				-- Vampiric Might
+	[71420]  = "Snare",				-- Frostbolt
+	-- -- Gunship Battle
+	[69705]  = "CC",				-- Below Zero
+	[69651]  = "Other",				-- Wounding Strike (healing effects reduced by 40%)
+	-- -- Deathbringer Saurfang
+	[70572]  = "CC",				-- Grip of Agony
+	[72771]  = "Other",				-- Scent of Blood (physical damage done increased by 300%)
+	[72769]  = "Snare",				-- Scent of Blood
+	-- -- Festergut
+	[72297]  = "CC",				-- Malleable Goo (casting and attack speed reduced by 250%)
+	[69240]  = "CC",				-- Vile Gas
+	[69248]  = "CC",				-- Vile Gas
+	-- -- Rotface
+	[72272]  = "CC",				-- Vile Gas	(!)
+	[72274]  = "CC",				-- Vile Gas
+	[69244]  = "Root",				-- Vile Gas
+	[72276]  = "Root",				-- Vile Gas
+	[69674]  = "Other",				-- Mutated Infection (healing received reduced by 75%/-50%)
+	[69778]  = "Snare",				-- Sticky Ooze
+	[69789]  = "Snare",				-- Ooze Flood
+	-- -- Professor Putricide
+	[70853]  = "CC",				-- Malleable Goo (casting and attack speed reduced by 250%)
+	[71615]  = "CC",				-- Tear Gas
+	[71618]  = "CC",				-- Tear Gas
+	[71278]  = "CC",				-- Choking Gas (reduces chance to hit by 75%/100%)
+	[71279]  = "CC",				-- Choking Gas Explosion (reduces chance to hit by 75%/100%)
+	[70447]  = "Root",				-- Volatile Ooze Adhesive
+	[70539]  = "Snare",				-- Regurgitated Ooze
+	-- -- Blood Prince Council
+	[71807]  = "Snare",				-- Glittering Sparks
+	-- -- Blood-Queen Lana'thel
+	[70923]  = "CC",				-- Uncontrollable Frenzy
+	[73070]  = "CC",				-- Incite Terror
+	-- -- Valithria Dreamwalker
+	--[70904]  = "CC",				-- Corruption
+	[70588]  = "Other",				-- Suppression (healing taken reduced)
+	[70759]  = "Snare",				-- Frostbolt Volley
+	-- -- Sindragosa
+	[70157]  = "CC",				-- Ice Tomb
+	-- -- The Lich King
+	[71614]  = "CC",				-- Ice Lock
+	[73654]  = "CC",				-- Harvest Souls
+	[69242]  = "Silence",			-- Soul Shriek
+	[72143]  = "Other",				-- Enrage
+	[72679]  = "Other",				-- Harvested Soul (increases all damage dealt by 200%/500%)
+	[73028]  = "Other",				-- Harvested Soul (increases all damage dealt by 200%/500%)
+	------------------------
+	-- The Ruby Sanctum Raid
+	-- -- Trash
+	[74509]  = "CC",				-- Repelling Wave
+	[74384]  = "CC",				-- Intimidating Roar
+	[75417]  = "CC",				-- Shockwave
+	[74456]  = "CC",				-- Conflagration
+	[78722]  = "Other",				-- Enrage
+	[75413]  = "Snare",				-- Flame Wave
+	-- -- Halion
+	[74531]  = "CC",				-- Tail Lash
+	[74834]  = "Immune",			-- Corporeality (not immune, damage taken reduced by 50%, damage dealt reduced by 30%)
+	[74835]  = "Immune",			-- Corporeality (not immune, damage taken reduced by 80%, damage dealt reduced by 50%)
+	[74836]  = "Immune",			-- Corporeality (damage taken reduced by 100%, damage dealt reduced by 70%)
+	[74830]  = "Other",				-- Corporeality (damage taken increased by 200%, damage dealt increased by 100%)
+	[74831]  = "Other",				-- Corporeality (damage taken increased by 400%, damage dealt increased by 200%)
+	------------------------
+	-- WotLK Dungeons
+	-- -- The Culling of Stratholme
+	[52696]  = "CC",				-- Constricting Chains
+	[58823]  = "CC",				-- Constricting Chains
+	[52711]  = "CC",				-- Steal Flesh (damage dealt decreased by 75%)
+	[58848]  = "CC",				-- Time Stop
+	[52721]  = "CC",				-- Sleep
+	[58849]  = "CC",				-- Sleep
+	[60451]  = "CC",				-- Corruption of Time
+	[52634]  = "Immune",			-- Void Shield (not immune, reduces damage taken by 50%)
+	[58813]  = "Immune",			-- Void Shield (not immune, reduces damage taken by 75%)
+	[52317]  = "ImmunePhysical",	-- Defend (not immune, reduces physical damage taken by 50%)
+	[52491]  = "Root",				-- Web Explosion
+	[52766]  = "Snare",				-- Time Warp
+	[52657]  = "Snare",				-- Temporal Vortex
+	[58816]  = "Snare",				-- Temporal Vortex
+	[52498]  = "Snare",				-- Cripple
+	[20828]  = "Snare",				-- Cone of Cold
+	-- -- The Violet Hold
+	[52719]  = "CC",				-- Concussion Blow
+	[58526]  = "CC",				-- Azure Bindings
+	[58537]  = "CC",				-- Polymorph
+	[58534]  = "CC",				-- Deep Freeze
+	[59820]  = "Immune",			-- Drained
+	[54306]  = "Immune",			-- Protective Bubble (not immune, reduces damage taken by 99%)
+	[60158]  = "ImmuneSpell",		-- Magic Reflection
+	[58458]  = "Root",				-- Frost Nova
+	[59253]  = "Root",				-- Frost Nova
+	[54462]  = "Snare",				-- Howling Screech
+	[58693]  = "Snare",				-- Blizzard
+	[59369]  = "Snare",				-- Blizzard
+	[58463]  = "Snare",				-- Cone of Cold
+	[58532]  = "Snare",				-- Frostbolt Volley
+	[61594]  = "Snare",				-- Frostbolt Volley
+	[58457]  = "Snare",				-- Frostbolt
+	[58535]  = "Snare",				-- Frostbolt
+	[59251]  = "Snare",				-- Frostbolt
+	[61590]  = "Snare",				-- Frostbolt
+	[20822]  = "Snare",				-- Frostbolt
+	-- -- Azjol-Nerub
+	[52087]  = "CC",				-- Web Wrap
+	[52524]  = "CC",				-- Blinding Webs
+	[59365]  = "CC",				-- Blinding Webs
+	[53472]  = "CC",				-- Pound
+	[59433]  = "CC",				-- Pound
+	[52086]  = "Root",				-- Web Wrap
+	[53322]  = "Root",				-- Crushing Webs
+	[59347]  = "Root",				-- Crushing Webs
+	[52586]  = "Snare",				-- Mind Flay
+	[59367]  = "Snare",				-- Mind Flay
+	[52592]  = "Snare",				-- Curse of Fatigue
+	[59368]  = "Snare",				-- Curse of Fatigue
+	-- -- Ahn'kahet: The Old Kingdom
+	[55959]  = "CC",				-- Embrace of the Vampyr
+	[59513]  = "CC",				-- Embrace of the Vampyr
+	[57055]  = "CC",				-- Mini (damage dealt reduced by 75%)
+	[61491]  = "CC",				-- Intercept
+	[56153]  = "Immune",			-- Guardian Aura
+	[55964]  = "Immune",			-- Vanish
+	[57095]  = "Root",				-- Entangling Roots
+	[56632]  = "Root",				-- Tangled Webs
+	[56219]  = "Other",				-- Gift of the Herald (damage dealt increased by 200%)
+	[57789]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
+	[59995]  = "Root",				-- Frost Nova
+	[61462]  = "Root",				-- Frost Nova
+	[57629]  = "Root",				-- Frost Nova
+	[57941]  = "Snare",				-- Mind Flay
+	[59974]  = "Snare",				-- Mind Flay
+	[57799]  = "Snare",				-- Avenger's Shield
+	[59999]  = "Snare",				-- Avenger's Shield
+	[57825]  = "Snare",				-- Frostbolt
+	[61461]  = "Snare",				-- Frostbolt
+	[57779]  = "Snare",				-- Mind Flay
+	[60006]  = "Snare",				-- Mind Flay
+	-- -- Utgarde Keep
+	[42672]  = "CC",				-- Frost Tomb
+	[48400]  = "CC",				-- Frost Tomb
+	[43651]  = "CC",				-- Charge
+	[35570]  = "CC",				-- Charge
+	[59611]  = "CC",				-- Charge
+	[42723]  = "CC",				-- Dark Smash
+	[59709]  = "CC",				-- Dark Smash
+	[43936]  = "CC",				-- Knockdown Spin
+	[42972]  = "CC",				-- Blind
+	[37578]  = "CC",				-- Debilitating Strike (physical damage done reduced by 75%)
+	[42740]  = "Immune",			-- Njord's Rune of Protection (not immune, big absorb)
+	[59616]  = "Immune",			-- Njord's Rune of Protection (not immune, big absorb)
+	[43650]  = "Other",				-- Debilitate
+	[59577]  = "Other",				-- Debilitate
+	-- -- Utgarde Pinnacle
+	[48267]  = "CC",				-- Ritual Preparation
+	[48278]  = "CC",				-- Paralyze
+	[50234]  = "CC",				-- Crush
+	[59330]  = "CC",				-- Crush
+	[51750]  = "CC",				-- Screams of the Dead
+	[48131]  = "CC",				-- Stomp
+	[48144]  = "CC",				-- Terrifying Roar
+	[49106]  = "CC",				-- Terrify
+	[49170]  = "CC",				-- Lycanthropy
+	[49172]  = "Other",				-- Wolf Spirit
+	[49173]  = "Other",				-- Wolf Spirit
+	[48703]  = "CC",				-- Fervor
+	[48702]  = "Other",				-- Fervor
+	[48871]  = "Other",				-- Aimed Shot (decreases healing received by 50%)
+	[59243]  = "Other",				-- Aimed Shot (decreases healing received by 50%)
+	[49092]  = "Root",				-- Net
+	[48639]  = "Snare",				-- Hamstring
+	-- -- The Nexus
+	[47736]  = "CC",				-- Time Stop
+	[47731]  = "CC",				-- Critter
+	[47772]  = "CC",				-- Ice Nova
+	[56935]  = "CC",				-- Ice Nova
+	[60067]  = "CC",				-- Charge
+	[47700]  = "CC",				-- Crystal Freeze
+	[55041]  = "CC",				-- Freezing Trap Effect
+	[47781]  = "CC",				-- Spellbreaker (damage from magical spells and effects reduced by 75%)
+	[47854]  = "CC",				-- Frozen Prison
+	[47543]  = "CC",				-- Frozen Prison
+	[99247]  = "CC",				-- Ice Block
+	[99277]  = "CC",				-- Invisibility
+	[47779]  = "Silence",			-- Arcane Torrent
+	[56777]  = "Silence",			-- Silence
+	[47748]  = "Immune",			-- Rift Shield
+	[48082]  = "Immune",			-- Seed Pod
+	[47981]  = "ImmuneSpell",		-- Spell Reflection
+	[47698]  = "Root",				-- Crystal Chains
+	[50997]  = "Root",				-- Crystal Chains
+	[57050]  = "Root",				-- Crystal Chains
+	[48179]  = "Root",				-- Crystallize
+	[61556]  = "Root",				-- Tangle
+	[79850]  = "Root",				-- Frost Nova
+	[48053]  = "Snare",				-- Ensnare
+	[56775]  = "Snare",				-- Frostbolt
+	[56837]  = "Snare",				-- Frostbolt
+	[79858]  = "Snare",				-- Frostbolt
+	[12737]  = "Snare",				-- Frostbolt
+	-- -- The Oculus
+	[49838]  = "CC",				-- Stop Time
+	[50731]  = "CC",				-- Mace Smash
+	[50053]  = "Immune",			-- Centrifuge Shield
+	[53813]  = "Immune",			-- Arcane Shield
+	[50240]  = "Immune",			-- Evasive Maneuvers
+	[51162]  = "ImmuneSpell",		-- Planar Shift
+	[50690]  = "Root",				-- Immobilizing Field
+	[59260]  = "Root",				-- Hooked Net
+	[51170]  = "Other",				-- Enraged Assault
+	[50253]  = "Other",				-- Martyr (harmful spells redirected to you)
+	[59370]  = "Snare",				-- Thundering Stomp
+	[49549]  = "Snare",				-- Ice Beam
+	[59211]  = "Snare",				-- Ice Beam
+	[59217]  = "Snare",				-- Thunderclap
+	[59261]  = "Snare",				-- Water Tomb
+	[50721]  = "Snare",				-- Frostbolt
+	[59280]  = "Snare",				-- Frostbolt
+	-- -- Drak'Tharon Keep
+	[49356]  = "CC",				-- Decay Flesh
+	[53463]  = "CC",				-- Return Flesh
+	[51240]  = "CC",				-- Fear
+	[49704]  = "Root",				-- Encasing Webs
+	[49711]  = "Root",				-- Hooked Net
+	[49721]  = "Silence",			-- Deafening Roar
+	[59010]  = "Silence",			-- Deafening Roar
+	[47346]  = "Snare",				-- Arcane Field
+	[49037]  = "Snare",				-- Frostbolt
+	[50378]  = "Snare",				-- Frostbolt
+	[59017]  = "Snare",				-- Frostbolt
+	[59855]  = "Snare",				-- Frostbolt
+	[50379]  = "Snare",				-- Cripple
+	[81140]  = "Snare",				-- Thunderclap
+	-- -- Gundrak
+	[55142]  = "CC",				-- Ground Tremor
+	[55101]  = "CC",				-- Quake
+	[55636]  = "CC",				-- Shockwave
+	[58977]  = "CC",				-- Shockwave
+	[55099]  = "CC",				-- Snake Wrap
+	[61475]  = "CC",				-- Snake Wrap
+	[55126]  = "CC",				-- Snake Wrap
+	[61476]  = "CC",				-- Snake Wrap
+	[54956]  = "CC",				-- Impaling Charge
+	[59827]  = "CC",				-- Impaling Charge
+	[55663]  = "Silence",			-- Deafening Roar
+	[58992]  = "Silence",			-- Deafening Roar
+	[55633]  = "Root",				-- Body of Stone
+	[54716]  = "Other",				-- Mortal Strikes (healing effects reduced by 50%)
+	[59455]  = "Other",				-- Mortal Strikes (healing effects reduced by 75%)
+	[55816]  = "Other",				-- Eck Berserk
+	[40546]  = "Other",				-- Retaliation
+	[61362]  = "Snare",				-- Blast Wave
+	[55250]  = "Snare",				-- Whirling Slash
+	[59824]  = "Snare",				-- Whirling Slash
+	[58975]  = "Snare",				-- Thunderclap
+	-- -- Halls of Stone
+	[50812]  = "CC",				-- Stoned
+	[50760]  = "CC",				-- Shock of Sorrow
+	[59726]  = "CC",				-- Shock of Sorrow
+	[59865]  = "CC",				-- Ground Smash
+	[51503]  = "CC",				-- Domination
+	[51842]  = "CC",				-- Charge
+	[59040]  = "CC",				-- Charge
+	[51491]  = "CC",				-- Unrelenting Strike
+	[59039]  = "CC",				-- Unrelenting Strike
+	[59868]  = "Snare",				-- Dark Matter
+	[50836]  = "Snare",				-- Petrifying Grip
+	-- -- Halls of Lightning
+	[53045]  = "CC",				-- Sleep
+	[59165]  = "CC",				-- Sleep
+	[59142]  = "CC",				-- Shield Slam
+	[60236]  = "CC",				-- Cyclone
+	[36096]  = "ImmuneSpell",		-- Spell Reflection
+	[53069]  = "Root",				-- Runic Focus
+	[59153]  = "Root",				-- Runic Focus
+	[61579]  = "Root",				-- Runic Focus
+	[61596]  = "Root",				-- Runic Focus
+	[52883]  = "Root",				-- Counterattack
+	[59181]  = "Other",				-- Deflection (parry chance increased by 40%)
+	[52773]  = "Snare",				-- Hammer Blow
+	[23600]  = "Snare",				-- Piercing Howl
+	[23113]  = "Snare",				-- Blast Wave
+	-- -- Trial of the Champion
+	[67745]  = "CC",				-- Death's Respite
+	[66940]  = "CC",				-- Hammer of Justice
+	[66862]  = "CC",				-- Radiance
+	[66547]  = "CC",				-- Confess
+	[66546]  = "CC",				-- Holy Nova
+	[65918]  = "CC",				-- Stunned
+	[67867]  = "CC",				-- Trampled
+	[67868]  = "CC",				-- Trampled
+	[67255]  = "CC",				-- Final Meditation (movement, attack, and casting speeds reduced by 70%)
+	[67229]  = "CC",				-- Mind Control
+	[66043]  = "CC",				-- Polymorph
+	[66619]  = "CC",				-- Shadows of the Past (attack and casting speeds reduced by 90%)
+	[66552]  = "CC",				-- Waking Nightmare
+	[67541]  = "Immune",			-- Bladestorm (not immune to dmg, only to LoC)
+	[66515]  = "Immune",			-- Reflective Shield
+	[67251]  = "Immune",			-- Divine Shield
+	[67534]  = "Other",				-- Hex of Mending (direct heals received will heal all nearby enemies)
+	[67542]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
+	[66045]  = "Other",				-- Haste
+	[67781]  = "Snare",				-- Desecration
+	[66044]  = "Snare",				-- Blast Wave
+	-- -- The Forge of Souls
+	[68950]  = "CC",				-- Fear
+	[68848]  = "CC",				-- Knockdown Stun
+	[69133]  = "CC",				-- Lethargy
+	[69056]  = "ImmuneSpell",		-- Shroud of Runes
+	[69060]  = "Root",				-- Frost Nova
+	[68839]  = "Other",				-- Corrupt Soul
+	[69131]  = "Other",				-- Soul Sickness
+	[69633]  = "Other",				-- Veil of Shadow
+	[68921]  = "Snare",				-- Soulstorm
+	-- -- Pit of Saron
+	[68771]  = "CC",				-- Thundering Stomp
+	[70380]  = "CC",				-- Deep Freeze
+	[69245]  = "CC",				-- Hoarfrost
+	[69503]  = "CC",				-- Devour Humanoid
+	[70302]  = "CC",				-- Blinding Dirt
+	[69572]  = "CC",				-- Shovelled!
+	[70639]  = "CC",				-- Call of Sylvanas
+	[70291]  = "Disarm",			-- Frostblade
+	[69575]  = "Immune",			-- Stoneform (not immune, damage taken reduced by 90%)
+	[70130]  = "Root",				-- Empowered Blizzard
+	[69580]  = "Other",				-- Shield Block (chance to block increased by 100%)
+	[69029]  = "Other",				-- Pursuit Confusion
+	[69167]  = "Other",				-- Unholy Power
+	[69172]  = "Other",				-- Overlord's Brand
+	[70381]  = "Snare",				-- Deep Freeze
+	[69238]  = "Snare",				-- Icy Blast
+	[71380]  = "Snare",				-- Icy Blast
+	[69573]  = "Snare",				-- Frostbolt
+	[69413]  = "Silence",			-- Strangulating
+	[70569]  = "Silence",			-- Strangulating
+	[70616]  = "Snare",				-- Frostfire Bolt
+	[51779]  = "Snare",				-- Frostfire Bolt
+	[34779]  = "Root",				-- Freezing Circle
+	[22645]  = "Root",				-- Frost Nova
+	[22746]  = "Snare",				-- Cone of Cold
+	-- -- Halls of Reflection
+	[72435]  = "CC",				-- Defiling Horror
+	[72428]  = "CC",				-- Despair Stricken
+	[72321]  = "CC",				-- Cower in Fear
+	[70194]  = "CC",				-- Dark Binding
+	[69708]  = "CC",				-- Ice Prison
+	[72343]  = "CC",				-- Hallucination
+	[72335]  = "CC",				-- Kidney Shot
+	[72268]  = "CC",				-- Ice Shot
+	[69866]  = "CC",				-- Harvest Soul
+	[72171]  = "Root",				-- Chains of Ice
+	[69787]  = "Immune",			-- Ice Barrier (not immune, absorbs a lot of damage)
+	[70188]  = "Immune",			-- Cloak of Darkness
+	[69780]  = "Snare",				-- Remorseless Winter
+	[72166]  = "Snare",				-- Frostbolt
 	------------------------
 	---- PVE TBC
 	------------------------
@@ -4702,7 +5815,6 @@ local spellIds = {
 	-- Gruul's Lair Raid
 	-- -- Trash
 	[33709]  = "CC",				-- Charge
-	[39171]  = "Other",				-- Mortal Strike (healing effects reduced by 50%)
 	-- -- High King Maulgar & Council
 	[33173]  = "CC",				-- Greater Polymorph
 	[33130]  = "CC",				-- Death Coil
@@ -4830,6 +5942,7 @@ local spellIds = {
 	[39666]  = "ImmuneSpell",		-- Cloak of Shadows
 	[41371]  = "ImmuneSpell",		-- Shell of Pain
 	[41381]  = "ImmuneSpell",		-- Shell of Life
+	[40087]  = "ImmuneSpell",		-- Shell Shield
 	[39667]  = "Immune",			-- Vanish
 	[41978]  = "Other",				-- Debilitating Poison (time between attacks increased and spell cast time increased by 50%)
 	[41392]  = "Disarm",			-- Riposte
@@ -5006,6 +6119,8 @@ local spellIds = {
 	-- -- The Blood Furnace
 	[30923]  = "CC",				-- Domination
 	[31865]  = "CC",				-- Seduction
+	[22427]  = "CC",				-- Concussion Blow
+	[30849]  = "Silence",			-- Spell Lock
 	[30940]  = "Immune",			-- Burning Nova
 	[58747]  = "CC",				-- Intercept
 	-- -- The Shattered Halls
@@ -5022,6 +6137,7 @@ local spellIds = {
 	[32587]  = "Other",				-- Shield Block (chance to block increased by 100%)
 	[30989]  = "Snare",				-- Hamstring
 	[31553]  = "Snare",				-- Hamstring
+	[30981]  = "Snare",				-- Crippling Poison
 	-- -- The Slave Pens
 	[34984]  = "CC",				-- Psychic Horror
 	[32173]  = "Root",				-- Entangling Roots
@@ -5129,6 +6245,7 @@ local spellIds = {
 	[35011]  = "CC",				-- Knockdown
 	[36333]  = "CC",				-- Anesthetic
 	[35268]  = "CC",				-- Inferno
+	[39346]  = "CC",				-- Inferno
 	[35158]  = "ImmuneSpell",		-- Reflective Magic Shield
 	[36022]  = "Silence",			-- Arcane Torrent
 	[35055]  = "Disarm",			-- The Claw
@@ -5394,6 +6511,7 @@ local spellIds = {
 	[720]    = "CC",				-- Entangle
 	[731]    = "CC",				-- Entangle
 	[1121]   = "CC",				-- Entangle
+	[26662]  = "Other",				-- Berserk
 	-- -- Viscidus
 	[25937]  = "CC",				-- Viscidus Freeze
 	-- -- Princess Huhuran
@@ -5419,11 +6537,15 @@ local spellIds = {
 	[27990]  = "CC",				-- Fear
 	[28412]  = "CC",				-- Death Coil
 	[29848]  = "CC",				-- Polymorph
-	[28995]  = "Immune",			-- Stoneskin
+	[28335]  = "CC",				-- Whirlwind
+	[30112]  = "CC",				-- Frenzied Dive
+	[28995]  = "Immune",			-- Stoneskin (not immune, big health regeneration)
 	[29849]  = "Root",				-- Frost Nova
 	[30094]  = "Root",				-- Frost Nova
 	[28350]  = "Other",				-- Veil of Darkness (immune to direct healing)
-	[28440]  = "Other",				-- Veil of Shadow
+	[28440]  = "Other",				-- Veil of Shadow (healing effects reduced by 75%)
+	[28801]  = "Other",				-- Slime (all attributes reduced by 90%)
+	[30109]  = "Snare",				-- Slime Burst
 	[18328]  = "Snare",				-- Incapacitating Shout
 	[28310]  = "Snare",				-- Mind Flay
 	[30092]  = "Snare",				-- Blast Wave
@@ -5441,9 +6563,6 @@ local spellIds = {
 	[28776]  = "Other",				-- Necrotic Poison (healing taken reduced by 90%)
 	-- -- Noth the Plaguebringer
 	[29212]  = "Snare",				-- Cripple
-	-- -- Heigan the Unclean
-	[30112]  = "CC",				-- Frenzied Dive
-	[30109]  = "Snare",				-- Slime Burst
 	-- -- Instructor Razuvious
 	[29061]  = "Immune",			-- Bone Barrier (not immune, 75% damage reduction)
 	[29125]  = "Other",				-- Hopeless (increases damage taken by 5000%)
@@ -5452,6 +6571,8 @@ local spellIds = {
 	[27993]  = "Snare",				-- Stomp
 	-- -- Gluth
 	[29685]  = "CC",				-- Terrifying Roar
+	-- -- Thaddius
+	[27680]  = "Other",				-- Berserk
 	-- -- Sapphiron
 	[28522]  = "CC",				-- Icebolt
 	[28547]  = "Snare",				-- Chill
@@ -5460,6 +6581,7 @@ local spellIds = {
 	[27808]  = "CC",				-- Frost Blast
 	[28478]  = "Snare",				-- Frostbolt
 	[28479]  = "Snare",				-- Frostbolt
+	[28498]  = "Other",				-- Berserk
 	------------------------
 	-- Classic World Bosses
 	-- -- Azuregos
@@ -5516,7 +6638,6 @@ local spellIds = {
 	[95491]  = "CC",				-- Cannonball
 	[135337] = "CC",				-- Cannonball
 	[89769]  = "CC",				-- Explode
-	[55041]  = "CC",				-- Freezing Trap Effect
 	-- -- Wailing Caverns
 	[8040]   = "CC",				-- Druid's Slumber
 	[8147]   = "Snare",				-- Thunderclap
@@ -5539,7 +6660,6 @@ local spellIds = {
 	[7803]   = "CC",				-- Thundershock
 	[7074]   = "Silence",			-- Screams of the Past
 	[93956]  = "Other",				-- Cursed Veil
-	[67781]  = "Snare",				-- Desecration
 	[93691]  = "Snare",				-- Desecration
 	[196178] = "Snare",				-- Desecration
 	[93697]  = "Snare",				-- Conjure Poisonous Mixture
@@ -5616,6 +6736,7 @@ local spellIds = {
 	[9256]   = "CC",				-- Deep Sleep
 	[3639]   = "Other",				-- Improved Blocking
 	[6146]   = "Snare",				-- Slow
+	[63148]  = "Immune",			-- Divine Shield
 	[111107] = "CC",				-- Pass Judgment
 	[112955] = "CC",				-- Blades of Light
 	[113653] = "CC",				-- Greater Dragon's Breath
@@ -5642,9 +6763,9 @@ local spellIds = {
 	[11876]  = "CC",				-- War Stomp
 	[3636]   = "CC",				-- Crystalline Slumber
 	[9906]   = "ImmuneSpell",		-- Reflection
+	[6726]   = "Silence",			-- Silence
 	[10093]  = "Snare",				-- Harsh Winds
 	[25161]  = "Silence",			-- Harsh Winds
-	[55142]  = "CC",				-- Ground Tremor
 	-- -- Maraudon
 	[12747]  = "Root",				-- Entangling Roots
 	[21331]  = "Root",				-- Entangling Roots
@@ -5741,9 +6862,10 @@ local spellIds = {
 	[17244]  = "CC",				-- Possess
 	[17307]  = "CC",				-- Knockout
 	[15970]  = "CC",				-- Sleep
+	[20812]  = "Snare",				-- Cripple
 	[3589]   = "Silence",			-- Deafening Screech
-	[54791]  = "Snare",				-- Frostbolt
 	[66290]  = "CC",				-- Sleep
+	[54791]  = "Snare",				-- Frostbolt
 	[82107]  = "CC",				-- Deep Freeze
 	-- -- Dire Maul
 	[27553]  = "CC",				-- Maul
@@ -5769,7 +6891,6 @@ local spellIds = {
 	[16838]  = "Silence",			-- Banshee Shriek
 	[22519]  = "CC",				-- Ice Nova
 	[22356]  = "Snare",				-- Slow
-	[57825]  = "Snare",				-- Frostbolt
 	-- -- Scholomance
 	[5708]   = "CC",				-- Swoop
 	[18144]  = "CC",				-- Swoop
@@ -5787,7 +6908,6 @@ local spellIds = {
 	[18101]  = "Snare",				-- Chilled (Frost Armor)
 	[113865] = "Immune",			-- Improved Bone Shield
 	[113143] = "Immune",			-- Rise! (not immune, damage taken reduced by 50%)
-	[23600]  = "Snare",				-- Piercing Howl
 }
 
 if debug then
@@ -9586,7 +10706,7 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 								frame.x or 0,
 								frame.y or 0
 							)
-							local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+							local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 							if frameLevel < 0 then frameLevel = 0 end
 							icon:GetParent():SetFrameLevel(frameLevel)
 							icon:SetFrameLevel(frameLevel)
@@ -9749,7 +10869,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "7.11"
+		self.VERSION = "7.12"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noLossOfControlCooldown = LoseControlDB.noLossOfControlCooldown
@@ -9947,12 +11067,10 @@ function LoseControl:CheckAnchor(forceCheck)
 						if frame.enabled then
 							PositionXEditBox:Enable()
 							PositionYEditBox:Enable()
-							FrameLevelEditBox:Enable()
 						end
 					else
 						PositionXEditBox:Disable()
 						PositionYEditBox:Disable()
-						FrameLevelEditBox:Disable()
 					end
 					PositionXEditBox:SetCursorPosition(0)
 					PositionYEditBox:SetCursorPosition(0)
@@ -9962,7 +11080,7 @@ function LoseControl:CheckAnchor(forceCheck)
 					self:GetParent():SetFrameStrata(frame.frameStrata)
 					self:SetFrameStrata(frame.frameStrata)
 				end
-				local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+				local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 				if frameLevel < 0 then frameLevel = 0 end
 				self:GetParent():SetFrameLevel(frameLevel)
 				self:SetFrameLevel(frameLevel)
@@ -10040,7 +11158,7 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		self:GetParent():SetFrameStrata(frame.frameStrata)
 		self:SetFrameStrata(frame.frameStrata)
 	end
-	local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+	local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 	if frameLevel < 0 then frameLevel = 0 end
 	self:GetParent():SetFrameLevel(frameLevel)
 	self:SetFrameLevel(frameLevel)
@@ -10306,7 +11424,7 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 				self:GetParent():SetFrameStrata(frame.frameStrata)
 				self:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 			if frameLevel < 0 then frameLevel = 0 end
 			self:GetParent():SetFrameLevel(frameLevel)
 			self:SetFrameLevel(frameLevel)
@@ -10371,11 +11489,9 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 					if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
 						PositionXEditBox:Enable()
 						PositionYEditBox:Enable()
-						FrameLevelEditBox:Enable()
 					else
 						PositionXEditBox:Disable()
 						PositionYEditBox:Disable()
-						FrameLevelEditBox:Disable()
 					end
 					PositionXEditBox:SetCursorPosition(0)
 					PositionYEditBox:SetCursorPosition(0)
@@ -10408,11 +11524,6 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 				if (AnchorFrameStrataDropDown) then
 					UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 					UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-					if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
-						UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-					else
-						UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-					end
 				end
 			end
 		end
@@ -11186,7 +12297,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
 		self.maxExpirationTime = maxExpirationTime
 		if self.anchor ~= UIParent then
-			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((self.frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + self.frame.frameLevel) or 0) -- must be dynamic, frame level changes all the time
+			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((self.frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and 12 or 0)+self.frame.frameLevel -- must be dynamic, frame level changes all the time
 			if frameLevel < 0 then frameLevel = 0 end
 			self:GetParent():SetFrameLevel(frameLevel)
 			self:SetFrameLevel(frameLevel)
@@ -11402,7 +12513,6 @@ function LoseControl:StopMoving()
 		if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
 			PositionXEditBox:Enable()
 			PositionYEditBox:Enable()
-			FrameLevelEditBox:Enable()
 		end
 		PositionXEditBox:SetCursorPosition(0)
 		PositionYEditBox:SetCursorPosition(0)
@@ -11425,9 +12535,6 @@ function LoseControl:StopMoving()
 	if (AnchorFrameStrataDropDown) then
 		UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 		UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-		if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
-			UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-		end
 	end
 	if self.MasqueGroup then
 		self.MasqueGroup:ReSkin()
@@ -11746,7 +12853,7 @@ function Unlock:OnClick()
 						v:GetParent():SetFrameStrata(frame.frameStrata)
 						v:SetFrameStrata(frame.frameStrata)
 					end
-					local frameLevel = (v.anchor:GetParent() and v.anchor:GetParent():GetFrameLevel() or v.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or v.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+					local frameLevel = (v.anchor:GetParent() and v.anchor:GetParent():GetFrameLevel() or v.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or v.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 					if frameLevel < 0 then frameLevel = 0 end
 					v:GetParent():SetFrameLevel(frameLevel)
 					v:SetFrameLevel(frameLevel)
@@ -11794,7 +12901,7 @@ function Unlock:OnClick()
 				LCframeplayer2:GetParent():SetFrameStrata(frame.frameStrata)
 				LCframeplayer2:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (LCframeplayer2.anchor:GetParent() and LCframeplayer2.anchor:GetParent():GetFrameLevel() or LCframeplayer2.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
+			local frameLevel = (LCframeplayer2.anchor:GetParent() and LCframeplayer2.anchor:GetParent():GetFrameLevel() or LCframeplayer2.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and 12 or 0)+frame.frameLevel
 			if frameLevel < 0 then frameLevel = 0 end
 			LCframeplayer2:GetParent():SetFrameLevel(frameLevel)
 			LCframeplayer2:SetFrameLevel(frameLevel)
@@ -12416,11 +13523,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					PositionXEditBox:Enable()
 					PositionYEditBox:Enable()
-					FrameLevelEditBox:Enable()
 				else
 					PositionXEditBox:Disable()
 					PositionYEditBox:Disable()
-					FrameLevelEditBox:Disable()
 				end
 				PositionXEditBox:SetCursorPosition(0)
 				PositionYEditBox:SetCursorPosition(0)
@@ -12452,18 +13557,13 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorFrameStrataDropDown) then
 				UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
-					UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-				else
-					UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-				end
 				UIDropDownMenu_Initialize(AnchorDropDown, AnchorDropDown.initialize)
 			end
 			if (frame.frameStrata ~= nil) then
 				icon:GetParent():SetFrameStrata(frame.frameStrata)
 				icon:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 			if frameLevel < 0 then frameLevel = 0 end
 			icon:GetParent():SetFrameLevel(frameLevel)
 			icon:SetFrameLevel(frameLevel)
@@ -12559,7 +13659,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				icon:GetParent():SetFrameStrata(frame.frameStrata)
 				icon:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 			if frameLevel < 0 then frameLevel = 0 end
 			icon:GetParent():SetFrameLevel(frameLevel)
 			icon:SetFrameLevel(frameLevel)
@@ -12592,11 +13692,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					PositionXEditBox:Enable()
 					PositionYEditBox:Enable()
-					FrameLevelEditBox:Enable()
 				else
 					PositionXEditBox:Disable()
 					PositionYEditBox:Disable()
-					FrameLevelEditBox:Disable()
 				end
 				PositionXEditBox:SetCursorPosition(0)
 				PositionYEditBox:SetCursorPosition(0)
@@ -12631,11 +13729,6 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorFrameStrataDropDown) then
 				UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
-					UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-				else
-					UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-				end
 				UIDropDownMenu_Initialize(AnchorPositionPartyDropDown, AnchorPositionPartyDropDown.initialize)
 			end
 		end
@@ -12658,11 +13751,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				if (frame.anchor ~= "Blizzard") then
 					PositionXEditBox:Enable()
 					PositionYEditBox:Enable()
-					FrameLevelEditBox:Enable()
 				else
 					PositionXEditBox:Disable()
 					PositionYEditBox:Disable()
-					FrameLevelEditBox:Disable()
 				end
 				PositionXEditBox:SetCursorPosition(0)
 				PositionYEditBox:SetCursorPosition(0)
@@ -12697,11 +13788,6 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorFrameStrataDropDown) then
 				UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-				if (frame.anchor ~= "Blizzard") then
-					UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-				else
-					UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-				end
 				UIDropDownMenu_Initialize(AnchorPositionArenaDropDown, AnchorPositionArenaDropDown.initialize)
 			end
 		end
@@ -12724,11 +13810,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				if (frame.anchor ~= "Blizzard") then
 					PositionXEditBox:Enable()
 					PositionYEditBox:Enable()
-					FrameLevelEditBox:Enable()
 				else
 					PositionXEditBox:Disable()
 					PositionYEditBox:Disable()
-					FrameLevelEditBox:Disable()
 				end
 				PositionXEditBox:SetCursorPosition(0)
 				PositionYEditBox:SetCursorPosition(0)
@@ -12763,11 +13847,6 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (AnchorFrameStrataDropDown) then
 				UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-				if (frame.anchor ~= "Blizzard") then
-					UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-				else
-					UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-				end
 				UIDropDownMenu_Initialize(AnchorPositionRaidDropDown, AnchorPositionRaidDropDown.initialize)
 			end
 		end
@@ -13011,7 +14090,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					icon:GetParent():SetFrameStrata(frame.frameStrata)
 					icon:SetFrameStrata(frame.frameStrata)
 				end
-				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 				if frameLevel < 0 then frameLevel = 0 end
 				icon:GetParent():SetFrameLevel(frameLevel)
 				icon:SetFrameLevel(frameLevel)
@@ -13040,7 +14119,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				val = mathfloor(val+0.5)
 				self:SetText(val)
 				frame.frameLevel = val
-				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 				if frameLevel < 0 then frameLevel = 0 end
 				icon:GetParent():SetFrameLevel(frameLevel)
 				icon:SetFrameLevel(frameLevel)
@@ -14242,7 +15321,6 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					if (frame.anchor ~= "Blizzard") then
 						PositionXEditBox:Enable()
 						PositionYEditBox:Enable()
-						FrameLevelEditBox:Enable()
 					end
 					PositionXEditBox:SetCursorPosition(0)
 					PositionYEditBox:SetCursorPosition(0)
@@ -14268,15 +15346,12 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				if (AnchorFrameStrataDropDown) then
 					UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 					UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, "AUTO")
-					if (frame.anchor ~= "Blizzard") then
-						UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-					end
 				end
 				if (frame.frameStrata ~= nil) then
 					LCframes.player:GetParent():SetFrameStrata(frame.frameStrata)
 					LCframes.player:SetFrameStrata(frame.frameStrata)
 				end
-				local frameLevel = (LCframes.player.anchor:GetParent() and LCframes.player.anchor:GetParent():GetFrameLevel() or LCframes.player.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
+				local frameLevel = (LCframes.player.anchor:GetParent() and LCframes.player.anchor:GetParent():GetFrameLevel() or LCframes.player.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and 12 or 0)+frame.frameLevel
 				if frameLevel < 0 then frameLevel = 0 end
 				LCframes.player:GetParent():SetFrameLevel(frameLevel)
 				LCframes.player:SetFrameLevel(frameLevel)
@@ -14416,12 +15491,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 				PositionXEditBox:Enable()
 				PositionYEditBox:Enable()
-				FrameLevelEditBox:Enable()
 			else
 				PositionXEditBox:Disable()
 				PositionYEditBox:Disable()
-				FrameLevelEditBox:Disable()
 			end
+			FrameLevelEditBox:Enable()
 		end
 		if (AnchorPointDropDown) then
 			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
@@ -14437,13 +15511,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				UIDropDownMenu_DisableDropDown(AnchorIconPointDropDown)
 			end
 		end
-		if (AnchorFrameStrataDropDown) then
-			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
-				UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-			else
-				UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-			end
-		end
+		if AnchorFrameStrataDropDown then UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown) end
 	end
 
 	local function DisableInterfaceFrames()
