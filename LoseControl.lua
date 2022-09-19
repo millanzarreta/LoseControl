@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.15
+-- Version: 1.16
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -604,6 +604,7 @@ local spellIds = {
 	[8901]   = "CC",				-- Gas Bomb
 	[8902]   = "CC",				-- Gas Bomb
 	[9454]   = "CC",				-- Freeze
+	[7056]   = "CC",				-- Pacified
 	[7082]   = "CC",				-- Barrel Explode
 	[6537]   = "CC",				-- Call of the Forest
 	[8672]   = "CC",				-- Challenger is Dazed
@@ -634,7 +635,6 @@ local spellIds = {
 	[18812]  = "CC",				-- Knockdown
 	[13360]  = "CC",				-- Knockdown
 	[11430]  = "CC",				-- Slam
-	[28335]  = "CC",				-- Whirlwind
 	[16451]  = "CC",				-- Judge's Gavel
 	[23601]  = "CC",				-- Scatter Shot
 	[25260]  = "CC",				-- Wings of Despair
@@ -739,6 +739,7 @@ local spellIds = {
 	[13496]  = "Snare",				-- Dazed (Mug O' Hurt mace)
 	[21066]  = "Snare",				-- Void Bolt
 	[23600]  = "Snare",				-- Piercing Howl
+	[14296]  = "Snare",				-- Black Arrow
 	[3238]   = "Other",				-- Nimble Reflexes
 	[5990]   = "Other",				-- Nimble Reflexes
 	[6615]   = "Other",				-- Free Action Potion
@@ -976,6 +977,7 @@ local spellIds = {
 	[720]    = "CC",				-- Entangle
 	[731]    = "CC",				-- Entangle
 	[1121]   = "CC",				-- Entangle
+	[26662]  = "Other",				-- Berserk
 	-- -- Viscidus
 	[25937]  = "CC",				-- Viscidus Freeze
 	-- -- Princess Huhuran
@@ -1002,11 +1004,15 @@ local spellIds = {
 	[27990]  = "CC",				-- Fear
 	[28412]  = "CC",				-- Death Coil
 	[29848]  = "CC",				-- Polymorph
-	[28995]  = "Immune",			-- Stoneskin
+	[28335]  = "CC",				-- Whirlwind
+	[30112]  = "CC",				-- Frenzied Dive
+	[28995]  = "Immune",			-- Stoneskin (not immune, big health regeneration)
 	[29849]  = "Root",				-- Frost Nova
 	[30094]  = "Root",				-- Frost Nova
 	[28350]  = "Other",				-- Veil of Darkness (immune to direct healing)
-	[28440]  = "Other",				-- Veil of Shadow
+	[28440]  = "Other",				-- Veil of Shadow (healing effects reduced by 75%)
+	[28801]  = "Other",				-- Slime (all attributes reduced by 90%)
+	[30109]  = "Snare",				-- Slime Burst
 	[18328]  = "Snare",				-- Incapacitating Shout
 	[28310]  = "Snare",				-- Mind Flay
 	[30092]  = "Snare",				-- Blast Wave
@@ -1024,9 +1030,6 @@ local spellIds = {
 	[28776]  = "Other",				-- Necrotic Poison (healing taken reduced by 90%)
 	-- -- Noth the Plaguebringer
 	[29212]  = "Snare",				-- Cripple
-	-- -- Heigan the Unclean
-	[30112]  = "CC",				-- Frenzied Dive
-	[30109]  = "Snare",				-- Slime Burst
 	-- -- Instructor Razuvious
 	[29061]  = "Immune",			-- Shield Wall (not immune, 75% damage reduction)
 	[29125]  = "Other",				-- Hopeless (increases damage taken by 5000%)
@@ -1035,6 +1038,8 @@ local spellIds = {
 	[27993]  = "Snare",				-- Stomp
 	-- -- Gluth
 	[29685]  = "CC",				-- Terrifying Roar
+	-- -- Thaddius
+	[27680]  = "Other",				-- Berserk
 	-- -- Sapphiron
 	[28522]  = "CC",				-- Icebolt
 	[28547]  = "Snare",				-- Chill
@@ -1043,6 +1048,7 @@ local spellIds = {
 	[27808]  = "CC",				-- Frost Blast
 	[28478]  = "Snare",				-- Frostbolt
 	[28479]  = "Snare",				-- Frostbolt
+	[28498]  = "Other",				-- Berserk
 	------------------------
 	-- Classic World Bosses
 	-- -- Azuregos
@@ -1258,6 +1264,7 @@ local spellIds = {
 	[17244]  = "CC",				-- Possess
 	[17307]  = "CC",				-- Knockout
 	[15970]  = "CC",				-- Sleep
+	[20812]  = "Snare",				-- Cripple
 	[14897]  = "Snare",				-- Slowing Poison
 	[3589]   = "Silence",			-- Deafening Screech
 	-- -- Dire Maul
@@ -4392,7 +4399,7 @@ local function UpdateRaidIconsAnchorCompactRaidFrame(compactRaidFrame, key, valu
 								frame.x or 0,
 								frame.y or 0
 							)
-							local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+							local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 							if frameLevel < 0 then frameLevel = 0 end
 							icon:GetParent():SetFrameLevel(frameLevel)
 							icon:SetFrameLevel(frameLevel)
@@ -4555,7 +4562,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.15"
+		self.VERSION = "1.16"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
@@ -4753,12 +4760,10 @@ function LoseControl:CheckAnchor(forceCheck)
 						if frame.enabled then
 							PositionXEditBox:Enable()
 							PositionYEditBox:Enable()
-							FrameLevelEditBox:Enable()
 						end
 					else
 						PositionXEditBox:Disable()
 						PositionYEditBox:Disable()
-						FrameLevelEditBox:Disable()
 					end
 					PositionXEditBox:SetCursorPosition(0)
 					PositionYEditBox:SetCursorPosition(0)
@@ -4768,7 +4773,7 @@ function LoseControl:CheckAnchor(forceCheck)
 					self:GetParent():SetFrameStrata(frame.frameStrata)
 					self:SetFrameStrata(frame.frameStrata)
 				end
-				local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+				local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 				if frameLevel < 0 then frameLevel = 0 end
 				self:GetParent():SetFrameLevel(frameLevel)
 				self:SetFrameLevel(frameLevel)
@@ -4840,7 +4845,7 @@ function LoseControl:PLAYER_ENTERING_WORLD()
 		self:GetParent():SetFrameStrata(frame.frameStrata)
 		self:SetFrameStrata(frame.frameStrata)
 	end
-	local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+	local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 	if frameLevel < 0 then frameLevel = 0 end
 	self:GetParent():SetFrameLevel(frameLevel)
 	self:SetFrameLevel(frameLevel)
@@ -5080,7 +5085,7 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 				self:GetParent():SetFrameStrata(frame.frameStrata)
 				self:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 			if frameLevel < 0 then frameLevel = 0 end
 			self:GetParent():SetFrameLevel(frameLevel)
 			self:SetFrameLevel(frameLevel)
@@ -5145,11 +5150,9 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 					if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
 						PositionXEditBox:Enable()
 						PositionYEditBox:Enable()
-						FrameLevelEditBox:Enable()
 					else
 						PositionXEditBox:Disable()
 						PositionYEditBox:Disable()
-						FrameLevelEditBox:Disable()
 					end
 					PositionXEditBox:SetCursorPosition(0)
 					PositionYEditBox:SetCursorPosition(0)
@@ -5182,11 +5185,6 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 				if (AnchorFrameStrataDropDown) then
 					UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 					UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-					if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
-						UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-					else
-						UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-					end
 				end
 			end
 		end
@@ -5614,7 +5612,7 @@ function LoseControl:UNIT_AURA(unitId, isFullUpdate, updatedAuras, typeUpdate) -
 	elseif maxExpirationTime ~= self.maxExpirationTime then -- this is a different (de)buff, so initialize the cooldown
 		self.maxExpirationTime = maxExpirationTime
 		if self.anchor ~= UIParent then
-			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((self.frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and (12 + self.frame.frameLevel) or 0) -- must be dynamic, frame level changes all the time
+			local frameLevel = (self.anchor:GetParent() and self.anchor:GetParent():GetFrameLevel() or self.anchor:GetFrameLevel())+((self.frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) and 12 or 0)+self.frame.frameLevel -- must be dynamic, frame level changes all the time
 			if frameLevel < 0 then frameLevel = 0 end
 			self:GetParent():SetFrameLevel(frameLevel)
 			self:SetFrameLevel(frameLevel)
@@ -5810,7 +5808,6 @@ function LoseControl:StopMoving()
 		if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
 			PositionXEditBox:Enable()
 			PositionYEditBox:Enable()
-			FrameLevelEditBox:Enable()
 		end
 		PositionXEditBox:SetCursorPosition(0)
 		PositionYEditBox:SetCursorPosition(0)
@@ -5833,9 +5830,6 @@ function LoseControl:StopMoving()
 	if (AnchorFrameStrataDropDown) then
 		UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 		UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-		if (frame.anchor ~= "Blizzard" or self.useCompactPartyFrames) then
-			UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-		end
 	end
 	if self.MasqueGroup then
 		self.MasqueGroup:ReSkin()
@@ -6103,7 +6097,7 @@ function Unlock:OnClick()
 						v:GetParent():SetFrameStrata(frame.frameStrata)
 						v:SetFrameStrata(frame.frameStrata)
 					end
-					local frameLevel = (v.anchor:GetParent() and v.anchor:GetParent():GetFrameLevel() or v.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or v.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+					local frameLevel = (v.anchor:GetParent() and v.anchor:GetParent():GetFrameLevel() or v.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or v.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 					if frameLevel < 0 then frameLevel = 0 end
 					v:GetParent():SetFrameLevel(frameLevel)
 					v:SetFrameLevel(frameLevel)
@@ -6151,7 +6145,7 @@ function Unlock:OnClick()
 				LCframeplayer2:GetParent():SetFrameStrata(frame.frameStrata)
 				LCframeplayer2:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (LCframeplayer2.anchor:GetParent() and LCframeplayer2.anchor:GetParent():GetFrameLevel() or LCframeplayer2.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
+			local frameLevel = (LCframeplayer2.anchor:GetParent() and LCframeplayer2.anchor:GetParent():GetFrameLevel() or LCframeplayer2.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and 12 or 0)+frame.frameLevel
 			if frameLevel < 0 then frameLevel = 0 end
 			LCframeplayer2:GetParent():SetFrameLevel(frameLevel)
 			LCframeplayer2:SetFrameLevel(frameLevel)
@@ -6571,11 +6565,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					PositionXEditBox:Enable()
 					PositionYEditBox:Enable()
-					FrameLevelEditBox:Enable()
 				else
 					PositionXEditBox:Disable()
 					PositionYEditBox:Disable()
-					FrameLevelEditBox:Disable()
 				end
 				PositionXEditBox:SetCursorPosition(0)
 				PositionYEditBox:SetCursorPosition(0)
@@ -6607,18 +6599,13 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 			if (AnchorFrameStrataDropDown) then
 				UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
-					UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-				else
-					UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-				end
 				UIDropDownMenu_Initialize(AnchorDropDown, AnchorDropDown.initialize)
 			end
 			if (frame.frameStrata ~= nil) then
 				icon:GetParent():SetFrameStrata(frame.frameStrata)
 				icon:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 			if frameLevel < 0 then frameLevel = 0 end
 			icon:GetParent():SetFrameLevel(frameLevel)
 			icon:SetFrameLevel(frameLevel)
@@ -6714,7 +6701,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				icon:GetParent():SetFrameStrata(frame.frameStrata)
 				icon:SetFrameStrata(frame.frameStrata)
 			end
-			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+			local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 			if frameLevel < 0 then frameLevel = 0 end
 			icon:GetParent():SetFrameLevel(frameLevel)
 			icon:SetFrameLevel(frameLevel)
@@ -6747,11 +6734,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 					PositionXEditBox:Enable()
 					PositionYEditBox:Enable()
-					FrameLevelEditBox:Enable()
 				else
 					PositionXEditBox:Disable()
 					PositionYEditBox:Disable()
-					FrameLevelEditBox:Disable()
 				end
 				PositionXEditBox:SetCursorPosition(0)
 				PositionYEditBox:SetCursorPosition(0)
@@ -6786,11 +6771,6 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 			if (AnchorFrameStrataDropDown) then
 				UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-				if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
-					UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-				else
-					UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-				end
 				UIDropDownMenu_Initialize(AnchorPositionPartyDropDown, AnchorPositionPartyDropDown.initialize)
 			end
 		end
@@ -6813,11 +6793,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				if (frame.anchor ~= "Blizzard") then
 					PositionXEditBox:Enable()
 					PositionYEditBox:Enable()
-					FrameLevelEditBox:Enable()
 				else
 					PositionXEditBox:Disable()
 					PositionYEditBox:Disable()
-					FrameLevelEditBox:Disable()
 				end
 				PositionXEditBox:SetCursorPosition(0)
 				PositionYEditBox:SetCursorPosition(0)
@@ -6852,11 +6830,6 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 			if (AnchorFrameStrataDropDown) then
 				UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 				UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, frame.frameStrata or "AUTO")
-				if (frame.anchor ~= "Blizzard") then
-					UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-				else
-					UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-				end
 				UIDropDownMenu_Initialize(AnchorPositionRaidDropDown, AnchorPositionRaidDropDown.initialize)
 			end
 		end
@@ -7077,7 +7050,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 					icon:GetParent():SetFrameStrata(frame.frameStrata)
 					icon:SetFrameStrata(frame.frameStrata)
 				end
-				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 				if frameLevel < 0 then frameLevel = 0 end
 				icon:GetParent():SetFrameLevel(frameLevel)
 				icon:SetFrameLevel(frameLevel)
@@ -7104,7 +7077,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				val = mathfloor(val+0.5)
 				self:SetText(val)
 				frame.frameLevel = val
-				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and (12 + frame.frameLevel) or 0)
+				local frameLevel = (icon.anchor:GetParent() and icon.anchor:GetParent():GetFrameLevel() or icon.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) and 12 or 0)+frame.frameLevel
 				if frameLevel < 0 then frameLevel = 0 end
 				icon:GetParent():SetFrameLevel(frameLevel)
 				icon:SetFrameLevel(frameLevel)
@@ -8016,7 +7989,6 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 					if (frame.anchor ~= "Blizzard") then
 						PositionXEditBox:Enable()
 						PositionYEditBox:Enable()
-						FrameLevelEditBox:Enable()
 					end
 					PositionXEditBox:SetCursorPosition(0)
 					PositionYEditBox:SetCursorPosition(0)
@@ -8042,15 +8014,12 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				if (AnchorFrameStrataDropDown) then
 					UIDropDownMenu_Initialize(AnchorFrameStrataDropDown, AnchorFrameStrataDropDown.initialize)
 					UIDropDownMenu_SetSelectedValue(AnchorFrameStrataDropDown, "AUTO")
-					if (frame.anchor ~= "Blizzard") then
-						UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-					end
 				end
 				if (frame.frameStrata ~= nil) then
 					LCframes.player:GetParent():SetFrameStrata(frame.frameStrata)
 					LCframes.player:SetFrameStrata(frame.frameStrata)
 				end
-				local frameLevel = (LCframes.player.anchor:GetParent() and LCframes.player.anchor:GetParent():GetFrameLevel() or LCframes.player.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and (12 + frame.frameLevel) or 0)
+				local frameLevel = (LCframes.player.anchor:GetParent() and LCframes.player.anchor:GetParent():GetFrameLevel() or LCframes.player.anchor:GetFrameLevel())+((frame.anchor ~= "Blizzard") and 12 or 0)+frame.frameLevel
 				if frameLevel < 0 then frameLevel = 0 end
 				LCframes.player:GetParent():SetFrameLevel(frameLevel)
 				LCframes.player:SetFrameLevel(frameLevel)
@@ -8177,12 +8146,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
 				PositionXEditBox:Enable()
 				PositionYEditBox:Enable()
-				FrameLevelEditBox:Enable()
 			else
 				PositionXEditBox:Disable()
 				PositionYEditBox:Disable()
-				FrameLevelEditBox:Disable()
 			end
+			FrameLevelEditBox:Enable()
 		end
 		if (AnchorPointDropDown) then
 			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
@@ -8198,13 +8166,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				UIDropDownMenu_DisableDropDown(AnchorIconPointDropDown)
 			end
 		end
-		if (AnchorFrameStrataDropDown) then
-			if (frame.anchor ~= "Blizzard" or icon.useCompactPartyFrames) then
-				UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown)
-			else
-				UIDropDownMenu_DisableDropDown(AnchorFrameStrataDropDown)
-			end
-		end
+		if AnchorFrameStrataDropDown then UIDropDownMenu_EnableDropDown(AnchorFrameStrataDropDown) end
 	end
 
 	local function DisableInterfaceFrames()
