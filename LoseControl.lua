@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 8.00
+-- Version: 8.01
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -141,6 +141,7 @@ local interruptsIds = {
 	[345608] = 8,		-- Forgotten Forgehammer (Necrotic Wake Item)
 	[351338] = 4,		-- Quell (Evoker)
 	[386071] = 6,		-- Disrupting Shout (Warrior)
+	[398388] = 3,		-- Wailing Arrow (Hunter)
 	-- NPC Interrupts
 	[8714]   = 5,		-- Overwhelming Musk
 	[10887]  = 4,		-- Crowd Pummel
@@ -574,12 +575,9 @@ local interruptsIds = {
 	[358344] = 6,		-- Disruptive Shout
 	[360096] = 3,		-- Disabling Howl
 	[363388] = 3,		-- Wallop
-	[351338] = 4,		-- Quell
 	[369074] = 3,		-- Trampled
-	[369412] = 4,		-- Sonic Burst
 	[371812] = 5,		-- Wind Burst
 	[373545] = 2,		-- Echolocation
-	[374080] = 3,		-- Interrupting Gust
 	[374122] = 3,		-- Trampled
 	[374137] = 3,		-- Hoof Kick
 	[374342] = 5,		-- Aquabomb
@@ -590,12 +588,10 @@ local interruptsIds = {
 	[378400] = 1,		-- Electric Ward
 	[380161] = 10,		-- Gale Storm
 	[380163] = 10,		-- Gale Storm
-	[381516] = 4,		-- Interrupting Cloudburst
+	[381516] = 2,		-- Interrupting Cloudburst
 	[382070] = 4,		-- Command: Seek
-	[382454] = 2,		-- Interrupting Strike
+	[382454] = 3,		-- Interrupting Strike
 	[384365] = 6,		-- Disruptive Shout
-	[385029] = 3,		-- Disrupting Screech
-	[386363] = 4,		-- Quaking Convocation
 	[387124] = 4,		-- Shield Bash
 	[387748] = 3,		-- Thunder Kick
 	[387862] = 5,		-- Disrupting Pulse
@@ -625,7 +621,25 @@ local interruptsIds = {
 	[393324] = 3,		-- Nokhud Charge
 	[393399] = 5,		-- Quaking Steps
 	[393408] = 3,		-- Wind Dash
-	[394362] = 3		-- Giant Roar
+	[394362] = 3,		-- Giant Roar
+	[394464] = 3,		-- Burning Roar
+	[394485] = 3,		-- Bellowing Gust
+	[394777] = 5,		-- Ground Pound
+	[394779] = 5,		-- Ty'Foon's Typhoon
+	[394838] = 1,		-- Bellowing Gust
+	[395107] = 3,		-- Sole Strip
+	[395427] = 3,		-- Burning Roar
+	[395699] = 2,		-- Wild Brutality
+	[395952] = 3,		-- Shield Bash
+	[396310] = 5,		-- Steamspout
+	[396415] = 5,		-- Hurricane Blast
+	[396601] = 3,		-- Massive Charge
+	[396605] = 3,		-- Shrieking Bleat
+	[396805] = 3,		-- Ear-Splitting Roar
+	[396879] = 5,		-- Steamspout
+	[397109] = 5,		-- Hurricane Blast
+	[397805] = 0.001,	-- Cancel [DNT]
+	[397892] = 5		-- Scream of Pain
 }
 
 local spellIds = {
@@ -656,7 +670,7 @@ local spellIds = {
 	[375256] = "Other",				-- Time Spiral (Shaman)
 	[375257] = "Other",				-- Time Spiral (Warlock)
 	[375258] = "Other",				-- Time Spiral (Warrior)
-	[372048] = "Other",				-- Oppressing Roar (duration of incoming crowd control effects increased by 50%)
+	[372048] = "Other",				-- Oppressing Roar (duration of incoming crowd control effects increased by 20%/50% (PvP/PvE))
 	[383005] = "Other",				-- Chrono Loop (pvp talent)
 	[357214] = "Snare",				-- Wing Buffet
 	[368970] = "Snare",				-- Tail Swipe
@@ -903,6 +917,8 @@ local spellIds = {
 	[277792] = "CC",				-- Polymorph: Bumblebee
 	[161372] = "CC",				-- Polymorph: Peacock
 	[391622] = "CC",				-- Polymorph: Duck
+	[391631] = "CC",				-- Polymorph: Duck
+	[396392] = "CC",				-- Polymorph: Duck
 	[383121] = "CC",				-- Mass Polymorph
 	[82691]  = "CC",				-- Ring of Frost
 	[140376] = "CC",				-- Ring of Frost
@@ -1288,6 +1304,7 @@ local spellIds = {
 	[214459] = "Silence",			-- Choking Flames (trinket)
 	[131510] = "Immune",			-- Uncontrolled Banish
 	[148526] = "Root",				-- Sticky Silk
+	[187973] = "CC",				-- Dazzled
 	[295048] = "Immune",			-- Touch of the Everlasting (not immune, damage taken reduced 85%)
 	[221792] = "CC",				-- Kidney Shot (Vanessa VanCleef (Rogue Bodyguard))
 	[222897] = "CC",				-- Storm Bolt (Dvalen Ironrune (Warrior Bodyguard))
@@ -1410,6 +1427,7 @@ local spellIds = {
 	[293935] = "CC",				-- Overcharged!
 	[281923] = "CC",				-- Super Heroic Landing
 	[97164]  = "CC",				-- Charge
+	[82403]  = "CC",				-- Magnetized!
 	[176278] = "CC",				-- Deep Freeze
 	[176169] = "Root",				-- Freezing Field
 	[176276] = "Root",				-- Frost Nova
@@ -1787,6 +1805,7 @@ local spellIds = {
 	[345340] = "Silence",			-- Dead Quiet
 	[353848] = "Silence",			-- Slanknen's Salty Soak
 	[362820] = "Silence",			-- Muted
+	[333985] = "Silence",			-- Culling Strike
 	[332442] = "Disarm",			-- Hurled Charge
 	[346992] = "Disarm",			-- Disarm
 	[325034] = "Disarm",			-- Called Shot: Arm
@@ -1987,6 +2006,128 @@ local spellIds = {
 	[360340] = "Snare",				-- Sticky Mucus
 	[359689] = "Snare",				-- Unstable Eruption
 	[349477] = "Snare",				-- Sinister Ring
+	[377118] = "CC",				-- Elemental Submission
+	[377157] = "CC",				-- Elemental Submission
+	[377158] = "CC",				-- Elemental Submission
+	[377160] = "CC",				-- Elemental Submission
+	[382009] = "CC",				-- Cave In
+	[388673] = "CC",				-- Dragonrider's Initiative
+	[391295] = "CC",				-- Slipped
+	[391453] = "CC",				-- Palate Cleanser
+	[384383] = "CC",				-- Aw, Rats! (tinket malfunction)
+	[384384] = "Snare",				-- Miniature Mistake (tinket malfunction)
+	[384735] = "CC",				-- Supercollide-O-Tron
+	[375011] = "CC",				-- Seismic Force
+	[378058] = "CC",				-- Seismic Force
+	[386761] = "CC",				-- Imprison
+	[390361] = "CC",				-- Lightning Crash
+	[396827] = "CC",				-- Overloaded
+	[377150] = "CC",				-- Feedback!
+	[372980] = "CC",				-- Zapped
+	[371532] = "CC",				-- Seared Defenders Blade
+	[385700] = "Root",				-- Frost Nova (Cold Feet)
+	[375671] = "Root",				-- Ice Shackle
+	[374886] = "CC",				-- Frozen
+	[385486] = "CC",				-- Stunned
+	[392695] = "Snare",				-- Frost Chains
+	[375435] = "Other",				-- Breath of Death
+	[358298] = "CC",				-- Turbulent Waters
+	[389322] = "CC",				-- Flickering Regression
+	[378397] = "CC",				-- Slam
+	[396430] = "CC",				-- Devastating Slam
+	[395279] = "CC",				-- Arcane Onslaught
+	[395956] = "Root",				-- Manaweaving
+	[396520] = "CC",				-- Blinding Blast
+	[396423] = "CC",				-- Crashing Thunder
+	[371425] = "CC",				-- Rising Tide
+	[373772] = "Immune",			-- Lava Shield
+	[396775] = "CC",				-- Earthen Brutality
+	[391066] = "CC",				-- Blind Charge
+	[397110] = "CC",				-- Crashing Thunder
+	[377707] = "CC",				-- Disorienting Roar
+	[393384] = "Root",				-- Entangling Roots
+	[377421] = "CC",				-- Fearsome Snarl
+	[377140] = "CC",				-- Superheated Spray
+	[374152] = "CC",				-- Petrifying Glare
+	[381721] = "Immune",			-- Harden (not immune, damage taken reduced by 50%)
+	[376472] = "CC",				-- Overhead Smash
+	[395810] = "CC",				-- Boneshattering Blow
+	[373521] = "CC",				-- Petrifying Gaze
+	[388459] = "CC",				-- Glaciate
+	[384530] = "CC",				-- Tuskarr Smash
+	[371644] = "Other",				-- Potion of Frozen Fatality
+	[395819] = "Immune",			-- Deathless Rage
+	[394391] = "Root",				-- Static Cling
+	[377876] = "CC",				-- Sequential Slicer
+	[377665] = "CC",				-- Recursive Timeways
+	[382129] = "CC",				-- Realignment
+	[377838] = "Snare",				-- Slowing Sands
+	[395108] = "CC",				-- Sola Mors
+	[371460] = "CC",				-- Winded!
+	[367975] = "CC",				-- Concussive Blast
+	[394272] = "CC",				-- Crab Trap
+	[394423] = "CC",				-- Enraged Roar
+	[395049] = "CC",				-- Scare Away
+	[388852] = "CC",				-- Arcane Stasis
+	[385379] = "CC",				-- Arcane Stasis
+	[386700] = "CC",				-- Crashing Ice
+	[394746] = "CC",				-- Blinding Peck
+	[394869] = "CC",				-- Bone Crusher
+	[369900] = "Root",				-- Lava Trap
+	[397095] = "Root",				-- Kelp's Clutches
+	[396592] = "CC",				-- Sargeras Sangria
+	[388542] = "Snare",				-- Giant Roar
+	[394598] = "CC",				-- Grievous Roar
+	[392013] = "CC",				-- Golem Smash
+	[395685] = "CC",				-- Brutish Bellowing
+	[372579] = "Immune",			-- Rynea's Stormshield
+	[393843] = "CC",				-- Freezing Venom
+	[396829] = "CC",				-- Freezing Mucus
+	[378746] = "CC",				-- Heavy Whiteout
+	[391919] = "Root",				-- Cackling Charge
+	[391799] = "Root",				-- Entangling Roots
+	[389376] = "Root",				-- Earthen Hold
+	[387657] = "Root",				-- Earthen Hold
+	[389364] = "CC",				-- Blinding Sand
+	[372529] = "CC",				-- Hideous Laughter
+	[390821] = "CC",				-- Mighty Pounce
+	[369063] = "CC",				-- Void Tendrils
+	[395980] = "CC",				-- Temporal Distortion
+	[363434] = "Snare",				-- Temporal Interference
+	[374231] = "CC",				-- Murglrn Flame
+	[387762] = "CC",				-- Murglrn Flame
+	[385634] = "CC",				-- Unconscious
+	[393433] = "CC",				-- Unconscious
+	[395118] = "CC",				-- Unconscious
+	[384617] = "CC",				-- Temporal Backfire
+	[387528] = "Immune",			-- Reflective Hide (not immune, damage taken reduced by 90%)
+	[389324] = "CC",				-- Polymorph
+	[391027] = "CC",				-- Polymorph
+	[396623] = "CC",				-- Polymorph - Fancy Chair
+	[396693] = "CC",				-- Polymorph - Lamppost
+	[396815] = "CC",				-- Polymorph - Proto-Whelp
+	[391939] = "Root",				-- Shocking Touch
+	[386722] = "Root",				-- Shocking Touch
+	[369559] = "CC",				-- Blacktalon Marker
+	[369553] = "CC",				-- Blacktalon Marker
+	[387243] = "CC",				-- MMRGL GRRGL!
+	[393546] = "CC",				-- Path of Fire
+	[393836] = "CC",				-- Smothering Seashell
+	[384327] = "CC",				-- Living Whirl
+	[396078] = "CC",				-- Explosive Blast
+	[394497] = "CC",				-- Turbulent Waters
+	[396360] = "CC",				-- Blinding Slash
+	[398261] = "CC",				-- Avalanche Slam
+	[397813] = "CC",				-- Avalanche Slam
+	[398477] = "CC",				-- Galvanic Onslaught
+	[398530] = "CC",				-- Relentless Storm
+	[398258] = "CC",				-- Avalanche Slam
+	[398345] = "CC",				-- Landslide
+	[396002] = "CC",				-- Stun
+	[398324] = "Immune",			-- Guardian's Duty
+	[399785] = "Immune",			-- Guardian's Duty
+	[398187] = "Immune",			-- Frozen Barrier
+	[397730] = "Root",				-- Crippling Cold
 	[56]     = "CC",				-- Stun (some weapons proc)
 	[835]    = "CC",				-- Tidal Charm (trinket)
 	[8312]   = "Root",				-- Trap (Hunting Net trinket)
@@ -3103,6 +3244,155 @@ local spellIds = {
 	-- PvE
 	--[123456] = "PvE",				-- This is just an example, not a real spell
 	------------------------
+	---- PVE DRAGONFLIGHT
+	------------------------
+	-- Vault of the Incarnates Raid
+	-- -- Trash
+	[394800] = "CC",				-- Stone Blast
+	[396335] = "CC",				-- Frost Entombment
+	[392582] = "CC",				-- Stonebreaking Leap
+	[384962] = "Root",				-- Miasmic Seed
+	-- -- Eranog
+	[373088] = "CC",				-- Incinerate
+	[370458] = "CC",				-- Incinerate
+	[397115] = "CC",				-- Incinerate
+	[370459] = "CC",				-- Incinerate
+	-- -- Terros
+	[388393] = "Other",				-- Tectonic Barrage
+	-- -- The Primalist Council
+	[371591] = "CC",				-- Frost Tomb
+	-- -- Sennarth, The Cold Breath
+	[372539] = "Immune",			-- Apex of Ice (not immune, damage taken reduced by 99%)
+	[372044] = "CC",				-- Wrapped in Webs
+	[374503] = "CC",				-- Wrapped in Webs
+	[374104] = "Snare",				-- Wrapped in Webs
+	-- -- Kurog Grimtotem
+	[374779] = "Immune",			-- Primal Barrier (not immune, damage taken reduced by 99%)
+	[391022] = "CC",				-- Frigid Torrent
+	[372517] = "CC",				-- Frozen Solid
+	[391446] = "CC",				-- Frozen Solid
+	[393297] = "Snare",				-- Frost Smite
+	[400473] = "Other",				-- Elemental Rage (damage done increased by 500%)
+	-- -- Broodkeeper Diurna
+	[375653] = "CC",				-- Static Jolt
+	[376260] = "CC",				-- Tremors
+	[388920] = "Root",				-- Frozen Shroud
+	[396266] = "Other",				-- Mortal Suffering (healing received reduced by 90%)
+	[378782] = "Other",				-- Mortal Wounds (healing received reduced by 25%/50%/65%)
+	-- -- Raszageth the Storm-Eater
+	[381442] = "CC",				-- Lightning Strike
+	[385073] = "CC",				-- Ball Lightning
+	[393575] = "CC",				-- Ball Lightning
+	[388431] = "Immune",			-- Ruinous Shroud (not immune, damage taken reduced by 99%)
+	[396734] = "Immune",			-- Storm Shroud (not immune, damage taken reduced by 99%)
+	------------------------
+	-- Dragonflight World Bosses
+	-- -- Strunraan, The Sky's Misery
+	[387265] = "CC",				-- Overcharge
+	-- -- Basrikron, The Shale Wing
+	[385355] = "Snare",				-- Fracturing Tremor
+	-- -- Liskanoth, The Futurebane
+	[389762] = "CC",				-- Deep Freeze
+	[388767] = "Root",				-- Binding Ice
+	[389287] = "Snare",				-- Glacial Storm
+	[388924] = "Snare",				-- Biting Frost
+	------------------------
+	-- Dragonflight Dungeons
+	-- -- Common
+	[396411] = "CC",				-- Primal Overload
+	[394873] = "CC",				-- Lightning Strike
+	-- -- Algeth'ar Academy
+	[390297] = "Immune",			-- Dormant
+	[377008] = "Silence",			-- Deafening Screech
+	[376449] = "CC",				-- Firestorm
+	[376781] = "CC",				-- Firestorm
+	[378011] = "CC",				-- Deadly Winds
+	[388392] = "CC",				-- Monotonous Lecture
+	[390918] = "CC",				-- Seed Detonation
+	[378839] = "CC",				-- Out of Bounds!
+	-- -- Brackenhide Hollow
+	[376149] = "CC",				-- Choking Rotcloud
+	[385361] = "CC",				-- Rotting Sickness
+	[384558] = "CC",				-- Bounding Leap
+	[384148] = "Root",				-- Ensnaring Trap
+	[385303] = "Root",				-- Teeth Trap
+	[376933] = "CC",				-- Grasping Vines
+	[387796] = "Root",				-- Net
+	[367500] = "CC",				-- Hideous Cackle
+	[373899] = "Root",				-- Decaying Roots
+	[384854] = "CC",				-- Fish Slap!
+	[381387] = "CC",				-- Decayed Senses
+	[372162] = "CC",				-- Stunned (Bash)
+	[385185] = "CC",				-- Disoriented (Stink Breath)
+	[381463] = "CC",				-- Hextrick
+	[373943] = "CC",				-- Stompea
+	[385058] = "Snare",				-- Withering Poison
+	[382555] = "Snare",				-- Ragestorm
+	-- -- Halls of Infusion
+	[387585] = "Immune",			-- Submerge (not immune, damage taken reduced by 99%)
+	[383840] = "Immune",			-- Ablative Barrier (not immune, damage taken reduced by 99%)
+	[384524] = "CC",				-- Titanic Fist
+	[374020] = "Root",				-- Containment Beam
+	[374563] = "CC",				-- Dazzle
+	[374724] = "Root",				-- Molten Subduction
+	[391610] = "CC",				-- Binding Winds
+	[389446] = "Silence",			-- Nullifying Pulse
+	[375384] = "CC",				-- Rumbling Earth
+	[374615] = "CC",				-- Cheap Shot
+	[385963] = "Snare",				-- Frost Shock
+	-- -- Neltharus
+	[374655] = "CC",				-- Fetter
+	[388523] = "CC",				-- Fetter
+	[375455] = "CC",				-- Blazing Charge
+	[377014] = "CC",				-- Backdraft
+	[373540] = "CC",				-- Binding Spear
+	[372824] = "CC",				-- Burning Chain
+	-- -- Ruby Life Pools
+	[373593] = "CC",				-- Frozen Solid
+	[373022] = "CC",				-- Frozen Solid
+	[383804] = "Immune",			-- Blazebound Barrier
+	[372811] = "CC",				-- Molten Boulder
+	[385314] = "CC",				-- Unlucky Strike
+	-- -- The Azure Vault
+	[395445] = "CC",				-- Viscous Toads
+	[386368] = "CC",				-- Polymorphed
+	[393769] = "CC",				-- Polymorphed
+	[386549] = "CC",				-- Waking Bane
+	[375602] = "CC",				-- Erratic Growth
+	[370766] = "Root",				-- Crystalline Rupture
+	[379256] = "Immune",			-- Seal Empowerment
+	[377488] = "Root",				-- Icy Bindings
+	[396722] = "Root",				-- Absolute Zero
+	[388084] = "Immune",			-- Glacial Shield (not immune, damage taken reduced by 99%)
+	[371352] = "CC",				-- Forbidden Knowledge
+	-- -- The Nokhud Offensive
+	[376724] = "Immune",			-- Crackling Shield
+	[376705] = "Immune",			-- Crackling Shield
+	[386915] = "Immune",			-- Stormsurge Totems
+	[389029] = "Immune",			-- Ritual of Desecration
+	[387155] = "CC",				-- Lanced!
+	[373395] = "CC",				-- Bloodcurdling Shout
+	[386490] = "Other",				-- Dismantle
+	[386063] = "CC",				-- Frightful Roar
+	[384336] = "CC",				-- War Stomp
+	[397394] = "CC",				-- Deadly Thunder
+	-- -- Uldaman: Legacy of Tyr
+	[369660] = "CC",				-- Tremor
+	[369662] = "CC",				-- Tremor
+	[369725] = "CC",				-- Tremor
+	[369792] = "CC",				-- Skullcracker
+	[375500] = "CC",				-- Time Lock
+	[369366] = "CC",				-- Trapped in Stone
+	[372652] = "CC",				-- Resonating Orb
+	[369031] = "Immune",			-- Sacred Barrier
+	[369603] = "Immune",			-- Defensive Bulwark (not immune, damage taken reduced by 75%)
+	[375339] = "CC",				-- Recovering...
+	[369411] = "Silence",			-- Sonic Burst
+	[369412] = "Silence",			-- Sonic Burst
+	[369811] = "CC",				-- Brutal Slam
+	[382437] = "CC",				-- Stunned
+	[377486] = "Snare",				-- Time Blade
+	------------------------
 	---- PVE SHADOWLANDS
 	------------------------
 	-- Sepulcher of the First Ones Raid
@@ -3348,6 +3638,7 @@ local spellIds = {
 	[336388] = "CC",				-- Weight of Contrition
 	[341732] = "Silence",			-- Searing Censure
 	[341426] = "Silence",			-- Searing Censure
+	------------------------
 	-- Shadowlands World Bosses
 	-- -- Valinor, The Light of Eons
 	[327280] = "CC",				-- Recharge Anima
@@ -4731,16 +5022,23 @@ local spellIds = {
 	[221838] = "CC",				-- Disorienting Gas
 	-- -- Court of Stars
 	[207278] = "Snare",				-- Arcane Lockdown
+	[206574] = "CC",				-- Resonant Slash
 	[207261] = "CC",				-- Resonant Slash
 	[215204] = "CC",				-- Hinder
 	[207979] = "CC",				-- Shockwave
 	[224333] = "CC",				-- Enveloping Winds
 	[209404] = "Silence",			-- Seal Magic
-	[209413] = "Silence",			-- Suppress
+	[209413] = "CC",				-- Suppress
 	[209027] = "CC",				-- Quelling Strike
 	[212773] = "CC",				-- Subdue
 	[216000] = "CC",				-- Mighty Stomp
 	[213233] = "CC",				-- Uninvited Guest
+	[215428] = "CC",				-- Overloaded!
+	[209719] = "Other",				-- Bond of Cruelty (damage and health increased by 100%)
+	[209713] = "Other",				-- Bond of Cunning (damage and health increased by 100%)
+	[209722] = "Other",				-- Bond of Flame (damage and health increased by 100%)
+	[207850] = "Other",				-- Bond of Strength (damage and health increased by 100%)
+	[397918] = "CC",				-- Short Circuit
 	-- -- Return to Karazhan
 	[227567] = "CC",				-- Knocked Down
 	[228215] = "CC",				-- Severe Dusting
@@ -4819,7 +5117,7 @@ local spellIds = {
 	[199063] = "Root",				-- Strangling Roots
 	-- -- Halls of Valor
 	[198088] = "CC",				-- Glowing Fragment
-	[215429] = "CC",				-- Thunderstrike
+	--[215429] = "CC",				-- Thunderstrike (it is no longer a CC)
 	[199340] = "CC",				-- Bear Trap
 	[210749] = "CC",				-- Static Storm
 	-- -- Neltharion's Lair
@@ -4970,8 +5268,12 @@ local spellIds = {
 	[113309] = "Immune",			-- Ultimate Power
 	[114826] = "CC",				-- Songbird Serenade
 	[145883] = "Snare",				-- Noodled
-	--[110125] = "CC",				-- Shattered Resolve (reduces all damage and healing done by 25%/35%/75% (nm/hc/challenge))
+	[110125] = "CC",				-- Shattered Resolve (reduces all damage and healing done by 25%/35%/75% (nm/hc/challenge))
 	--[88023]  = "ImmuneSpell",		-- Shroud of Gold (reflect 30%/100% (all/challenge) of the next spell cast)
+	[397795] = "CC",				-- Tainted Mist
+	[395872] = "CC",				-- Sleepy Soliloquy
+	[395859] = "CC",				-- Haunting Scream
+	[397899] = "CC",				-- Leg Sweep
 	-- -- Shado-Pan Monastery
 	[123496] = "Immune",			-- Lightning Shielded
 	[110945] = "Immune",			-- Charging Soul
@@ -7258,6 +7560,48 @@ local anchors = {
 		raid40       = "CompactRaidFrame40"
 	},
 	BlizzardNameplates = {
+		nameplate1   = "NamePlate1",
+		nameplate2   = "NamePlate2",
+		nameplate3   = "NamePlate3",
+		nameplate4   = "NamePlate4",
+		nameplate5   = "NamePlate5",
+		nameplate6   = "NamePlate6",
+		nameplate7   = "NamePlate7",
+		nameplate8   = "NamePlate8",
+		nameplate9   = "NamePlate9",
+		nameplate10  = "NamePlate10",
+		nameplate11  = "NamePlate11",
+		nameplate12  = "NamePlate12",
+		nameplate13  = "NamePlate13",
+		nameplate14  = "NamePlate14",
+		nameplate15  = "NamePlate15",
+		nameplate16  = "NamePlate16",
+		nameplate17  = "NamePlate17",
+		nameplate18  = "NamePlate18",
+		nameplate19  = "NamePlate19",
+		nameplate20  = "NamePlate20",
+		nameplate21  = "NamePlate21",
+		nameplate22  = "NamePlate22",
+		nameplate23  = "NamePlate23",
+		nameplate24  = "NamePlate24",
+		nameplate25  = "NamePlate25",
+		nameplate26  = "NamePlate26",
+		nameplate27  = "NamePlate27",
+		nameplate28  = "NamePlate28",
+		nameplate29  = "NamePlate29",
+		nameplate30  = "NamePlate30",
+		nameplate31  = "NamePlate31",
+		nameplate32  = "NamePlate32",
+		nameplate33  = "NamePlate33",
+		nameplate34  = "NamePlate34",
+		nameplate35  = "NamePlate35",
+		nameplate36  = "NamePlate36",
+		nameplate37  = "NamePlate37",
+		nameplate38  = "NamePlate38",
+		nameplate39  = "NamePlate39",
+		nameplate40  = "NamePlate40"
+	},
+	BlizzardNameplatesUnitFrame = {
 		nameplate1   = "NamePlate1.UnitFrame",
 		nameplate2   = "NamePlate2.UnitFrame",
 		nameplate3   = "NamePlate3.UnitFrame",
@@ -7825,7 +8169,7 @@ local anchors = {
 	-- more to come here?
 }
 
-	-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Default settings
 local DBdefaults = {
 	version = 8.0, -- This is the settings version, not necessarily the same as the LoseControl version
@@ -10559,7 +10903,7 @@ function LoseControl:GetAbsoluteScaleRelativeToUIParent()
 	local limit = 30
 	local climit = 0
 	while(fr ~= nil and fr ~= UIParent and fr ~= WorldFrame and climit < limit) do
-		if (fr.GetScale and type(fr:GetScale() == "number")) then
+		if (fr.GetScale and type(fr:GetScale()) == "number") then
 			resScale = resScale * fr:GetScale()
 		end
 		fr = fr:GetParent()
@@ -11140,7 +11484,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "8.00"
+		self.VERSION = "8.01"
 		CreateAliasForPartyFrames()
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
@@ -11228,17 +11572,19 @@ LoseControl:RegisterEvent("ADDON_LOADED")
 
 function LoseControl:CheckNameplateAnchor()
 	local newAnchor = GetNamePlateForUnit(self.unitId, false)
-	if ((newAnchor ~= nil) and not(newAnchor:IsForbidden()) and (newAnchor.UnitFrame ~= nil)) then
-		local newAnchorUF = newAnchor.UnitFrame
+	local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
+	local usingNameplateMainFrame = (frame.anchor == "BlizzardNameplates")
+	if ((newAnchor ~= nil) and not(newAnchor:IsForbidden()) and (usingNameplateMainFrame or newAnchor.UnitFrame ~= nil)) then
+		local newAnchorUF = usingNameplateMainFrame and newAnchor or newAnchor.UnitFrame
 		if (self.anchor ~= newAnchorUF) then
-			local name = newAnchor:GetName()..".UnitFrame"
+			local name = newAnchor:GetName()
 			if not name or not name:match("^NamePlate") then return end
 			anchors.BlizzardNameplates[self.unitId] = name
-			local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
-			if (frame.anchor == "BlizzardNameplates") then
+			anchors.BlizzardNameplatesUnitFrame[self.unitId] = name..".UnitFrame"
+			if (frame.anchor == "BlizzardNameplates" or frame.anchor == "BlizzardNameplatesUnitFrame") then
 				local oldAnchor = self.anchor
-				if ((oldAnchor ~= nil) and (oldAnchor ~= UIParent) and not(oldAnchor:IsForbidden()) and (oldAnchor.UnitFrame ~= nil)) then
-					local oldAnchorUF = oldAnchor.UnitFrame
+				if ((oldAnchor ~= nil) and (oldAnchor ~= UIParent) and not(oldAnchor:IsForbidden()) and (usingNameplateMainFrame or oldAnchor.UnitFrame ~= nil)) then
+					local oldAnchorUF = usingNameplateMainFrame and oldAnchor or oldAnchor.UnitFrame
 					if (oldAnchorUF.lcicon == self) then
 						oldAnchorUF.lcicon = nil
 					end
@@ -11259,11 +11605,11 @@ function LoseControl:CheckNameplateAnchor()
 		end
 	else
 		anchors.BlizzardNameplates[self.unitId] = "UIParent"
-		local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
-		if (frame.anchor == "BlizzardNameplates") then
+		anchors.BlizzardNameplatesUnitFrame[self.unitId] = "UIParent"
+		if (frame.anchor == "BlizzardNameplates" or frame.anchor == "BlizzardNameplatesUnitFrame") then
 			local oldAnchor = self.anchor
-			if ((oldAnchor ~= nil) and (oldAnchor ~= UIParent) and not(oldAnchor:IsForbidden()) and (oldAnchor.UnitFrame ~= nil)) then
-				local oldAnchorUF = oldAnchor.UnitFrame
+			if ((oldAnchor ~= nil) and (oldAnchor ~= UIParent) and not(oldAnchor:IsForbidden()) and (usingNameplateMainFrame or oldAnchor.UnitFrame ~= nil)) then
+				local oldAnchorUF = usingNameplateMainFrame and oldAnchor or oldAnchor.UnitFrame
 				if (oldAnchorUF.lcicon == self) then
 					oldAnchorUF.lcicon = nil
 				end
@@ -11319,24 +11665,27 @@ function LoseControl:CheckAnchor(forceCheck)
 					frame.x or 0,
 					frame.y or 0
 				)
-				local PositionXEditBox, PositionYEditBox, FrameLevelEditBox
+				local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPositionDropDownAnchorLabel
 				if strfind(self.fakeUnitId or self.unitId, "party") then
 					if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'])) then
 						PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
 						PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
 						FrameLevelEditBox = _G['LoseControlOptionsPanelpartyFrameLevelEditBox']
+						AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelpartyAnchorPositionDropDownAnchorLabel']
 					end
 				elseif strfind(self.fakeUnitId or self.unitId, "arena") then
 					if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelarenaAnchorPositionArenaDropDown'])) then
 						PositionXEditBox = _G['LoseControlOptionsPanelarenaPositionXEditBox']
 						PositionYEditBox = _G['LoseControlOptionsPanelarenaPositionYEditBox']
 						FrameLevelEditBox = _G['LoseControlOptionsPanelarenaFrameLevelEditBox']
+						AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelarenaAnchorPositionDropDownAnchorLabel']
 					end
 				elseif strfind(self.fakeUnitId or self.unitId, "raid") then
 					if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'])) then
 						PositionXEditBox = _G['LoseControlOptionsPanelraidPositionXEditBox']
 						PositionYEditBox = _G['LoseControlOptionsPanelraidPositionYEditBox']
 						FrameLevelEditBox = _G['LoseControlOptionsPanelraidFrameLevelEditBox']
+						AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelraidAnchorPositionDropDownAnchorLabel']
 					end
 				elseif strfind(self.fakeUnitId or self.unitId, "nameplate") then
 					PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
@@ -11348,6 +11697,9 @@ function LoseControl:CheckAnchor(forceCheck)
 					FrameLevelEditBox = _G['LoseControlOptionsPanel'..self.unitId..'FrameLevelEditBox']
 				end
 				if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+					if (AnchorPositionDropDownAnchorLabel) then
+						AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+					end
 					PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 					PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 					FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -11406,24 +11758,27 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		frame.x or 0,
 		frame.y or 0
 	)
-	local PositionXEditBox, PositionYEditBox, FrameLevelEditBox
+	local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPositionDropDownAnchorLabel
 	if strfind((self.fakeUnitId or unitId), "party") then
 		if ((self.fakeUnitId or unitId) == ((_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'] ~= nil) and UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown']) or "party1")) then
 			PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
 			PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
 			FrameLevelEditBox = _G['LoseControlOptionsPanelpartyFrameLevelEditBox']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelpartyAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or unitId), "arena") then
 		if ((self.fakeUnitId or unitId) == ((_G['LoseControlOptionsPanelarenaAnchorPositionArenaDropDown'] ~= nil) and UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelarenaAnchorPositionArenaDropDown']) or "arena1")) then
 			PositionXEditBox = _G['LoseControlOptionsPanelarenaPositionXEditBox']
 			PositionYEditBox = _G['LoseControlOptionsPanelarenaPositionYEditBox']
 			FrameLevelEditBox = _G['LoseControlOptionsPanelarenaFrameLevelEditBox']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelarenaAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or unitId), "raid") then
 		if ((self.fakeUnitId or unitId) == ((_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'] ~= nil) and UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown']) or "raid1")) then
 			PositionXEditBox = _G['LoseControlOptionsPanelraidPositionXEditBox']
 			PositionYEditBox = _G['LoseControlOptionsPanelraidPositionYEditBox']
 			FrameLevelEditBox = _G['LoseControlOptionsPanelraidFrameLevelEditBox']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelraidAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or unitId), "nameplate") then
 		PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
@@ -11435,6 +11790,9 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 		FrameLevelEditBox = _G['LoseControlOptionsPanel'..(self.fakeUnitId or unitId)..'FrameLevelEditBox']
 	end
 	if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+		if (AnchorPositionDropDownAnchorLabel) then
+			AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+		end
 		PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 		PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 		FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -11491,6 +11849,13 @@ function LoseControl:PLAYER_ENTERING_WORLD() -- this correctly anchors enemy are
 	--self:SetAlpha(frame.alpha) -- doesn't seem to work; must manually set alpha after the cooldown is displayed, otherwise it doesn't apply.
 	self:Hide()
 	self:GetParent():Hide()
+
+	if (strfind(self.fakeUnitId or self.unitId, "party")) then
+		if (not(self.eventRegisteredExitMode) and EventRegistry and type(EventRegistry) == "table") then
+			self.eventRegisteredExitMode = true
+			EventRegistry:RegisterCallback("EditMode.Exit", self.onExitEditMode, self)
+		end
+	end
 
 	if enabled and not self.unlockMode then
 		self.maxExpirationTime = 0
@@ -11626,6 +11991,8 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 		self.useCompactPartyFrames = value
 		if (value) then
 			anchors.Blizzard[unitId] = nil
+			MainHookCompactRaidFrames()
+			UpdateAllRaidIconsAnchorCompactRaidFrame()
 		else
 			local numId = -1
 			if (unitId == "party1") then
@@ -11648,8 +12015,6 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 		local frame = self.frame or LoseControlDB.frames[unitId]
 		if (frame.anchor == "Blizzard") or (unitId == "partyplayer") then
 			if (value) then
-				MainHookCompactRaidFrames()
-				UpdateAllRaidIconsAnchorCompactRaidFrame()
 				if not(frame.noCompactFrame) then
 					frame.noCompactFrame = {
 						["point"] = frame.point,
@@ -11771,7 +12136,11 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 				local PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
 				local PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
 				local FrameLevelEditBox = _G['LoseControlOptionsPanelpartyFrameLevelEditBox']
+				local AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelpartyAnchorPositionDropDownAnchorLabel']
 				if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+					if (AnchorPositionDropDownAnchorLabel) then
+						AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+					end
 					PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 					PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 					FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -11863,6 +12232,7 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 						local duration2 = duration
 						if (unitIdFromGUID ~= nil) then
 							local duration3 = duration
+							local shamTranquilAirBuff = false
 							local _, destClass = GetPlayerInfoByGUID(destGUID)
 							for i = 1, 120 do
 								local _, _, _, _, _, _, _, _, _, auxSpellId = UnitAura(unitIdFromGUID, i)
@@ -11874,12 +12244,25 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 								end
 								if auxSpellId == 317920 then		-- Concentration Aura (Paladin) [Interrupted Mechanic Duration -30% (stacks)]
 									duration = duration * 0.7
+								elseif auxSpellId == 372048 then	-- Oppressing Roar (Evoker) [Interrupted Mechanic Duration +20%/+50% (PvP/PvE) (stacks)]
+									if (self:ArePvpTalentsActive()) then
+										duration = duration * 1.2
+										duration2 = duration2 * 1.2
+										duration3 = duration3 * 1.2
+									else
+										duration = duration * 1.5
+										duration2 = duration2 * 1.2
+										duration3 = duration3 * 1.5
+									end
 								elseif auxSpellId == 383020 then	-- Tranquil Air (Shaman) [Interrupted Mechanic Duration -50% (doesn't stack)]
-									duration3 = duration3 * 0.5
+									shamTranquilAirBuff = true
 								end
 							end
-							if (duration3 < duration) then
-								duration = duration3
+							if (shamTranquilAirBuff) then
+								duration3 = duration3 * 0.5
+								if (duration3 < duration) then
+									duration = duration3
+								end
 							end
 						end
 						if (destGUID == playerGUID) then
@@ -12144,7 +12527,7 @@ function LoseControl:UNIT_AURA(unitId, updatedAuras, typeUpdate) -- fired when a
 	local forceEventUnitAuraAtEnd = false
 	self.lastTimeUnitAuraEvent = GetTime()
 
-	if ((self.anchor ~= nil and self.anchor:IsVisible() and (self.anchor ~= UIParent or self.frame.anchor == "None")) or (self.frame.anchor ~= "None" and self.frame.anchor ~= "Blizzard" and self.frame.anchor ~= "BlizzardRaidFrames" and self.frame.anchor ~= "BlizzardNameplates" and self.anchor ~= UIParent)) and UnitExists(self.unitId) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetPlayerTargetTarget) or not(UnitIsUnit("player", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetTarget) or not(UnitIsUnit("targettarget", "player")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetTargetTarget) or not(UnitIsUnit("targettarget", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetDeadTargetTarget) or (UnitHealth("target") > 0))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusPlayerFocusTarget) or not(UnitIsUnit("player", "focus") and UnitIsUnit("player", "focustarget")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusTarget) or not(UnitIsUnit("focustarget", "player")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusFocusTarget) or not(UnitIsUnit("focustarget", "focus")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusDeadFocusTarget) or (UnitHealth("focus") > 0))) then
+	if ((self.anchor ~= nil and self.anchor:IsVisible() and (self.anchor ~= UIParent or self.frame.anchor == "None")) or (self.frame.anchor ~= "None" and self.frame.anchor ~= "Blizzard" and self.frame.anchor ~= "BlizzardRaidFrames" and self.frame.anchor ~= "BlizzardNameplates" and self.frame.anchor ~= "BlizzardNameplatesUnitFrame" and self.anchor ~= UIParent)) and UnitExists(self.unitId) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetPlayerTargetTarget) or not(UnitIsUnit("player", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetTarget) or not(UnitIsUnit("targettarget", "player")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetTargetTarget) or not(UnitIsUnit("targettarget", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetDeadTargetTarget) or (UnitHealth("target") > 0))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusPlayerFocusTarget) or not(UnitIsUnit("player", "focus") and UnitIsUnit("player", "focustarget")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disablePlayerFocusTarget) or not(UnitIsUnit("focustarget", "player")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusFocusTarget) or not(UnitIsUnit("focustarget", "focus")))) and ((self.unitId ~= "focustarget") or (not(LoseControlDB.disableFocusDeadFocusTarget) or (UnitHealth("focus") > 0))) then
 		local reactionToPlayer = (strfind(self.unitId, "arena") or ((self.unitId == "target" or self.unitId == "focus" or self.unitId == "targettarget" or self.unitId == "focustarget" or strfind(self.unitId, "nameplate")) and UnitCanAttack("player", unitId))) and "enemy" or "friendly"
 		-- Check debuffs
 		for i = 1, 120 do
@@ -12292,13 +12675,13 @@ function LoseControl:UNIT_AURA(unitId, updatedAuras, typeUpdate) -- fired when a
 					if Priority == maxPriority and expirationTime > maxExpirationTime then
 						maxExpirationTime = expirationTime
 						Duration = duration
-						Icon = icon
+						Icon = icon ~= 611426 and icon or 136059
 						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
 					elseif Priority > maxPriority then
 						maxPriority = Priority
 						maxExpirationTime = expirationTime
 						Duration = duration
-						Icon = icon
+						Icon = icon ~= 611426 and icon or 136059
 						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
 					end
 				end
@@ -12383,13 +12766,13 @@ function LoseControl:UNIT_AURA(unitId, updatedAuras, typeUpdate) -- fired when a
 					if Priority == maxPriority and expirationTime > maxExpirationTime then
 						maxExpirationTime = expirationTime
 						Duration = duration
-						Icon = icon
+						Icon = icon ~= 611426 and icon or 136059
 						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
 					elseif Priority > maxPriority then
 						maxPriority = Priority
 						maxExpirationTime = expirationTime
 						Duration = duration
-						Icon = icon
+						Icon = icon ~= 611426 and icon or 136059
 						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
 					end
 				end
@@ -12785,7 +13168,7 @@ function LoseControl:StopMoving()
 		frame.x or 0,
 		frame.y or 0
 	)
-	local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPointDropDown, AnchorIconPointDropDown, AnchorFrameStrataDropDown
+	local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPointDropDown, AnchorIconPointDropDown, AnchorFrameStrataDropDown, AnchorPositionDropDownAnchorLabel
 	if strfind((self.fakeUnitId or self.unitId), "party") then
 		if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'])) then
 			PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
@@ -12794,6 +13177,7 @@ function LoseControl:StopMoving()
 			AnchorPointDropDown = _G['LoseControlOptionsPanelpartyAnchorPointDropDown']
 			AnchorIconPointDropDown = _G['LoseControlOptionsPanelpartyAnchorIconPointDropDown']
 			AnchorFrameStrataDropDown = _G['LoseControlOptionsPanelpartyAnchorFrameStrataDropDown']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelpartyAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or self.unitId), "arena") then
 		if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelarenaAnchorPositionArenaDropDown'])) then
@@ -12803,6 +13187,7 @@ function LoseControl:StopMoving()
 			AnchorPointDropDown = _G['LoseControlOptionsPanelarenaAnchorPointDropDown']
 			AnchorIconPointDropDown = _G['LoseControlOptionsPanelarenaAnchorIconPointDropDown']
 			AnchorFrameStrataDropDown = _G['LoseControlOptionsPanelarenaAnchorFrameStrataDropDown']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelarenaAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or self.unitId), "raid") then
 		if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'])) then
@@ -12812,6 +13197,7 @@ function LoseControl:StopMoving()
 			AnchorPointDropDown = _G['LoseControlOptionsPanelraidAnchorPointDropDown']
 			AnchorIconPointDropDown = _G['LoseControlOptionsPanelraidAnchorIconPointDropDown']
 			AnchorFrameStrataDropDown = _G['LoseControlOptionsPanelraidAnchorFrameStrataDropDown']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelraidAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or self.unitId), "nameplate") then
 		PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
@@ -12829,6 +13215,9 @@ function LoseControl:StopMoving()
 		AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..(self.fakeUnitId or self.unitId)..'AnchorFrameStrataDropDown']
 	end
 	if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+		if (AnchorPositionDropDownAnchorLabel) then
+			AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+		end
 		PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 		PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 		FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -13013,12 +13402,6 @@ function LoseControl:new(unitId)
 		o:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 		o:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
 	end
-	if (strfind(o.fakeUnitId or o.unitId, "party")) then
-		if (not(o.eventRegisteredExitMode) and EventRegistry and type(EventRegistry) == "table") then
-			o.eventRegisteredExitMode = true
-			EventRegistry:RegisterCallback("EditMode.Exit", o.onExitEditMode, o)
-		end
-	end
 
 	return o
 end
@@ -13170,6 +13553,7 @@ function Unlock:OnClick()
 				if frame.enabled and ((anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][k]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][k])=="string") and _GF(anchors[frame.anchor][k]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][k])=="table") and anchors[frame.anchor][k] or frame.anchor == "None"))) then -- only unlock frames whose anchor exists
 					v:RegisterUnitEvents(false)
 					v.textureicon = select(3, GetSpellInfo(keys[random(#keys)]))
+					v.textureicon = v.textureicon ~= 611426 and v.textureicon or 136059
 					if frame.anchor == "Blizzard" and not(v.useCompactPartyFrames) then
 						SetPortraitToTexture(v.texture, v.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
 						v:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
@@ -13221,6 +13605,7 @@ function Unlock:OnClick()
 		if frame.enabled and ((anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId])=="string") and _GF(anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId])=="table") and anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId] or frame.anchor == "None"))) then -- only unlock frames whose anchor exists
 			LCframeplayer2:RegisterUnitEvents(false)
 			LCframeplayer2.textureicon = select(3, GetSpellInfo(keys[random(#keys)]))
+			LCframeplayer2.textureicon = LCframeplayer2.textureicon ~= 611426 and LCframeplayer2.textureicon or 136059
 			if frame.anchor == "Blizzard" and not(LCframeplayer2.useCompactPartyFrames) then
 				SetPortraitToTexture(LCframeplayer2.texture, LCframeplayer2.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
 				LCframeplayer2:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
@@ -13738,12 +14123,12 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			icon.parent:SetParent(icon.anchor:GetParent() or UIParent or nil)
 			icon.defaultFrameStrata = icon:GetFrameStrata()
 			if frame.anchor ~= "None" then -- reset the frame position so it centers on the anchor frame
-				frame.point = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].point) or nil
-				frame.relativePoint = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].relativePoint) or nil
-				frame.frameStrata = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameStrata) or nil
-				frame.frameLevel = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameLevel) or 0
-				frame.x = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].x) or nil
-				frame.y = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].y) or nil
+				frame.point = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].point) or nil
+				frame.relativePoint = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].relativePoint) or nil
+				frame.frameStrata = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].frameStrata) or nil
+				frame.frameLevel = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].frameLevel) or 0
+				frame.x = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].x) or nil
+				frame.y = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].y) or nil
 			end
 			if frame.anchor == "Blizzard" and not(icon.useCompactPartyFrames) then
 				local portrSizeValue = 34
@@ -13815,7 +14200,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				frame.x or 0,
 				frame.y or 0
 			)
-			local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPointDropDown, AnchorIconPointDropDown, AnchorFrameStrataDropDown
+			local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPointDropDown, AnchorIconPointDropDown, AnchorFrameStrataDropDown, AnchorPositionDropDownAnchorLabel
 			if v == "party" then
 				if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown'])) then
 					PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
@@ -13824,6 +14209,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					AnchorPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorPointDropDown']
 					AnchorIconPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorIconPointDropDown']
 					AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..v..'AnchorFrameStrataDropDown']
+					AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 				end
 			elseif v == "arena" then
 				if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionArenaDropDown'])) then
@@ -13833,6 +14219,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					AnchorPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorPointDropDown']
 					AnchorIconPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorIconPointDropDown']
 					AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..v..'AnchorFrameStrataDropDown']
+					AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 				end
 			elseif v == "raid" then
 				if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown'])) then
@@ -13842,6 +14229,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 					AnchorPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorPointDropDown']
 					AnchorIconPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorIconPointDropDown']
 					AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..v..'AnchorFrameStrataDropDown']
+					AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 				end
 			elseif v == "nameplate" then
 				PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
@@ -13859,6 +14247,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..v..'AnchorFrameStrataDropDown']
 			end
 			if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+				if (AnchorPositionDropDownAnchorLabel) then
+					AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+				end
 				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 				FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -14015,6 +14406,13 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		end
 	end
 
+	local AnchorPositionDropDownAnchorLabel
+	if v == "party" or v == "arena" or v == "raid" then
+		AnchorPositionDropDownAnchorLabel = OptionsPanelFrame.container:CreateFontString(O..v.."AnchorPositionDropDownAnchorLabel", "ARTWORK", "GameFontHighlightSmall")
+		AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..")")
+		AnchorPositionDropDownAnchorLabel:SetJustifyH("LEFT")
+	end
+
 	local AnchorPositionPartyDropDown
 	if v == "party" then
 		AnchorPositionPartyDropDown	= CreateFrame("Frame", O..v.."AnchorPositionPartyDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
@@ -14027,7 +14425,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			local PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
 			local PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
 			local FrameLevelEditBox = _G['LoseControlOptionsPanel'..v..'FrameLevelEditBox']
+			local AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 			if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+				if (AnchorPositionDropDownAnchorLabel) then
+					AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+				end
 				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 				FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -14086,7 +14488,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			local PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
 			local PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
 			local FrameLevelEditBox = _G['LoseControlOptionsPanel'..v..'FrameLevelEditBox']
+			local AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 			if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+				if (AnchorPositionDropDownAnchorLabel) then
+					AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+				end
 				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 				FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -14145,7 +14551,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 			local PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
 			local PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
 			local FrameLevelEditBox = _G['LoseControlOptionsPanel'..v..'FrameLevelEditBox']
+			local AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 			if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+				if (AnchorPositionDropDownAnchorLabel) then
+					AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+				end
 				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 				FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -15790,6 +16200,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		PositionEditBoxLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 		AdditionalOptionsLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 		InterruptBackgroundColorLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+		if AnchorPositionDropDownAnchorLabel then AnchorPositionDropDownAnchorLabel:SetVertexColor(WHITE_FONT_COLOR:GetRGB()) end
 		LCOptionsPanelFuncs.LCOptionsPanel_Slider_Enable(SizeSlider)
 		LCOptionsPanelFuncs.LCOptionsPanel_Slider_Enable(AlphaSlider)
 		LCOptionsPanelFuncs.LCOptionsPanel_Slider_Enable(AlphaSliderBackgroundInterrupt)
@@ -15896,6 +16307,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		PositionEditBoxLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 		AdditionalOptionsLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 		InterruptBackgroundColorLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+		if AnchorPositionDropDownAnchorLabel then AnchorPositionDropDownAnchorLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB()) end
 		LCOptionsPanelFuncs.LCOptionsPanel_Slider_Disable(SizeSlider)
 		LCOptionsPanelFuncs.LCOptionsPanel_Slider_Disable(AlphaSlider)
 		LCOptionsPanelFuncs.LCOptionsPanel_Slider_Disable(AlphaSliderBackgroundInterrupt)
@@ -16019,6 +16431,15 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 	PositionXEditBox:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 27, -3)
 	PositionYEditBoxLabel:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 90, -9)
 	PositionYEditBox:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 107, -3)
+	if AnchorPositionDropDownAnchorLabel then
+		if (v == "party" and AnchorPositionPartyDropDown) then
+			AnchorPositionDropDownAnchorLabel:SetPoint("LEFT", AnchorPositionPartyDropDown, "RIGHT", 113, 3)
+		elseif (v == "arena" and AnchorPositionArenaDropDown) then
+			AnchorPositionDropDownAnchorLabel:SetPoint("LEFT", AnchorPositionArenaDropDown, "RIGHT", 113, 3)
+		elseif (v == "raid" and AnchorPositionRaidDropDown) then
+			AnchorPositionDropDownAnchorLabel:SetPoint("LEFT", AnchorPositionRaidDropDown, "RIGHT", 113, 3)
+		end
+	end
 	if AnchorPositionPartyDropDown then AnchorPositionPartyDropDown:SetPoint("RIGHT", PositionYEditBox, "RIGHT", 30, 0) end
 	if AnchorPositionArenaDropDown then AnchorPositionArenaDropDown:SetPoint("RIGHT", PositionYEditBox, "RIGHT", 30, 0) end
 	if AnchorPositionRaidDropDown then AnchorPositionRaidDropDown:SetPoint("RIGHT", PositionYEditBox, "RIGHT", 30, 0) end
@@ -16162,6 +16583,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 		AlphaSliderSwipeCooldown.editbox:SetCursorPosition(0)
 		ColorPickerBackgroundInterrupt.texture:UpdateColor(frame)
 		if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+			if (AnchorPositionDropDownAnchorLabel) then
+				AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+			end
 			PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 			PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 			FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -16177,7 +16601,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "focus", "focust
 				AddItem(AnchorDropDown, L["None"], "None")
 				AddItem(AnchorDropDown, "Blizzard", "BlizzardRaidFrames")
 			elseif strfind(unitId, "nameplate") then
-				AddItem(AnchorDropDown, "Blizzard", "BlizzardNameplates")
+				AddItem(AnchorDropDown, "BlizzardNP", "BlizzardNameplates")
+				AddItem(AnchorDropDown, "BlizzardNP_UF", "BlizzardNameplatesUnitFrame")
 			else
 				AddItem(AnchorDropDown, L["None"], "None")
 				AddItem(AnchorDropDown, "Blizzard", "Blizzard")
