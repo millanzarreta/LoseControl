@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.17
+-- Version: 1.18
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -1394,6 +1394,48 @@ local anchors = {
 		raid40       = "CompactRaidFrame40"
 	},
 	BlizzardNameplates = {
+		nameplate1   = "NamePlate1",
+		nameplate2   = "NamePlate2",
+		nameplate3   = "NamePlate3",
+		nameplate4   = "NamePlate4",
+		nameplate5   = "NamePlate5",
+		nameplate6   = "NamePlate6",
+		nameplate7   = "NamePlate7",
+		nameplate8   = "NamePlate8",
+		nameplate9   = "NamePlate9",
+		nameplate10  = "NamePlate10",
+		nameplate11  = "NamePlate11",
+		nameplate12  = "NamePlate12",
+		nameplate13  = "NamePlate13",
+		nameplate14  = "NamePlate14",
+		nameplate15  = "NamePlate15",
+		nameplate16  = "NamePlate16",
+		nameplate17  = "NamePlate17",
+		nameplate18  = "NamePlate18",
+		nameplate19  = "NamePlate19",
+		nameplate20  = "NamePlate20",
+		nameplate21  = "NamePlate21",
+		nameplate22  = "NamePlate22",
+		nameplate23  = "NamePlate23",
+		nameplate24  = "NamePlate24",
+		nameplate25  = "NamePlate25",
+		nameplate26  = "NamePlate26",
+		nameplate27  = "NamePlate27",
+		nameplate28  = "NamePlate28",
+		nameplate29  = "NamePlate29",
+		nameplate30  = "NamePlate30",
+		nameplate31  = "NamePlate31",
+		nameplate32  = "NamePlate32",
+		nameplate33  = "NamePlate33",
+		nameplate34  = "NamePlate34",
+		nameplate35  = "NamePlate35",
+		nameplate36  = "NamePlate36",
+		nameplate37  = "NamePlate37",
+		nameplate38  = "NamePlate38",
+		nameplate39  = "NamePlate39",
+		nameplate40  = "NamePlate40"
+	},
+	BlizzardNameplatesUnitFrame = {
 		nameplate1   = "NamePlate1.UnitFrame",
 		nameplate2   = "NamePlate2.UnitFrame",
 		nameplate3   = "NamePlate3.UnitFrame",
@@ -4079,6 +4121,22 @@ function LoseControl:RegisterUnitEvents(enabled)
 	end
 end
 
+-- Function to get the final scale value of icon frame relative to UIParent
+function LoseControl:GetAbsoluteScaleRelativeToUIParent()
+	local resScale = 1
+	local fr = self.parent
+	local limit = 30
+	local climit = 0
+	while(fr ~= nil and fr ~= UIParent and fr ~= WorldFrame and climit < limit) do
+		if (fr.GetScale and type(fr:GetScale()) == "number") then
+			resScale = resScale * fr:GetScale()
+		end
+		fr = fr:GetParent()
+		climit = climit + 1
+	end
+	return (climit < limit) and resScale or 1
+end
+
 -- Function to update spellIds table with customSpellIds from user
 function LoseControl:UpdateSpellIdsTableWithCustomSpellIds()
 	for oSpellId, oPriority  in pairs(origSpellIdsChanged) do
@@ -4562,7 +4620,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.17"
+		self.VERSION = "1.18"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
@@ -4655,17 +4713,19 @@ LoseControl:RegisterEvent("ADDON_LOADED")
 
 function LoseControl:CheckNameplateAnchor()
 	local newAnchor = GetNamePlateForUnit(self.unitId, false)
-	if ((newAnchor ~= nil) and not(newAnchor:IsForbidden()) and (newAnchor.UnitFrame ~= nil)) then
-		local newAnchorUF = newAnchor.UnitFrame
+	local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
+	local usingNameplateMainFrame = (frame.anchor == "BlizzardNameplates")
+	if ((newAnchor ~= nil) and not(newAnchor:IsForbidden()) and (usingNameplateMainFrame or newAnchor.UnitFrame ~= nil)) then
+		local newAnchorUF = usingNameplateMainFrame and newAnchor or newAnchor.UnitFrame
 		if (self.anchor ~= newAnchorUF) then
-			local name = newAnchor:GetName()..".UnitFrame"
+			local name = newAnchor:GetName()
 			if not name or not name:match("^NamePlate") then return end
 			anchors.BlizzardNameplates[self.unitId] = name
-			local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
-			if (frame.anchor == "BlizzardNameplates") then
+			anchors.BlizzardNameplatesUnitFrame[self.unitId] = name..".UnitFrame"
+			if (frame.anchor == "BlizzardNameplates" or frame.anchor == "BlizzardNameplatesUnitFrame") then
 				local oldAnchor = self.anchor
-				if ((oldAnchor ~= nil) and (oldAnchor ~= UIParent) and not(oldAnchor:IsForbidden()) and (oldAnchor.UnitFrame ~= nil)) then
-					local oldAnchorUF = oldAnchor.UnitFrame
+				if ((oldAnchor ~= nil) and (oldAnchor ~= UIParent) and not(oldAnchor:IsForbidden()) and (usingNameplateMainFrame or oldAnchor.UnitFrame ~= nil)) then
+					local oldAnchorUF = usingNameplateMainFrame and oldAnchor or oldAnchor.UnitFrame
 					if (oldAnchorUF.lcicon == self) then
 						oldAnchorUF.lcicon = nil
 					end
@@ -4686,11 +4746,11 @@ function LoseControl:CheckNameplateAnchor()
 		end
 	else
 		anchors.BlizzardNameplates[self.unitId] = "UIParent"
-		local frame = self.frame or LoseControlDB.frames[self.fakeUnitId or self.unitId]
-		if (frame.anchor == "BlizzardNameplates") then
+		anchors.BlizzardNameplatesUnitFrame[self.unitId] = "UIParent"
+		if (frame.anchor == "BlizzardNameplates" or frame.anchor == "BlizzardNameplatesUnitFrame") then
 			local oldAnchor = self.anchor
-			if ((oldAnchor ~= nil) and (oldAnchor ~= UIParent) and not(oldAnchor:IsForbidden()) and (oldAnchor.UnitFrame ~= nil)) then
-				local oldAnchorUF = oldAnchor.UnitFrame
+			if ((oldAnchor ~= nil) and (oldAnchor ~= UIParent) and not(oldAnchor:IsForbidden()) and (usingNameplateMainFrame or oldAnchor.UnitFrame ~= nil)) then
+				local oldAnchorUF = usingNameplateMainFrame and oldAnchor or oldAnchor.UnitFrame
 				if (oldAnchorUF.lcicon == self) then
 					oldAnchorUF.lcicon = nil
 				end
@@ -4746,18 +4806,20 @@ function LoseControl:CheckAnchor(forceCheck)
 					frame.x or 0,
 					frame.y or 0
 				)
-				local PositionXEditBox, PositionYEditBox, FrameLevelEditBox
+				local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPositionDropDownAnchorLabel
 				if strfind(self.fakeUnitId or self.unitId, "party") then
 					if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'])) then
 						PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
 						PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
 						FrameLevelEditBox = _G['LoseControlOptionsPanelpartyFrameLevelEditBox']
+						AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelpartyAnchorPositionDropDownAnchorLabel']
 					end
 				elseif strfind(self.fakeUnitId or self.unitId, "raid") then
 					if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'])) then
 						PositionXEditBox = _G['LoseControlOptionsPanelraidPositionXEditBox']
 						PositionYEditBox = _G['LoseControlOptionsPanelraidPositionYEditBox']
 						FrameLevelEditBox = _G['LoseControlOptionsPanelraidFrameLevelEditBox']
+						AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelraidAnchorPositionDropDownAnchorLabel']
 					end
 				elseif strfind(self.fakeUnitId or self.unitId, "nameplate") then
 					PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
@@ -4769,6 +4831,9 @@ function LoseControl:CheckAnchor(forceCheck)
 					FrameLevelEditBox = _G['LoseControlOptionsPanel'..self.unitId..'FrameLevelEditBox']
 				end
 				if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+					if (AnchorPositionDropDownAnchorLabel) then
+						AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+					end
 					PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 					PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 					FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -4827,18 +4892,20 @@ function LoseControl:PLAYER_ENTERING_WORLD()
 		frame.x or 0,
 		frame.y or 0
 	)
-	local PositionXEditBox, PositionYEditBox, FrameLevelEditBox
+	local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPositionDropDownAnchorLabel
 	if strfind((self.fakeUnitId or unitId), "party") then
 		if ((self.fakeUnitId or unitId) == ((_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'] ~= nil) and UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown']) or "party1")) then
 			PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
 			PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
 			FrameLevelEditBox = _G['LoseControlOptionsPanelpartyFrameLevelEditBox']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelpartyAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or unitId), "raid") then
 		if ((self.fakeUnitId or unitId) == ((_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'] ~= nil) and UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown']) or "raid1")) then
 			PositionXEditBox = _G['LoseControlOptionsPanelraidPositionXEditBox']
 			PositionYEditBox = _G['LoseControlOptionsPanelraidPositionYEditBox']
 			FrameLevelEditBox = _G['LoseControlOptionsPanelraidFrameLevelEditBox']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelraidAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or unitId), "nameplate") then
 		PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
@@ -4850,6 +4917,9 @@ function LoseControl:PLAYER_ENTERING_WORLD()
 		FrameLevelEditBox = _G['LoseControlOptionsPanel'..(self.fakeUnitId or unitId)..'FrameLevelEditBox']
 	end
 	if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+		if (AnchorPositionDropDownAnchorLabel) then
+			AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+		end
 		PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 		PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 		FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -5015,6 +5085,8 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 		self.useCompactPartyFrames = value
 		if (value) then
 			anchors.Blizzard[unitId] = nil
+			MainHookCompactRaidFrames()
+			UpdateAllRaidIconsAnchorCompactRaidFrame()
 		else
 			local numId = -1
 			if (unitId == "party1") then
@@ -5037,8 +5109,6 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 		local frame = self.frame or LoseControlDB.frames[unitId]
 		if (frame.anchor == "Blizzard") or (unitId == "partyplayer") then
 			if (value) then
-				MainHookCompactRaidFrames()
-				UpdateAllRaidIconsAnchorCompactRaidFrame()
 				if not(frame.noCompactFrame) then
 					frame.noCompactFrame = {
 						["point"] = frame.point,
@@ -5160,7 +5230,11 @@ function LoseControl:CheckStatusPartyFrameChange(value)
 				local PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
 				local PositionYEditBox = _G['LoseControlOptionsPanelpartyPositionYEditBox']
 				local FrameLevelEditBox = _G['LoseControlOptionsPanelpartyFrameLevelEditBox']
+				local AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelpartyAnchorPositionDropDownAnchorLabel']
 				if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+					if (AnchorPositionDropDownAnchorLabel) then
+						AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+					end
 					PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 					PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 					FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -5387,7 +5461,7 @@ function LoseControl:UNIT_AURA(unitId, updatedAuras, typeUpdate) -- fired when a
 	local forceEventUnitAuraAtEnd = false
 	self.lastTimeUnitAuraEvent = GetTime()
 
-	if ((self.anchor ~= nil and self.anchor:IsVisible() and (self.anchor ~= UIParent or self.frame.anchor == "None")) or (self.frame.anchor ~= "None" and self.frame.anchor ~= "Blizzard" and self.frame.anchor ~= "BlizzardRaidFrames" and self.frame.anchor ~= "BlizzardNameplates" and self.anchor ~= UIParent)) and UnitExists(self.unitId) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetPlayerTargetTarget) or not(UnitIsUnit("player", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetTarget) or not(UnitIsUnit("targettarget", "player")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetTargetTarget) or not(UnitIsUnit("targettarget", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetDeadTargetTarget) or (UnitHealth("target") > 0))) then
+	if ((self.anchor ~= nil and self.anchor:IsVisible() and (self.anchor ~= UIParent or self.frame.anchor == "None")) or (self.frame.anchor ~= "None" and self.frame.anchor ~= "Blizzard" and self.frame.anchor ~= "BlizzardRaidFrames" and self.frame.anchor ~= "BlizzardNameplates" and self.frame.anchor ~= "BlizzardNameplatesUnitFrame" and self.anchor ~= UIParent)) and UnitExists(self.unitId) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetPlayerTargetTarget) or not(UnitIsUnit("player", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disablePlayerTargetTarget) or not(UnitIsUnit("targettarget", "player")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetTargetTarget) or not(UnitIsUnit("targettarget", "target")))) and ((self.unitId ~= "targettarget") or (not(LoseControlDB.disableTargetDeadTargetTarget) or (UnitHealth("target") > 0))) then
 		local reactionToPlayer = ((self.unitId == "target" or self.unitId == "targettarget" or strfind(self.unitId, "nameplate")) and UnitCanAttack("player", unitId)) and "enemy" or "friendly"
 		-- Check debuffs
 		for i = 1, 120 do
@@ -5774,7 +5848,7 @@ function LoseControl:StopMoving()
 		frame.x or 0,
 		frame.y or 0
 	)
-	local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPointDropDown, AnchorIconPointDropDown, AnchorFrameStrataDropDown
+	local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPointDropDown, AnchorIconPointDropDown, AnchorFrameStrataDropDown, AnchorPositionDropDownAnchorLabel
 	if strfind((self.fakeUnitId or self.unitId), "party") then
 		if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelpartyAnchorPositionPartyDropDown'])) then
 			PositionXEditBox = _G['LoseControlOptionsPanelpartyPositionXEditBox']
@@ -5783,6 +5857,7 @@ function LoseControl:StopMoving()
 			AnchorPointDropDown = _G['LoseControlOptionsPanelpartyAnchorPointDropDown']
 			AnchorIconPointDropDown = _G['LoseControlOptionsPanelpartyAnchorIconPointDropDown']
 			AnchorFrameStrataDropDown = _G['LoseControlOptionsPanelpartyAnchorFrameStrataDropDown']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelpartyAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or self.unitId), "raid") then
 		if ((self.fakeUnitId or self.unitId) == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanelraidAnchorPositionRaidDropDown'])) then
@@ -5792,6 +5867,7 @@ function LoseControl:StopMoving()
 			AnchorPointDropDown = _G['LoseControlOptionsPanelraidAnchorPointDropDown']
 			AnchorIconPointDropDown = _G['LoseControlOptionsPanelraidAnchorIconPointDropDown']
 			AnchorFrameStrataDropDown = _G['LoseControlOptionsPanelraidAnchorFrameStrataDropDown']
+			AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanelraidAnchorPositionDropDownAnchorLabel']
 		end
 	elseif strfind((self.fakeUnitId or self.unitId), "nameplate") then
 		PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
@@ -5809,6 +5885,9 @@ function LoseControl:StopMoving()
 		AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..(self.fakeUnitId or self.unitId)..'AnchorFrameStrataDropDown']
 	end
 	if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+		if (AnchorPositionDropDownAnchorLabel) then
+			AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+		end
 		PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 		PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 		FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -6099,6 +6178,8 @@ function Unlock:OnClick()
 						v:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
 						v:SetSwipeColor(0, 0, 0, frame.swipeAlpha*0.75)
 						v.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
+						local ulscale = v:GetAbsoluteScaleRelativeToUIParent()
+						v.parent:SetScale(ulscale)
 					else
 						v.texture:SetTexture(v.textureicon)
 						v:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
@@ -6128,6 +6209,7 @@ function Unlock:OnClick()
 					v:RegisterForDrag("LeftButton")
 					v:EnableMouse(true)
 				else
+					v.parent:SetScale(1)
 					v:EnableMouse(false)
 					v:RegisterForDrag()
 					v:SetMovable(false)
@@ -6147,6 +6229,8 @@ function Unlock:OnClick()
 				LCframeplayer2:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
 				LCframeplayer2:SetSwipeColor(0, 0, 0, frame.swipeAlpha*0.75)
 				LCframeplayer2.iconInterruptBackground:SetTexture("Interface\\AddOns\\LoseControl\\Textures\\lc_interrupt_background_portrait.blp")
+				local ulscale = LCframeplayer2:GetAbsoluteScaleRelativeToUIParent()
+				LCframeplayer2.parent:SetScale(ulscale)
 			else
 				LCframeplayer2.texture:SetTexture(LCframeplayer2.textureicon)
 				LCframeplayer2:SetSwipeColor(0, 0, 0, frame.swipeAlpha)
@@ -6168,6 +6252,7 @@ function Unlock:OnClick()
 			LCframeplayer2:SetCooldown( GetTime(), 30 )
 			LCframeplayer2:GetParent():SetAlpha(frame.alpha) -- hack to apply the alpha to the cooldown timer
 		else
+			LCframeplayer2.parent:SetScale(1)
 			LCframeplayer2.text:Hide()
 			LCframeplayer2:PLAYER_ENTERING_WORLD()
 		end
@@ -6176,6 +6261,7 @@ function Unlock:OnClick()
 		for k, v in pairs(LCframes) do
 			if not(strfind(k, "nameplate")) then
 				v.unlockMode = false
+				v.parent:SetScale(1)
 				v:EnableMouse(false)
 				v:RegisterForDrag()
 				v:SetMovable(false)
@@ -6184,6 +6270,7 @@ function Unlock:OnClick()
 			end
 		end
 		LCframeplayer2.unlockMode = false
+		LCframeplayer2.parent:SetScale(1)
 		LCframeplayer2.text:Hide()
 		LCframeplayer2:PLAYER_ENTERING_WORLD()
 	end
@@ -6463,12 +6550,12 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 			icon.parent:SetParent(icon.anchor:GetParent() or UIParent or nil)
 			icon.defaultFrameStrata = icon:GetFrameStrata()
 			if frame.anchor ~= "None" then -- reset the frame position so it centers on the anchor frame
-				frame.point = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].point) or nil
-				frame.relativePoint = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].relativePoint) or nil
-				frame.frameStrata = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameStrata) or nil
-				frame.frameLevel = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].frameLevel) or 0
-				frame.x = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].x) or nil
-				frame.y = (DBdefaults.frames[unitId] and frame.anchor == DBdefaults.frames[unitId].anchor and DBdefaults.frames[unitId].y) or nil
+				frame.point = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].point) or nil
+				frame.relativePoint = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].relativePoint) or nil
+				frame.frameStrata = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].frameStrata) or nil
+				frame.frameLevel = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].frameLevel) or 0
+				frame.x = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].x) or nil
+				frame.y = (DBdefaults.frames[unitId] and (frame.anchor == DBdefaults.frames[unitId].anchor or v == "nameplate") and DBdefaults.frames[unitId].y) or nil
 			end
 			if frame.anchor == "Blizzard" and not(icon.useCompactPartyFrames) then
 				local portrSizeValue = 36
@@ -6536,7 +6623,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				frame.x or 0,
 				frame.y or 0
 			)
-			local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPointDropDown, AnchorIconPointDropDown, AnchorFrameStrataDropDown
+			local PositionXEditBox, PositionYEditBox, FrameLevelEditBox, AnchorPointDropDown, AnchorIconPointDropDown, AnchorFrameStrataDropDown, AnchorPositionDropDownAnchorLabel
 			if v == "party" then
 				if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionPartyDropDown'])) then
 					PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
@@ -6545,6 +6632,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 					AnchorPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorPointDropDown']
 					AnchorIconPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorIconPointDropDown']
 					AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..v..'AnchorFrameStrataDropDown']
+					AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 				end
 			elseif v == "raid" then
 				if (unitId == UIDropDownMenu_GetSelectedValue(_G['LoseControlOptionsPanel'..v..'AnchorPositionRaidDropDown'])) then
@@ -6554,6 +6642,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 					AnchorPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorPointDropDown']
 					AnchorIconPointDropDown = _G['LoseControlOptionsPanel'..v..'AnchorIconPointDropDown']
 					AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..v..'AnchorFrameStrataDropDown']
+					AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 				end
 			elseif v == "nameplate" then
 				PositionXEditBox = _G['LoseControlOptionsPanelnameplatePositionXEditBox']
@@ -6571,6 +6660,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				AnchorFrameStrataDropDown = _G['LoseControlOptionsPanel'..v..'AnchorFrameStrataDropDown']
 			end
 			if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+				if (AnchorPositionDropDownAnchorLabel) then
+					AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+				end
 				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 				FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -6727,6 +6819,13 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 		end
 	end
 
+	local AnchorPositionDropDownAnchorLabel
+	if v == "party" or v == "raid" then
+		AnchorPositionDropDownAnchorLabel = OptionsPanelFrame.container:CreateFontString(O..v.."AnchorPositionDropDownAnchorLabel", "ARTWORK", "GameFontHighlightSmall")
+		AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..")")
+		AnchorPositionDropDownAnchorLabel:SetJustifyH("LEFT")
+	end
+
 	local AnchorPositionPartyDropDown
 	if v == "party" then
 		AnchorPositionPartyDropDown	= CreateFrame("Frame", O..v.."AnchorPositionPartyDropDown", OptionsPanelFrame.container, "UIDropDownMenuTemplate")
@@ -6739,7 +6838,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 			local PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
 			local PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
 			local FrameLevelEditBox = _G['LoseControlOptionsPanel'..v..'FrameLevelEditBox']
+			local AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 			if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+				if (AnchorPositionDropDownAnchorLabel) then
+					AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+				end
 				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 				FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -6798,7 +6901,11 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 			local PositionXEditBox = _G['LoseControlOptionsPanel'..v..'PositionXEditBox']
 			local PositionYEditBox = _G['LoseControlOptionsPanel'..v..'PositionYEditBox']
 			local FrameLevelEditBox = _G['LoseControlOptionsPanel'..v..'FrameLevelEditBox']
+			local AnchorPositionDropDownAnchorLabel = _G['LoseControlOptionsPanel'..v..'AnchorPositionDropDownAnchorLabel']
 			if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+				if (AnchorPositionDropDownAnchorLabel) then
+					AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+				end
 				PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 				PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 				FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -8110,6 +8217,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 		PositionEditBoxLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 		AdditionalOptionsLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 		InterruptBackgroundColorLabel:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+		if AnchorPositionDropDownAnchorLabel then AnchorPositionDropDownAnchorLabel:SetVertexColor(WHITE_FONT_COLOR:GetRGB()) end
 		BlizzardOptionsPanel_Slider_Enable(SizeSlider)
 		BlizzardOptionsPanel_Slider_Enable(AlphaSlider)
 		BlizzardOptionsPanel_Slider_Enable(AlphaSliderBackgroundInterrupt)
@@ -8208,6 +8316,7 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 		PositionEditBoxLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 		AdditionalOptionsLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 		InterruptBackgroundColorLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+		if AnchorPositionDropDownAnchorLabel then AnchorPositionDropDownAnchorLabel:SetVertexColor(GRAY_FONT_COLOR:GetRGB()) end
 		BlizzardOptionsPanel_Slider_Disable(SizeSlider)
 		BlizzardOptionsPanel_Slider_Disable(AlphaSlider)
 		BlizzardOptionsPanel_Slider_Disable(AlphaSliderBackgroundInterrupt)
@@ -8322,6 +8431,13 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 	PositionXEditBox:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 27, -3)
 	PositionYEditBoxLabel:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 90, -9)
 	PositionYEditBox:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 107, -3)
+	if AnchorPositionDropDownAnchorLabel then
+		if (v == "party" and AnchorPositionPartyDropDown) then
+			AnchorPositionDropDownAnchorLabel:SetPoint("LEFT", AnchorPositionPartyDropDown, "RIGHT", 113, 3)
+		elseif (v == "raid" and AnchorPositionRaidDropDown) then
+			AnchorPositionDropDownAnchorLabel:SetPoint("LEFT", AnchorPositionRaidDropDown, "RIGHT", 113, 3)
+		end
+	end
 	if AnchorPositionPartyDropDown then AnchorPositionPartyDropDown:SetPoint("RIGHT", PositionYEditBox, "RIGHT", 30, 0) end
 	if AnchorPositionRaidDropDown then AnchorPositionRaidDropDown:SetPoint("RIGHT", PositionYEditBox, "RIGHT", 30, 0) end
 	AnchorPointDropDownLabel:SetPoint("TOPLEFT", PositionEditBoxLabel, "BOTTOMLEFT", 10, -37)
@@ -8445,6 +8561,9 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 		AlphaSliderSwipeCooldown.editbox:SetCursorPosition(0)
 		ColorPickerBackgroundInterrupt.texture:UpdateColor(frame)
 		if (PositionXEditBox and PositionYEditBox and FrameLevelEditBox) then
+			if (AnchorPositionDropDownAnchorLabel) then
+				AnchorPositionDropDownAnchorLabel:SetText("("..L["AnchorPositionDropDownAnchorLabel"]..(type(frame.anchor)=="string" and frame.anchor or ("["..type(frame.anchor).."]"))..")")
+			end
 			PositionXEditBox:SetText(mathfloor((frame.x or 0)+0.5))
 			PositionYEditBox:SetText(mathfloor((frame.y or 0)+0.5))
 			FrameLevelEditBox:SetText(mathfloor((frame.frameLevel or 0)+0.5))
@@ -8460,7 +8579,8 @@ for _, v in ipairs({ "player", "pet", "target", "targettarget", "party", "raid",
 				AddItem(AnchorDropDown, L["None"], "None")
 				AddItem(AnchorDropDown, "Blizzard", "BlizzardRaidFrames")
 			elseif strfind(unitId, "nameplate") then
-				AddItem(AnchorDropDown, "Blizzard", "BlizzardNameplates")
+				AddItem(AnchorDropDown, "BlizzardNP", "BlizzardNameplates")
+				AddItem(AnchorDropDown, "BlizzardNP_UF", "BlizzardNameplatesUnitFrame")
 			else
 				AddItem(AnchorDropDown, L["None"], "None")
 				AddItem(AnchorDropDown, "Blizzard", "Blizzard")
