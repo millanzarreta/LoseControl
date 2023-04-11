@@ -1,7 +1,7 @@
-## Interface: 100005
+## Interface: 100007
 ## Title: LoseControl
 ## Author: millanzarreta, Kouri
-## Version: 8.01
+## Version: 8.02
 ## Notes: Displays the duration of CC effects on your character and other units
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter und andere Einheiten an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su personaje y otras unidades

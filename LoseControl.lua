@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 8.01
+-- Version: 8.02
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -572,7 +572,7 @@ local interruptsIds = {
 	},					-- Banshee Scream
 	[355638] = 4,		-- Quelling Strike
 	[358210] = 0.1,		-- Mawforged Halberd
-	[358344] = 6,		-- Disruptive Shout
+	[358344] = 1.5,		-- Disruptive Shout
 	[360096] = 3,		-- Disabling Howl
 	[363388] = 3,		-- Wallop
 	[369074] = 3,		-- Trampled
@@ -639,7 +639,12 @@ local interruptsIds = {
 	[396879] = 5,		-- Steamspout
 	[397109] = 5,		-- Hurricane Blast
 	[397805] = 0.001,	-- Cancel [DNT]
-	[397892] = 5		-- Scream of Pain
+	[397892] = 5,		-- Scream of Pain
+	[398749] = 3,		-- Skull Cracker
+	[400887] = 3,		-- Bubble Burster
+	[401165] = 1,		-- Shockwave
+	[404465] = 3,		-- Gale Force
+	[404685] = 3		-- Gangway
 }
 
 local spellIds = {
@@ -1038,6 +1043,10 @@ local spellIds = {
 	[383469] = "Snare",				-- Radiant Decree
 	[199448] = "Immune",			-- Blessing of Sacrifice (Ultimate Sacrifice pvp talent) (not immune, 100% damage transfered to paladin)
 	[337851] = "Immune",			-- Guardian of Ancient Kings (Reign of Endless Kings Legendary) (not immune, 50% damage reduction)
+	[405397] = "CC",				-- Hammer of Retribution
+	[403695] = "Snare",				-- Truth's Wake
+	[405057] = "Immune",			-- Wings of Liberty (immune to all damage, roots, and stuns)
+	[405089] = "Root",				-- Wings of Liberty
 
 	----------------
 	-- Priest
@@ -1358,6 +1367,7 @@ local spellIds = {
 	[299769] = "CC",				-- Undercut
 	[299772] = "CC",				-- Tsunami Slam
 	[299805] = "Root",				-- Undertow
+	[273909] = "Root",				-- Steelclaw Trap
 	[299785] = "CC",				-- Maelstrom
 	[310126] = "Immune",			-- Psychic Shell (not immune, 99% damage reduction) (Lingering Psychic Shell trinket)
 	[314585] = "Immune",			-- Psychic Shell (not immune, 50-80% damage reduction) (Lingering Psychic Shell trinket)
@@ -2115,6 +2125,11 @@ local spellIds = {
 	[393836] = "CC",				-- Smothering Seashell
 	[384327] = "CC",				-- Living Whirl
 	[396078] = "CC",				-- Explosive Blast
+	[390778] = "CC",				-- Mammoth Charge
+	[394014] = "CC",				-- Mammoth Charge
+	[387631] = "CC",				-- Inspire Awe
+	[390766] = "CC",				-- Mammoth Crush
+	[387681] = "CC",				-- Earthshattering Leap
 	[394497] = "CC",				-- Turbulent Waters
 	[396360] = "CC",				-- Blinding Slash
 	[398261] = "CC",				-- Avalanche Slam
@@ -2127,6 +2142,84 @@ local spellIds = {
 	[398324] = "Immune",			-- Guardian's Duty
 	[399785] = "Immune",			-- Guardian's Duty
 	[398187] = "Immune",			-- Frozen Barrier
+	[398393] = "CC",				-- Mending Totem Bash (Winterpelt Mending Totem item)
+	[405283] = "CC",				-- Crustaceous Hex
+	[405416] = "Silence",			-- Chilling Wave
+	[400908] = "Silence",			-- Suffocating Spume
+	[396359] = "CC",				-- Cheap Shot
+	[403988] = "CC",				-- Cheap Shot
+	[399061] = "CC",				-- Terrifying Presence
+	[404815] = "CC",				-- Terror Shanty
+	[396858] = "CC",				-- Hot Gas (chance to hit with attacks and spells reduced by 50%)
+	[400419] = "CC",				-- Positional Displacer
+	[400225] = "CC",				-- Faint
+	[400224] = "CC",				-- Faint
+	[398311] = "CC",				-- Drakefire Influence
+	[405266] = "CC",				-- Effuse Arcana
+	[400007] = "CC",				-- Stunned by Fish
+	[398486] = "CC",				-- Overwhelming Presence
+	[398511] = "CC",				-- Overwhelming Presence
+	[398518] = "CC",				-- Overwhelming Presence
+	[398882] = "CC",				-- Ambush
+	[403395] = "CC",				-- Ariok Clobber
+	[406572] = "CC",				-- Banana Broadside
+	[400756] = "CC",				-- Booterang
+	[400758] = "CC",				-- Booterang
+	[399063] = "CC",				-- Boulder Throw
+	[406197] = "CC",				-- Damp Scavenging
+	[406187] = "CC",				-- Damp Scavenging
+	[395798] = "CC",				-- Entombed
+	[404778] = "CC",				-- Executing Charge
+	[401265] = "CC",				-- Experimental Formula
+	[404914] = "CC",				-- Flow Like Water
+	[403959] = "CC",				-- Galvanic Focus
+	[406188] = "CC",				-- Heated Scavenging
+	[406198] = "CC",				-- Heated Scavenging
+	[403169] = "CC",				-- Judgement Wave
+	[403644] = "CC",				-- Kidney Shot
+	[400557] = "CC",				-- Permanent Feign Death ( Small Dark Blood Pool, no anim)
+	[400633] = "CC",				-- Sea's Dominance
+	[400664] = "CC",				-- Sea's Dominance
+	[400793] = "CC",				-- Sea's Dominance
+	[396667] = "CC",				-- Shattered Ice
+	[404629] = "CC",				-- Slicing Cyclone
+	[404481] = "CC",				-- Spiraling Squall
+	[398620] = "CC",				-- Stasis
+	[403570] = "CC",				-- Stasis Trap
+	[405632] = "CC",				-- Storming Rage
+	[405893] = "CC",				-- Tide Whirl
+	[399069] = "CC",				-- Tidelord's Fury
+	[398796] = "CC",				-- Tideslam
+	[403214] = "CC",				-- Unstable Ground
+	[404736] = "CC",				-- War Stomp
+	[400940] = "CC",				-- Wild Scavenging
+	[400172] = "CC",				-- Wild Scavenging
+	[397538] = "Immune",			-- Aegis of the Elements
+	[397539] = "Immune",			-- Aegis of the Elements
+	[397540] = "Immune",			-- Aegis of the Elements
+	[397541] = "Immune",			-- Aegis of the Elements
+	[400631] = "Immune",			-- Sea's Dominance
+	[405143] = "Immune",			-- Crustaceous Hex
+	[404672] = "Immune",			-- Elemental Protection
+	[404851] = "Immune",			-- Bootstorm
+	[399666] = "Immune",			-- Warding Enchant (not immune, damage taken reduced by 50%)
+	[404922] = "Immune",			-- Captain's Duty (not immune, damage taken reduced by 99%)
+	[405407] = "Immune",			-- Insatiable Rage (not immune, damage taken reduced by 50%)
+	[405552] = "Immune",			-- Battle Ready (not immune, damage taken reduced by 99%)
+	[400969] = "Immune",			-- Shield of Earth (not immune, damage taken reduced by 80%)
+	[404189] = "Immune",			-- Stoneskin Howl (not immune, damage taken reduced by 50%)
+	[399024] = "Other",				-- Monstrous Roar (damage done reduced by 30%)
+	[400159] = "Other",				-- Wing Shredder (haste and movement speed reduced by 30%)
+	[400344] = "Root",				-- Spike Traps
+	[398782] = "Root",				-- Trap Prey
+	[398193] = "Root",				-- The Master's Voice
+	[397747] = "Root",				-- Incense
+	[399025] = "Snare",				-- Arcane Shackles
+	[405015] = "Snare",				-- Pull Kite
+	[404862] = "Snare",				-- Bootstorm Booterang
+	[406557] = "Snare",				-- The Big One
+	[397027] = "Snare",				-- Wind Pressure
+	[404853] = "Snare",				-- Wind Resistance
 	[397730] = "Root",				-- Crippling Cold
 	[56]     = "CC",				-- Stun (some weapons proc)
 	[835]    = "CC",				-- Tidal Charm (trinket)
@@ -11484,7 +11577,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "8.01"
+		self.VERSION = "8.02"
 		CreateAliasForPartyFrames()
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
@@ -12244,16 +12337,6 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 								end
 								if auxSpellId == 317920 then		-- Concentration Aura (Paladin) [Interrupted Mechanic Duration -30% (stacks)]
 									duration = duration * 0.7
-								elseif auxSpellId == 372048 then	-- Oppressing Roar (Evoker) [Interrupted Mechanic Duration +20%/+50% (PvP/PvE) (stacks)]
-									if (self:ArePvpTalentsActive()) then
-										duration = duration * 1.2
-										duration2 = duration2 * 1.2
-										duration3 = duration3 * 1.2
-									else
-										duration = duration * 1.5
-										duration2 = duration2 * 1.2
-										duration3 = duration3 * 1.5
-									end
 								elseif auxSpellId == 383020 then	-- Tranquil Air (Shaman) [Interrupted Mechanic Duration -50% (doesn't stack)]
 									shamTranquilAirBuff = true
 								end
@@ -12262,6 +12345,19 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 								duration3 = duration3 * 0.5
 								if (duration3 < duration) then
 									duration = duration3
+								end
+							end
+							for i = 1, 120 do
+								local _, _, _, _, _, _, _, _, _, auxSpellId = UnitAura(unitIdFromGUID, i, "HARMFUL")
+								if not auxSpellId then break end
+								if auxSpellId == 372048 then		-- Oppressing Roar (Evoker) [Interrupted Mechanic Duration +20%/+50% (PvP/PvE) (stacks)]
+									if (self:ArePvpTalentsActive()) then
+										duration = duration * 1.3
+										duration2 = duration2 * 1.3
+									else
+										duration = duration * 1.5
+										duration2 = duration2 * 1.5
+									end
 								end
 							end
 						end
