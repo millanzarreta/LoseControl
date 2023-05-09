@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 8.02
+-- Version: 8.03
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -107,29 +107,29 @@ LCCombatLockdownDelayFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 
 local interruptsIds = {
 	-- Player Interrupts
-	[1766]   = 5,		-- Kick (Rogue)
-	[2139]   = 6,		-- Counterspell (Mage)
-	[6552]   = 4,		-- Pummel (Warrior)
+	[1766]   = 3,		-- Kick (Rogue)
+	[2139]   = 5,		-- Counterspell (Mage)
+	[6552]   = 3,		-- Pummel (Warrior)
 	[13491]  = 5,		-- Pummel (Iron Knuckles Item)
-	[19647]  = 6,		-- Spell Lock (felhunter) (Warlock)
+	[19647]  = 5,		-- Spell Lock (felhunter) (Warlock)
 	[29443]  = 10,		-- Counterspell (Clutch of Foresight)
 	[31935]  = 3,		-- Avenger's Shield (only vs npc's) (Paladin)
 	[47528]  = 3,		-- Mind Freeze (Death Knight)
-	[57994]  = 3,		-- Wind Shear (Shaman)
+	[57994]  = 2,		-- Wind Shear (Shaman)
 	[91807]  = 2,		-- Shambling Rush (Death Knight)
-	[96231]  = 4,		-- Rebuke (Paladin)
-	[93985]  = 4,		-- Skull Bash (Druid Feral)
+	[96231]  = 3,		-- Rebuke (Paladin)
+	[93985]  = 3,		-- Skull Bash (Druid Feral)
 	[97547]  = 5,		-- Solar Beam (Druid Balance)
 	[115781] = 6,		-- Optical Blast (Warlock)
-	[116705] = 4,		-- Spear Hand Strike (Monk)
-	[132409] = 6,		-- Spell Lock (command demon) (Warlock)
+	[116705] = 3,		-- Spear Hand Strike (Monk)
+	[132409] = 5,		-- Spell Lock (command demon) (Warlock)
 	[147362] = 3,		-- Countershot (Hunter)
 	[183752] = 3,		-- Disrupt (Demon Hunter)
 	[187707] = 3,		-- Muzzle (Hunter)
 	[212619] = 6,		-- Call Felhunter (Warlock)
 	[217824] = 4,		-- Shield of Virtue (Protec Paladin)
 	[220543] = 3,		-- Silence (only vs npc's) (Priest)
-	[347008] = 4,		-- Axe Toss (Warlock)
+	[347008] = 4,		-- Axe Toss (Warlock) (4sec PvE / 3sec PvP)
 	[342414] = 5,		-- Cracked Mindscreecher (Priest Anima Power)
 	[328406] = 1,		-- Discharged Anima (Necrotic Wake Item)
 	[337614] = 3,		-- Erratic Howl (Anima Power)
@@ -474,7 +474,7 @@ local interruptsIds = {
 	[254771] = 3,		-- Disruption Field
 	[255342] = 1.5,		-- Counter
 	[257549] = 1,		-- Rocky Bash
-	[257732] = 5,		-- Shattering Bellow
+	[257732] = 1.5,		-- Shattering Bellow
 	[258347] = 2,		-- Sonic Screech
 	[260344] = 3,		-- Piercing Roar
 	[262074] = 3,		-- Wind Shear
@@ -482,7 +482,7 @@ local interruptsIds = {
 	[263715] = 4,		-- Silence
 	[265431] = 4,		-- Pummel
 	[265709] = 2,		-- Shake the Earth
-	[266106] = 3,		-- Sonic Screech
+	[266106] = 2,		-- Sonic Screech
 	[267257] = 4,		-- Thundering Crash
 	[268240] = 4,		-- Shout Down
 	[270009] = 2,		-- Pummel
@@ -577,7 +577,7 @@ local interruptsIds = {
 	[363388] = 3,		-- Wallop
 	[369074] = 3,		-- Trampled
 	[371812] = 5,		-- Wind Burst
-	[373545] = 2,		-- Echolocation
+	[373545] = 3,		-- Echolocation
 	[374122] = 3,		-- Trampled
 	[374137] = 3,		-- Hoof Kick
 	[374342] = 5,		-- Aquabomb
@@ -631,7 +631,6 @@ local interruptsIds = {
 	[395427] = 3,		-- Burning Roar
 	[395699] = 2,		-- Wild Brutality
 	[395952] = 3,		-- Shield Bash
-	[396310] = 5,		-- Steamspout
 	[396415] = 5,		-- Hurricane Blast
 	[396601] = 3,		-- Massive Charge
 	[396605] = 3,		-- Shrieking Bleat
@@ -640,11 +639,17 @@ local interruptsIds = {
 	[397109] = 5,		-- Hurricane Blast
 	[397805] = 0.001,	-- Cancel [DNT]
 	[397892] = 5,		-- Scream of Pain
+	[398392] = 15,		-- Stomp
+	[398553] = 3,		-- Horned Charge
 	[398749] = 3,		-- Skull Cracker
+	[400052] = 3,		-- Dissonant Blast
+	[400055] = 3,		-- Deafening Roar
 	[400887] = 3,		-- Bubble Burster
 	[401165] = 1,		-- Shockwave
 	[404465] = 3,		-- Gale Force
-	[404685] = 3		-- Gangway
+	[404685] = 3,		-- Gangway
+	[404754] = 3,		-- Blasting Scream
+	[412700] = 2		-- Deafening Roar
 }
 
 local spellIds = {
@@ -719,6 +724,7 @@ local spellIds = {
 	[115018] = "Other",				-- Desecrated Ground (Immune to CC)
 	[207319] = "Immune",			-- Corpse Shield (not immune, 90% damage redirected to pet)
 	[48707]  = "ImmuneSpell",		-- Anti-Magic Shell
+	[410358] = "ImmuneSpell",		-- Anti-Magic Shell (pvp talent)
 	[51271]  = "Other",				-- Pillar of Frost
 	[48792]  = "Other",				-- Icebound Fortitude
 	[49039]  = "Other",				-- Lichborne
@@ -731,13 +737,12 @@ local spellIds = {
 	[315443] = "Other",				-- Abomination Limb
 	[340735] = "Other",				-- Abomination Limb
 	[383269] = "Other",				-- Abomination Limb
-	[383269] = "Other",				-- Abomination Limb
 	[145629] = "Other",				-- Anti-Magic Zone (20%/50% damage reduction in PvE/PvP) (ImmuneSpell category on PvP (50%), Other on PvE (20%))
 	[207167] = "CC",				-- Blinding Sleet
 	[207165] = "CC",				-- Abomination's Might
 	[207171] = "Root",				-- Winter is Coming
 	[287254] = "CC",				-- Dead of Winter (pvp talent)
-	[210141] = "CC",				-- Zombie Explosion (Reanimation PvP Talent)
+	[210141] = "CC",				-- Zombie Explosion (Reanimation pvp talent)
 	[206961] = "CC",				-- Tremble Before Me
 	[248406] = "CC",				-- Cold Heart (legendary)
 	[233395] = "Root",				-- Deathchill (pvp talent)
@@ -754,6 +759,7 @@ local spellIds = {
 	[356518] = "Snare",				-- Doomburst (pvp talent)
 	[279303] = "Snare",				-- Frostwyrm's Fury
 	[389681] = "Snare",				-- Clenching Grasp
+	[410790] = "Snare",				-- Frostwyrm's Fury
 	[334693] = "CC",				-- Absolute Zero (Legendary)
 	[377048] = "CC",				-- Absolute Zero
 
@@ -778,8 +784,8 @@ local spellIds = {
 	[163505] = "CC",				-- Rake
 	[22570]  = "CC",				-- Maim
 	[203123] = "CC",				-- Maim
-	[203126] = "CC",				-- Maim (pvp honor talent)
-	[236025] = "CC",				-- Enraged Maim (pvp honor talent)
+	[203126] = "CC",				-- Maim (pvp talent)
+	[236025] = "CC",				-- Enraged Maim (pvp talent)
 	[5211]   = "CC",				-- Mighty Bash
 	[2637]   = "CC",				-- Hibernate
 	[81261]  = "Silence",			-- Solar Beam
@@ -791,7 +797,7 @@ local spellIds = {
 	[50259]  = "Snare",				-- Dazed (Wild Charge - Cat)
 	[61391]  = "Snare",				-- Typhoon
 	[127797] = "Snare",				-- Ursol's Vortex
-	[232559] = "Snare",				-- Thorns (pvp honor talent)
+	[232559] = "Snare",				-- Thorns (pvp talent)
 	[345209] = "Snare",				-- Infected Wounds
 	[61336]  = "Immune",			-- Survival Instincts (not immune, damage taken reduced by 50%)
 	[362486] = "Immune",			-- Keeper of the Grove (pvp talent)
@@ -799,7 +805,7 @@ local spellIds = {
 	[332172] = "Other",				-- Frenzied Regeneration
 	[332471] = "Other",				-- Frenzied Regeneration
 	[132158] = "Other",				-- Nature's Swiftness
-	[305497] = "Other",				-- Thorns (pvp honor talent)
+	[305497] = "Other",				-- Thorns (pvp talent)
 	[102543] = "Other",				-- Incarnation: King of the Jungle
 	[106951] = "Other",				-- Berserk
 	[194223] = "Other",				-- Celestial Alignment
@@ -847,7 +853,7 @@ local spellIds = {
 	[212353] = "Root",				-- Harpoon
 	[162480] = "Root",				-- Steel Trap
 	[200108] = "Root",				-- Ranger's Net
-	[212638] = "CC",				-- Tracker's Net (pvp honor talent) -- Also -80% hit chance melee & range physical (CC and Root category)
+	[212638] = "CC",				-- Tracker's Net (pvp talent) -- Also -80% hit chance melee & range physical (CC and Root category)
 	[357021] = "CC",				-- Consecutive Concussion
 	[186387] = "Snare",				-- Bursting Shot
 	[224729] = "Snare",				-- Bursting Shot
@@ -856,9 +862,9 @@ local spellIds = {
 	[186289] = "Other",				-- Aspect of the Eagle
 	[288613] = "Other",				-- Trueshot
 	[53480]  = "Other",				-- Roar of Sacrifice
-	[203337] = "CC",				-- Freezing Trap (Diamond Ice - pvp honor talent)
-	[202748] = "Immune",			-- Survival Tactics (pvp honor talent) (not immune, 90% damage reduction)
-	[248519] = "ImmuneSpell",		-- Interlope (pvp honor talent)
+	[203337] = "CC",				-- Freezing Trap (Diamond Ice - pvp talent)
+	[202748] = "Immune",			-- Survival Tactics (pvp talent) (not immune, 90% damage reduction)
+	[248519] = "ImmuneSpell",		-- Interlope (pvp talent)
 	[5384]   = "Other",				-- Feign Death
 	[356723] = "Snare",				-- Scorpid Venom (pvp talent)
 	[356727] = "Silence",			-- Spider Venom (pvp talent)
@@ -867,6 +873,8 @@ local spellIds = {
 	[388045] = "Other",				-- Sentinel Owl
 	[393774] = "Other",				-- Sentinel's Perception
 	[393456] = "Root",				-- Entrapment
+	[407031] = "Disarm",			-- Sticky Tar Bomb
+	[407032] = "Disarm",			-- Sticky Tar Bomb
 
 		----------------
 		-- Hunter Pets
@@ -986,18 +994,19 @@ local spellIds = {
 	[325153] = "CC",				-- Exploding Keg (melee and ranged chance to hit reduced by 100%)
 	[198909] = "CC",				-- Song of Chi-Ji
 	[233759] = "Disarm",			-- Grapple Weapon
-	[202274] = "CC",				-- Incendiary Brew (honor talent)
-	[202346] = "CC",				-- Double Barrel (honor talent)
-	[123407] = "Root",				-- Spinning Fire Blossom (honor talent)
+	[202274] = "CC",				-- Incendiary Brew (pvp talent)
+	[202346] = "CC",				-- Double Barrel (pvp talent)
+	[123407] = "Root",				-- Spinning Fire Blossom (pvp talent)
 	[115176] = "Immune",			-- Zen Meditation (60% damage reduction)
-	[202248] = "ImmuneSpell",		-- Guided Meditation (pvp honor talent) (redirect spells to monk)
+	[202248] = "ImmuneSpell",		-- Guided Meditation (pvp talent) (redirect spells to monk)
 	[353319] = "ImmuneSpell",		-- Peaceweaver (pvp talent)
 	[201787] = "Snare",				-- Heavy-Handed Strikes
+	[406896] = "Snare",				-- Fae Accord (pvp talent)
 	[353937] = "Other",				-- Essence Font (pvp talent)
 	[122278] = "Other",				-- Dampen Harm
 	[243435] = "Other",				-- Fortifying Brew
 	[120954] = "Other",				-- Fortifying Brew
-	[201318] = "Other",				-- Fortifying Brew (pvp honor talent)
+	[201318] = "Other",				-- Fortifying Brew (pvp talent)
 	[116849] = "Other",				-- Life Cocoon
 	[214326] = "Other",				-- Exploding Keg (artifact trait - blind)
 	[213664] = "Other",				-- Nimble Brew (duration of root, stun, fear and horror effects reduced by 60%) (pvp talent)
@@ -1017,7 +1026,7 @@ local spellIds = {
 	[31935]  = "Silence",			-- Avenger's Shield
 	[187219] = "Silence",			-- Avenger's Shield (pvp talent)
 	[199512] = "Silence",			-- Avenger's Shield (unknow use)
-	[217824] = "Silence",			-- Shield of Virtue (pvp honor talent)
+	[217824] = "Silence",			-- Shield of Virtue (pvp talent)
 	[204242] = "Snare",				-- Consecration (talent Consecrated Ground)
 	[183218] = "Snare",				-- Hand of Hindrance
 	[642]    = "Immune",			-- Divine Shield
@@ -1035,6 +1044,7 @@ local spellIds = {
 	[212641] = "Immune",			-- Guardian of Ancient Kings (not immune, 50% damage reduction)
 	[174535] = "Immune",			-- Guardian of Ancient Kings (not immune, 50% damage reduction)
 	[10326]  = "CC",				-- Turn Evil
+	[410201] = "CC",				-- Searing Glare (pvp talent)
 	[228050] = "Immune",			-- Divine Shield (Guardian of the Forgotten Queen)
 	[205273] = "Snare",				-- Wake of Ashes (artifact trait) (snare)
 	[205290] = "CC",				-- Wake of Ashes (artifact trait) (stun)
@@ -1045,8 +1055,6 @@ local spellIds = {
 	[337851] = "Immune",			-- Guardian of Ancient Kings (Reign of Endless Kings Legendary) (not immune, 50% damage reduction)
 	[405397] = "CC",				-- Hammer of Retribution
 	[403695] = "Snare",				-- Truth's Wake
-	[405057] = "Immune",			-- Wings of Liberty (immune to all damage, roots, and stuns)
-	[405089] = "Root",				-- Wings of Liberty
 
 	----------------
 	-- Priest
@@ -1069,17 +1077,18 @@ local spellIds = {
 	[33206]  = "Other",				-- Pain Suppression (damage taken reduced by 40%)
 	[375901] = "Other",				-- Mind Games
 	[27827]  = "Immune",			-- Spirit of Redemption
-	[290114] = "Immune",			-- Spirit of Redemption	(pvp honor talent)
-	[215769] = "Immune",			-- Spirit of Redemption	(pvp honor talent)
-	[232707] = "Immune",			-- Ray of Hope (pvp honor talent - not immune, only delay damage and heal)
-	[213610] = "Other",				-- Holy Ward (pvp honor talent - wards against the next loss of control effect)
+	[290114] = "Immune",			-- Spirit of Redemption	(pvp talent)
+	[215769] = "Immune",			-- Spirit of Redemption	(pvp talent)
+	[232707] = "Immune",			-- Ray of Hope (pvp talent - not immune, only delay damage and heal)
+	[408558] = "Immune",			-- Phase Shift (pvp talent)
+	[213610] = "Other",				-- Holy Ward (pvp talent - wards against the next loss of control effect)
 	[289655] = "Other",				-- Holy Word: Concentration
 	[226943] = "CC",				-- Mind Bomb
 	[200196] = "CC",				-- Holy Word: Chastise
 	[200200] = "CC",				-- Holy Word: Chastise (talent)
 	[358861] = "CC",				-- Void Volley: Horrify (pvp talent)
 	[204263] = "Snare",				-- Shining Force
-	[199845] = "Other",				-- Psyflay (pvp honor talent - Psyfiend)
+	[199845] = "Other",				-- Psyflay (pvp talent - Psyfiend)
 	[210979] = "Snare",				-- Focus in the Light (artifact trait)
 	[390669] = "Snare",				-- Apathy
 
@@ -1106,16 +1115,16 @@ local spellIds = {
 	[121471] = "Other",				-- Shadow Blades
 	[45182]  = "Immune",			-- Cheating Death (-85% damage taken)
 	[5277]   = "ImmunePhysical",	-- Evasion (dodge chance increased by 100%)
-	[199027] = "ImmunePhysical", 	-- Veil of Midnight (pvp honor talent)
+	[199027] = "ImmunePhysical", 	-- Veil of Midnight (pvp talent)
 	[212183] = "Other",				-- Smoke Bomb
 	[207777] = "Disarm",			-- Dismantle
-	[212283] = "Other",				-- Symbols of Death
 	[207736] = "Other",				-- Shadowy Duel
 	[382245] = "Other",				-- Cold Blood
 	[199743] = "CC",				-- Parley
 	[185422] = "Other",				-- Shadow Dance
 	[206760] = "Snare",				-- Shadow's Grasp
-	[198222] = "Snare",				-- System Shock (pvp honor talent) (90% slow)
+	[198222] = "Snare",				-- System Shock (pvp talent) (90% slow)
+	[354812] = "Snare",				-- Distracting Mirage: Slow (pvp talent)
 	[226364] = "ImmunePhysical",	-- Evasion (Shadow Swiftness, artifact trait)
 	[209786] = "Snare",				-- Goremaw's Bite (artifact trait)
 
@@ -1151,9 +1160,8 @@ local spellIds = {
 	[356824] = "CC",				-- Water Unleashed (pvp talent) (damage and healing reduced by 50%)
 	[356738] = "Root",				-- Earth Unleashed (pvp talent)
 	[8178]   = "ImmuneSpell",		-- Grounding Totem Effect (Grounding Totem)
-	[204399] = "CC",				-- Earthfury (PvP Talent)
+	[204399] = "CC",				-- Earthfury (pvp Talent)
 	[192058] = "CC",				-- Lightning Surge totem (capacitor totem)
-	[210918] = "ImmunePhysical",	-- Ethereal Form
 	[305485] = "CC",				-- Lightning Lasso
 	[204437] = "CC",				-- Lightning Lasso
 	[197214] = "CC",				-- Sundering
@@ -1164,6 +1172,7 @@ local spellIds = {
 	[383020] = "Other",				-- Tranquil Air (duration of all interrupt effects reduced by 50%)
 	[378080] = "Snare",				-- Enfeeblement
 	[204408] = "Snare",				-- Thunderstorm (Traveling Storms) (pvp talent)
+	[409293] = "Immune",			-- Burrow (cannot be attacked) (pvp talent)
 
 		----------------
 		-- Shaman Pets
@@ -1189,7 +1198,7 @@ local spellIds = {
 	[113858] = "Other",				-- Dark Soul: Instability
 	[333889] = "Other",				-- Fel Domination
 	[212295] = "ImmuneSpell",		-- Netherward (reflects spells)
-	[233582] = "Root",				-- Entrenched in Flame (pvp honor talent)
+	[233582] = "Root",				-- Entrenched in Flame (pvp talent)
 	[334275] = "Snare",				-- Curse of Exhaustion
 	[384069] = "Snare",				-- Shadowflame
 
@@ -1203,7 +1212,7 @@ local spellIds = {
 		[261589] = "CC",			-- Seduction (Succubus)
 		[171017] = "CC",			-- Meteor Strike (infernal)
 		[171018] = "CC",			-- Meteor Strike (abisal)
-		[213688] = "CC",			-- Fel Cleave (Fel Lord - PvP Talent)
+		[213688] = "CC",			-- Fel Cleave (Fel Lord - pvp talent)
 		[170996] = "Snare",			-- Debilitate (Terrorguard)
 		[170995] = "Snare",			-- Cripple (Doomguard)
 		[6360]   = "Snare",			-- Whiplash (Succubus)
@@ -1235,23 +1244,24 @@ local spellIds = {
 	[18499]  = "Other",				-- Berserker Rage
 	[107574] = "Other",				-- Avatar
 	[262228] = "Other",				-- Deadly Calm
-	[198819] = "Other",				-- Mortal Strike (50% heal reduction) (pvp honor talent)
+	[198819] = "Other",				-- Mortal Strike (50% heal reduction) (pvp talent)
 	[236321] = "Other",				-- War Banner
 	[236438] = "Other",				-- War Banner
 	[236439] = "Other",				-- War Banner
 	[236273] = "Other",				-- Duel
-	[198817] = "Other",				-- Sharpen Blade (pvp honor talent)
+	[198817] = "Other",				-- Sharpen Blade (pvp talent)
 	[184364] = "Other",				-- Enraged Regeneration
 	[392966] = "Other",				-- Spell Block (able to block spells)
 	[385954] = "CC",				-- Shield Charge
 	[386397] = "Immune",			-- Battle-Scarred Veteran (not immune, damage taken reduced by 80%)
 	[118038] = "ImmunePhysical",	-- Die by the Sword (parry chance increased by 100%, damage taken reduced by 30%)
-	[198760] = "ImmunePhysical",	-- Intercept (pvp honor talent) (intercept the next ranged or melee hit)
+	[198760] = "ImmunePhysical",	-- Intercept (pvp talent) (intercept the next ranged or melee hit)
 	[199085] = "CC",				-- Warpath
 	[199042] = "Root",				-- Thunderstruck
 	[356356] = "Root",				-- Warbringer (pvp talent)
 	[236236] = "Disarm",			-- Disarm (pvp talent - protection)
 	[236077] = "Disarm",			-- Disarm (pvp talent)
+	[407789] = "ImmuneSpell",		-- Spell Wall
 
 	----------------
 	-- Shadowlands Covenant Spells
@@ -1276,7 +1286,6 @@ local spellIds = {
 	[325321] = "CC",				-- Wild Hunt's Charge
 	[320224] = "CC",				-- Podtender
 	[335704] = "Immune",			-- Watch of the Wise (not immune, damage reduced by 100% rapidly decaying over time)
-	[323673] = "Other",				-- Mind Games
 	[323524] = "Other",				-- Ultimate Form (immune to CC)
 	[330752] = "Other",				-- Ascendant Phial (immune to curse, disease, poison, and bleed effects)
 	[326514] = "Other",				-- Forgeborne Reveries
@@ -1300,7 +1309,7 @@ local spellIds = {
 	----------------
 	-- Other
 	----------------
-	[362699] = "ImmuneSpell",		-- Precognition (immune to crowd control effects) (pvp talent)
+	[377362] = "ImmuneSpell",		-- Precognition (immune to crowd control effects) (pvp embellishment)
 	[224074] = "CC",				-- Devilsaur's Bite (trinket)
 	[127723] = "Root",				-- Covered In Watermelon (trinket)
 	[42803]  = "Snare",				-- Frostbolt (trinket)
@@ -2202,6 +2211,7 @@ local spellIds = {
 	[405143] = "Immune",			-- Crustaceous Hex
 	[404672] = "Immune",			-- Elemental Protection
 	[404851] = "Immune",			-- Bootstorm
+	[404615] = "Immune",			-- Impenetrable Stone
 	[399666] = "Immune",			-- Warding Enchant (not immune, damage taken reduced by 50%)
 	[404922] = "Immune",			-- Captain's Duty (not immune, damage taken reduced by 99%)
 	[405407] = "Immune",			-- Insatiable Rage (not immune, damage taken reduced by 50%)
@@ -2221,6 +2231,153 @@ local spellIds = {
 	[397027] = "Snare",				-- Wind Pressure
 	[404853] = "Snare",				-- Wind Resistance
 	[397730] = "Root",				-- Crippling Cold
+	[412548] = "Immune",			-- Sarkareth
+	[408801] = "Immune",			-- Incorporeal
+	[410989] = "Immune",			-- Stay a While
+	[400378] = "Immune",			-- Stone's Protection
+	[406404] = "Immune",			-- Olfactory Defenses
+	[406405] = "Immune",			-- Olfactory Defenses
+	[406406] = "Immune",			-- Olfactory Defenses
+	[406407] = "Immune",			-- Olfactory Defenses
+	[407600] = "Immune",			-- Magma-Forged Frame
+	[401212] = "ImmuneSpell",		-- Crystal Reflection (reflect all spells)
+	[412997] = "Silence",			-- Orb of Protection
+	[410065] = "Silence",			-- Reactive Resin
+	[407061] = "Immune",			-- Reverent Flames (not immune, damage taken reduced by 50%)
+	[408962] = "CC",				-- Start Ritual
+	[404216] = "CC",				-- Sorcerous Tempest
+	[407949] = "CC",				-- Shadowflame Rockets
+	[403075] = "CC",				-- Swimming
+	[400512] = "CC",				-- Impossible Heat
+	[404372] = "CC",				-- Impossible Heat
+	[412498] = "CC",				-- Stagnating Pool
+	[410246] = "CC",				-- Shattered Mind
+	[410812] = "CC",				-- Faint
+	[410813] = "CC",				-- Faint
+	[410870] = "CC",				-- Cyclone
+	[406346] = "CC",				-- Dire End
+	[406342] = "CC",				-- Dread Torrent
+	[404565] = "CC",				-- Desperate Scream
+	[412582] = "CC",				-- Predatory Fear
+	[398627] = "CC",				-- Startled!
+	[400057] = "CC",				-- Horrifying Screech
+	[402058] = "CC",				-- Dark Whispers
+	[402772] = "CC",				-- Horrifying Shriek
+	[407241] = "CC",				-- Suspicious Spores
+	[411408] = "CC",				-- Focused Nightmare
+	[412402] = "CC",				-- Terrifying Howls
+	[410289] = "CC",				-- Frightened
+	[412368] = "CC",				-- Blinding Underlight
+	[404671] = "CC",				-- Effervesta's Smoke Bomb
+	[405954] = "CC",				-- [PH] Conflagration
+	[400025] = "CC",				-- Dig Deeper
+	[405450] = "Root",				-- Eating
+	[401125] = "Root",				-- Corrupted Beasts
+	[407797] = "Root",				-- Shadow Strike
+	[407189] = "Root",				-- Unbearable Stench
+	[411396] = "Root",				-- Entangling Kelp
+	[407351] = "Root",				-- Unbearable Stench
+	[407437] = "Root",				-- Unbearable Stench
+	[407426] = "Root",				-- Unbearable Stench
+	[411940] = "Root",				-- Unbearable Stench
+	[408656] = "Root",				-- Lifting Rock Weight
+	[407081] = "Root",				-- Burying a Brave Shikaar
+	[409029] = "Root",				-- Niffen Emergence
+	[409031] = "Root",				-- Niffen Submerging
+	[412454] = "Root",				-- Blend In
+	[405910] = "Root",				-- Rooted (DNT)
+	[397807] = "Immune",			-- Command: Aggression
+	[412738] = "Immune",			-- Defense Matrix (not immune, damage taken reduced by 70%)
+	[410631] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
+	[403284] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
+	[410654] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
+	[407816] = "Immune",			-- Stygian Shield (not immune, damage taken reduced by 90%)
+	[407704] = "Immune",			-- Igneous Hide (not immune, damage taken reduced by 99%)
+	[398391] = "ImmuneSpell",		-- Crystal Shell (not immune, magic damage taken reduced by 50%)
+	[398643] = "ImmunePhysical",	-- Rock Shell (not immune, physical damage taken reduced by 50%)
+	[406488] = "CC",				-- Angry Friend (Friendship Censer trinket)
+	[406747] = "CC",				-- Suspended Sulfuric Droplet (Suspended Sulfuric Droplet trinket)
+	[396859] = "CC",				-- Seismic Spike
+	[369107] = "CC",				-- Golem Smash
+	[393458] = "CC",				-- Earth Spike
+	[404496] = "CC",				-- Shattering Blast
+	[409226] = "CC",				-- Leeching Power
+	[409291] = "CC",				-- Stun Self
+	[411083] = "CC",				-- Assassinate
+	[411870] = "CC",				-- Cave Pebbles
+	[408085] = "CC",				-- Coalescence of Shadowflame
+	[404578] = "CC",				-- Questionable Jerky
+	[405962] = "CC",				-- Dirtbreath
+	[409724] = "CC",				-- Earthen Grasp
+	[410836] = "CC",				-- Earthen Grasp
+	[398373] = "CC",				-- Petrifying Bite
+	[399242] = "CC",				-- Elemental Binding
+	[400128] = "CC",				-- Elemental Binding
+	[401227] = "CC",				-- Raging Winds
+	[408969] = "CC",				-- Shattering Smash
+	[411720] = "CC",				-- Fire Blast
+	[412571] = "CC",				-- Knockdown Stun
+	[412572] = "CC",				-- Knockdown Stun
+	[412573] = "CC",				-- Knockdown Stun
+	[398612] = "CC",				-- Shadowflame Slag
+	[399748] = "CC",				-- Jump
+	[400296] = "CC",				-- Concussive Blast
+	[401194] = "CC",				-- Ragewind Vortex
+	[402769] = "CC",				-- Paralysis Weave
+	[403079] = "CC",				-- Infusing Hammer
+	[404192] = "CC",				-- Imprisoned!
+	[404962] = "CC",				-- Crush Earth
+	[407108] = "CC",				-- Violent Quake
+	[407292] = "CC",				-- Tenebrous Outburst
+	[407420] = "CC",				-- Rolling Quake
+	[407503] = "CC",				-- Seismic Slam
+	[407649] = "CC",				-- Devour
+	[408094] = "CC",				-- Unshackled Fire
+	[408134] = "CC",				-- Trample
+	[408810] = "CC",				-- Cave Scorpions
+	[408830] = "CC",				-- Tunneling Crash
+	[410184] = "CC",				-- Cave Escape
+	[411719] = "CC",				-- Frost Blast
+	[412361] = "CC",				-- Calcifying Burst
+	[412422] = "CC",				-- Devoured
+	[400189] = "CC",				-- Rambling with Rupert
+	[401251] = "CC",				-- Rambling with Rupert Again
+	[409079] = "CC",				-- Rambling with Rupert Again
+	[409020] = "CC",				-- Rambling with Rupert - WQ [DNT]
+	[407677] = "CC",				-- Permanent Feign Death (Blood Pool and Flies)
+	[408149] = "CC",				-- Fake Death
+	[403707] = "CC",				-- Sarkareth
+	[408169] = "CC",				-- Reuse
+	[404742] = "CC",				-- OUCH!
+	[405918] = "CC",				-- Fiery Implosion
+	[410217] = "CC",				-- Stun
+	[408646] = "CC",				-- (DNT) Stun, No Casting, No Fall Dmg
+	[408566] = "CC",				-- [DNT]Stun
+	[408906] = "CC",				-- [DNT]Stun Boss
+	[405186] = "CC",				-- [DNT] Cosmetic State Dead
+	[412587] = "CC",				-- [DNT] Scenario Transition - Teleport
+	[400996] = "CC",				-- Teleport [DNT]
+	[404725] = "CC",				-- Knockback + 1 sec stun Self [DNT]
+	[406245] = "CC",				-- Scene Over [DNT]
+	[410211] = "CC",				-- Start Dig [DNT]
+	[406584] = "Snare",				-- Angry Friend
+	[411600] = "Snare",				-- Awful Smell
+	[409394] = "Snare",				-- Carrying Boulder
+	[408771] = "Snare",				-- Cave Scorpions
+	[402812] = "Snare",				-- Corrosive Energy
+	[401361] = "Snare",				-- Crush
+	[408975] = "Snare",				-- Dancing Steel
+	[404161] = "Snare",				-- Frost Bite
+	[404437] = "Snare",				-- Frost Shock
+	[406494] = "Snare",				-- Infused Strikes
+	[401007] = "Snare",				-- Remove Spear
+	[410132] = "Snare",				-- Researchers Wheel Barrow
+	[411931] = "Snare",				-- Rootberry Rockshake
+	[405006] = "Snare",				-- Slime Sucker 2000
+	[399347] = "Snare",				-- Snail Lasso
+	[411454] = "Snare",				-- Snail Speed
+	[401205] = "Snare",				-- Sticky Mucus
+	[404402] = "Snare",				-- Wild Breath
 	[56]     = "CC",				-- Stun (some weapons proc)
 	[835]    = "CC",				-- Tidal Charm (trinket)
 	[8312]   = "Root",				-- Trap (Hunting Net trinket)
@@ -3339,6 +3496,39 @@ local spellIds = {
 	------------------------
 	---- PVE DRAGONFLIGHT
 	------------------------
+	-- Aberrus, the Shadowed Crucible Raid
+	-- -- Trash
+	[406288] = "CC",				-- Dream Burst
+	[409921] = "CC",				-- Stunning Attack
+	[409616] = "CC",				-- Umbral Torrent
+	[408676] = "Immune",			-- Iron Guard (not immune, damage taken reduced by 90%)
+	[409041] = "Root",				-- Congealed Mass
+	[410981] = "Root",				-- Iron Jaws
+	[411892] = "Other",				-- Viscous Bile (haste reduced by 75%)
+	[409578] = "Other",				-- Dark Bindings (haste reduced by 65%)
+	[406911] = "Other",				-- Brutal Cauterization
+	[407212] = "Snare",				-- Talon's Grip
+	-- -- Kazzara, the Hellforged
+	[402299] = "Snare",				-- Ray of Anguish
+	-- -- The Amalgamation Chamber
+	[406730] = "Immune",			-- Crucible Instability (not immune, damage taken reduced by 99%)
+	[407965] = "Other",				-- Elemental Instability (damage increased by 200%)
+	-- -- Rashok, the Elder
+	[401419] = "CC",				-- Elder's Conduit
+	[411709] = "CC",				-- Elder's Conduit
+	-- -- Assault of the Zaqali
+	[411230] = "Immune",			-- Ignara's Flame
+	-- -- Echo of Neltharion
+	[402120] = "CC",				-- Collapsed Earth
+	[407220] = "CC",				-- Rushing Darkness
+	[403049] = "Immune",			-- Shadow Barrier (not immune, damage taken reduced by 99%)
+	[407919] = "CC",				-- Sundered Reality (damage done reduced by 99%)
+	[411575] = "CC",				-- Sundered Reality (damage done reduced by 99%)
+	[405484] = "Snare",				-- Surrendering to Corruption
+	-- -- Scalecommander Sarkareth
+	[401215] = "CC",				-- Emptiness Between Stars (damage done reduced by 99%)
+	[401905] = "CC",				-- Dazzled
+	------------------------
 	-- Vault of the Incarnates Raid
 	-- -- Trash
 	[394800] = "CC",				-- Stone Blast
@@ -3389,11 +3579,16 @@ local spellIds = {
 	[388767] = "Root",				-- Binding Ice
 	[389287] = "Snare",				-- Glacial Storm
 	[388924] = "Snare",				-- Biting Frost
+	-- -- The Zaqali Elders
+	[407563] = "Immune",			-- Empowered Rivalry (not immune, damage taken reduced by 90%)
+	[407787] = "Immune",			-- Stygian Shield (not immune, damage taken reduced by 90%)
+	[407815] = "Immune",			-- Smelted Bulwark (not immune, damage taken reduced by 90%)
 	------------------------
 	-- Dragonflight Dungeons
 	-- -- Common
 	[396411] = "CC",				-- Primal Overload
 	[394873] = "CC",				-- Lightning Strike
+	[408777] = "CC",				-- Entangled
 	-- -- Algeth'ar Academy
 	[390297] = "Immune",			-- Dormant
 	[377008] = "Silence",			-- Deafening Screech
@@ -3425,7 +3620,6 @@ local spellIds = {
 	[387585] = "Immune",			-- Submerge (not immune, damage taken reduced by 99%)
 	[383840] = "Immune",			-- Ablative Barrier (not immune, damage taken reduced by 99%)
 	[384524] = "CC",				-- Titanic Fist
-	[374020] = "Root",				-- Containment Beam
 	[374563] = "CC",				-- Dazzle
 	[374724] = "Root",				-- Molten Subduction
 	[391610] = "CC",				-- Binding Winds
@@ -4877,7 +5071,6 @@ local spellIds = {
 	[258182] = "CC",				-- Boulder Throw
 	[268283] = "CC",				-- Obscured Vision (hit chance decreased 75%)
 	[257274] = "Snare",				-- Vile Coating
-	[257478] = "Snare",				-- Crippling Bite
 	[257747] = "Snare",				-- Earth Shaker
 	[257784] = "Snare",				-- Frost Blast
 	[272554] = "Snare",				-- Bloody Mess
@@ -5210,7 +5403,6 @@ local spellIds = {
 	[199063] = "Root",				-- Strangling Roots
 	-- -- Halls of Valor
 	[198088] = "CC",				-- Glowing Fragment
-	--[215429] = "CC",				-- Thunderstrike (it is no longer a CC)
 	[199340] = "CC",				-- Bear Trap
 	[210749] = "CC",				-- Static Storm
 	-- -- Neltharion's Lair
@@ -5282,7 +5474,7 @@ local spellIds = {
 	[154442] = "CC",				-- Malevolence (damage dealt reduced by 50%)
 	[158061] = "CC",				-- Blessed Waters of Purity
 	[153692] = "Snare",				-- Necrotic Pitch
-	[152819] = "Snare",				-- Shadow Word: Frailty
+	[152819] = "Other",				-- Shadow Word: Frailty
 	-- -- Auchindoun
 	[154617] = "CC",				-- Shattering
 	[154218] = "CC",				-- Arbiter's Hammer
@@ -5361,7 +5553,7 @@ local spellIds = {
 	[113309] = "Immune",			-- Ultimate Power
 	[114826] = "CC",				-- Songbird Serenade
 	[145883] = "Snare",				-- Noodled
-	[110125] = "CC",				-- Shattered Resolve (reduces all damage and healing done by 25%/35%/75% (nm/hc/challenge))
+	[110125] = "CC",				-- Shattered Resolve (reduces all damage and healing done by 25%/50%)
 	--[88023]  = "ImmuneSpell",		-- Shroud of Gold (reflect 30%/100% (all/challenge) of the next spell cast)
 	[397795] = "CC",				-- Tainted Mist
 	[395872] = "CC",				-- Sleepy Soliloquy
@@ -5489,13 +5681,15 @@ local spellIds = {
 	[87759]  = "CC",				-- Shockwave
 	[87930]  = "CC",				-- Charge
 	[87772]  = "ImmunePhysical",	-- Hand of Protection
-	[87618]  = "Root",				-- Static Cling
+	[87618]  = "Snare",				-- Static Cling
 	[88075]  = "Snare",				-- Typhoon
-	[86292]  = "Other",				-- Cyclone Shield (movement speed, attack and casting speeds reduced by 85%)
-	[88186]  = "Immune",			-- Vapor Form (not immune, damage taken reduced by 75%)
+	[86292]  = "Other",				-- Cyclone Shield (movement speed, attack and casting speeds reduced by 85%/60%/30%)
+	[88186]  = "Immune",			-- Vapor Form (not immune, damage taken reduced by 90%)
 	[87474]  = "ImmuneSpell",		-- Grounding Field
 	[87726]  = "ImmuneSpell",		-- Grounding Field
 	[85267]  = "Other",				-- Feign Death
+	[413165] = "CC",				-- Lost in the Clouds
+	[413296] = "CC",				-- Downburst
 	-- -- Lost City of the Tol'vir
 	[83776]  = "CC",				-- Dragon's Breath
 	[81673]  = "CC",				-- Dust Flail (chance to hit with melee and ranged attacks reduced by 50%)
@@ -11577,7 +11771,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "8.02"
+		self.VERSION = "8.03"
 		CreateAliasForPartyFrames()
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
@@ -12315,6 +12509,9 @@ function LoseControl:COMBAT_LOG_EVENT_UNFILTERED()
 						end
 					end
 					if (strfind(destGUID, "^Player-")) then
+						if (spellId == 347008) then	-- Axe Toss (Warlock) [4 seconds duration PvE / 3 seconds duration PvP]
+							duration = 3
+						end
 						local unitIdFromGUID
 						for _, v in pairs(LCframes) do
 							if (UnitGUID(v.unitId) == destGUID) then
