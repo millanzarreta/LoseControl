@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl
--- Version: 8.03
+-- Version: 8.04
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -649,6 +649,7 @@ local interruptsIds = {
 	[404465] = 3,		-- Gale Force
 	[404685] = 3,		-- Gangway
 	[404754] = 3,		-- Blasting Scream
+	[406529] = 4,		-- Azure Assault
 	[412700] = 2		-- Deafening Roar
 }
 
@@ -1612,6 +1613,7 @@ local spellIds = {
 	[330678] = "CC",				-- Bellowing Roar
 	[314182] = "CC",				-- Sin Lash
 	[319229] = "CC",				-- Wrathful Invocation
+	[319678] = "CC",				-- Blackout
 	[327621] = "CC",				-- Anima Trap
 	[327957] = "CC",				-- Condensed Anima Vial
 	[329396] = "CC",				-- Darkest Secrets
@@ -2081,6 +2083,7 @@ local spellIds = {
 	[377665] = "CC",				-- Recursive Timeways
 	[382129] = "CC",				-- Realignment
 	[377838] = "Snare",				-- Slowing Sands
+	[386625] = "Snare",				-- Cold Sleet
 	[395108] = "CC",				-- Sola Mors
 	[371460] = "CC",				-- Winded!
 	[367975] = "CC",				-- Concussive Blast
@@ -2113,6 +2116,7 @@ local spellIds = {
 	[369063] = "CC",				-- Void Tendrils
 	[395980] = "CC",				-- Temporal Distortion
 	[363434] = "Snare",				-- Temporal Interference
+	[377961] = "Snare",				-- Charge
 	[374231] = "CC",				-- Murglrn Flame
 	[387762] = "CC",				-- Murglrn Flame
 	[385634] = "CC",				-- Unconscious
@@ -2148,6 +2152,8 @@ local spellIds = {
 	[398258] = "CC",				-- Avalanche Slam
 	[398345] = "CC",				-- Landslide
 	[396002] = "CC",				-- Stun
+	[370638] = "CC",				-- Faint
+	[370641] = "CC",				-- Faint
 	[398324] = "Immune",			-- Guardian's Duty
 	[399785] = "Immune",			-- Guardian's Duty
 	[398187] = "Immune",			-- Frozen Barrier
@@ -2203,6 +2209,7 @@ local spellIds = {
 	[404736] = "CC",				-- War Stomp
 	[400940] = "CC",				-- Wild Scavenging
 	[400172] = "CC",				-- Wild Scavenging
+	[392255] = "Immune",			-- Protection of the Fallen Dragons (raging tempests bonus set)
 	[397538] = "Immune",			-- Aegis of the Elements
 	[397539] = "Immune",			-- Aegis of the Elements
 	[397540] = "Immune",			-- Aegis of the Elements
@@ -2232,7 +2239,6 @@ local spellIds = {
 	[404853] = "Snare",				-- Wind Resistance
 	[397730] = "Root",				-- Crippling Cold
 	[412548] = "Immune",			-- Sarkareth
-	[408801] = "Immune",			-- Incorporeal
 	[410989] = "Immune",			-- Stay a While
 	[400378] = "Immune",			-- Stone's Protection
 	[406404] = "Immune",			-- Olfactory Defenses
@@ -2240,6 +2246,8 @@ local spellIds = {
 	[406406] = "Immune",			-- Olfactory Defenses
 	[406407] = "Immune",			-- Olfactory Defenses
 	[407600] = "Immune",			-- Magma-Forged Frame
+	[407707] = "Immune",			-- Shielded by Aberrus
+	[400380] = "Immune",			-- Storm Protection
 	[401212] = "ImmuneSpell",		-- Crystal Reflection (reflect all spells)
 	[412997] = "Silence",			-- Orb of Protection
 	[410065] = "Silence",			-- Reactive Resin
@@ -2250,7 +2258,6 @@ local spellIds = {
 	[403075] = "CC",				-- Swimming
 	[400512] = "CC",				-- Impossible Heat
 	[404372] = "CC",				-- Impossible Heat
-	[412498] = "CC",				-- Stagnating Pool
 	[410246] = "CC",				-- Shattered Mind
 	[410812] = "CC",				-- Faint
 	[410813] = "CC",				-- Faint
@@ -2271,6 +2278,11 @@ local spellIds = {
 	[404671] = "CC",				-- Effervesta's Smoke Bomb
 	[405954] = "CC",				-- [PH] Conflagration
 	[400025] = "CC",				-- Dig Deeper
+	[406771] = "CC",				-- Subdue Will
+	[399763] = "CC",				-- Held Back
+	[398983] = "CC",				-- Arcane Disruption
+	[378886] = "CC",				-- Freeze Over
+	[400554] = "CC",				-- Frozen
 	[405450] = "Root",				-- Eating
 	[401125] = "Root",				-- Corrupted Beasts
 	[407797] = "Root",				-- Shadow Strike
@@ -2286,19 +2298,20 @@ local spellIds = {
 	[409031] = "Root",				-- Niffen Submerging
 	[412454] = "Root",				-- Blend In
 	[405910] = "Root",				-- Rooted (DNT)
+	[406378] = "Root",				-- Bound to Her Will
+	[401297] = "Root",				-- Freeze
 	[397807] = "Immune",			-- Command: Aggression
 	[412738] = "Immune",			-- Defense Matrix (not immune, damage taken reduced by 70%)
-	[410631] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
-	[403284] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
-	[410654] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
 	[407816] = "Immune",			-- Stygian Shield (not immune, damage taken reduced by 90%)
 	[407704] = "Immune",			-- Igneous Hide (not immune, damage taken reduced by 99%)
+	[411503] = "Immune",			-- Tunnel (not immune, damage taken reduced by 90%)
 	[398391] = "ImmuneSpell",		-- Crystal Shell (not immune, magic damage taken reduced by 50%)
 	[398643] = "ImmunePhysical",	-- Rock Shell (not immune, physical damage taken reduced by 50%)
 	[406488] = "CC",				-- Angry Friend (Friendship Censer trinket)
 	[406747] = "CC",				-- Suspended Sulfuric Droplet (Suspended Sulfuric Droplet trinket)
 	[396859] = "CC",				-- Seismic Spike
 	[369107] = "CC",				-- Golem Smash
+	[369074] = "CC",				-- Trampled
 	[393458] = "CC",				-- Earth Spike
 	[404496] = "CC",				-- Shattering Blast
 	[409226] = "CC",				-- Leeching Power
@@ -3498,9 +3511,11 @@ local spellIds = {
 	------------------------
 	-- Aberrus, the Shadowed Crucible Raid
 	-- -- Trash
+	[220540] = "CC",				-- Fear
 	[406288] = "CC",				-- Dream Burst
 	[409921] = "CC",				-- Stunning Attack
 	[409616] = "CC",				-- Umbral Torrent
+	[412498] = "CC",				-- Stagnating Pool
 	[408676] = "Immune",			-- Iron Guard (not immune, damage taken reduced by 90%)
 	[409041] = "Root",				-- Congealed Mass
 	[410981] = "Root",				-- Iron Jaws
@@ -3527,7 +3542,11 @@ local spellIds = {
 	[405484] = "Snare",				-- Surrendering to Corruption
 	-- -- Scalecommander Sarkareth
 	[401215] = "CC",				-- Emptiness Between Stars (damage done reduced by 99%)
+	[407521] = "CC",				-- Out of Space (damage and healing done reduced by 99%)
 	[401905] = "CC",				-- Dazzled
+	[410631] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
+	[403284] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
+	[410654] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
 	------------------------
 	-- Vault of the Incarnates Raid
 	-- -- Trash
@@ -3589,6 +3608,8 @@ local spellIds = {
 	[396411] = "CC",				-- Primal Overload
 	[394873] = "CC",				-- Lightning Strike
 	[408777] = "CC",				-- Entangled
+	--[408801] = "Immune",			-- Incorporeal
+	[408805] = "CC",				-- Destabilize (damage and healing done reduced by 50%)
 	-- -- Algeth'ar Academy
 	[390297] = "Immune",			-- Dormant
 	[377008] = "Silence",			-- Deafening Screech
@@ -3604,16 +3625,20 @@ local spellIds = {
 	[384558] = "CC",				-- Bounding Leap
 	[384148] = "Root",				-- Ensnaring Trap
 	[385303] = "Root",				-- Teeth Trap
-	[376933] = "CC",				-- Grasping Vines
+	--[376933] = "CC",				-- Grasping Vines
 	[387796] = "Root",				-- Net
 	[367500] = "CC",				-- Hideous Cackle
+	--[400386] = "CC",				-- Hideous Cackle
 	[373899] = "Root",				-- Decaying Roots
 	[384854] = "CC",				-- Fish Slap!
+	[381379] = "CC",				-- Decayed Senses
 	[381387] = "CC",				-- Decayed Senses
 	[372162] = "CC",				-- Stunned (Bash)
 	[385185] = "CC",				-- Disoriented (Stink Breath)
+	[381466] = "CC",				-- Hextrick
 	[381463] = "CC",				-- Hextrick
-	[373943] = "CC",				-- Stompea
+	[373943] = "CC",				-- Stomp
+	[384575] = "Snare",				-- Crippling Bite
 	[385058] = "Snare",				-- Withering Poison
 	[382555] = "Snare",				-- Ragestorm
 	-- -- Halls of Infusion
@@ -3626,14 +3651,17 @@ local spellIds = {
 	[389446] = "Silence",			-- Nullifying Pulse
 	[375384] = "CC",				-- Rumbling Earth
 	[374615] = "CC",				-- Cheap Shot
+	[388486] = "CC",				-- Cast Away
 	[385963] = "Snare",				-- Frost Shock
 	-- -- Neltharus
-	[374655] = "CC",				-- Fetter
+	[374638] = "CC",				-- Fetter
+	--[374655] = "CC",				-- Fetter
 	[388523] = "CC",				-- Fetter
 	[375455] = "CC",				-- Blazing Charge
 	[377014] = "CC",				-- Backdraft
 	[373540] = "CC",				-- Binding Spear
 	[372824] = "CC",				-- Burning Chain
+	[376780] = "Other",				-- Magma Shield
 	-- -- Ruby Life Pools
 	[373593] = "CC",				-- Frozen Solid
 	[373022] = "CC",				-- Frozen Solid
@@ -3669,8 +3697,11 @@ local spellIds = {
 	[369725] = "CC",				-- Tremor
 	[369792] = "CC",				-- Skullcracker
 	[375500] = "CC",				-- Time Lock
+	[375604] = "CC",				-- Time Lock
+	[375616] = "CC",				-- Time Lock
 	[369366] = "CC",				-- Trapped in Stone
 	[372652] = "CC",				-- Resonating Orb
+	[377724] = "CC",				-- Systemic Vulnerability
 	[369031] = "Immune",			-- Sacred Barrier
 	[369603] = "Immune",			-- Defensive Bulwark (not immune, damage taken reduced by 75%)
 	[375339] = "CC",				-- Recovering...
@@ -5070,6 +5101,7 @@ local spellIds = {
 	[276061] = "CC",				-- Boulder Throw
 	[258182] = "CC",				-- Boulder Throw
 	[268283] = "CC",				-- Obscured Vision (hit chance decreased 75%)
+	[257908] = "Other",				-- Oiled Blade (healing received reduced by 75%)
 	[257274] = "Snare",				-- Vile Coating
 	[257747] = "Snare",				-- Earth Shaker
 	[257784] = "Snare",				-- Frost Blast
@@ -11771,7 +11803,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "8.03"
+		self.VERSION = "8.04"
 		CreateAliasForPartyFrames()
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount

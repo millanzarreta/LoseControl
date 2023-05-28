@@ -1,7 +1,7 @@
 ## Interface: 100100
 ## Title: LoseControl
 ## Author: millanzarreta, Kouri
-## Version: 8.03
+## Version: 8.04
 ## IconTexture: Interface\Addons\LoseControl\micon
 ## Notes: Displays the duration of CC effects on your character and other units
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter und andere Einheiten an
