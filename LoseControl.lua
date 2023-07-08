@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl WotLK
--- Version: 3.02
+-- Version: 3.03
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -241,7 +241,8 @@ local interruptsIds = {
 	[67519]  = 6,		-- Spell Lock
 	[68884]  = 5,		-- Silence Fool
 	[71022]  = 8,		-- Disrupting Shout
-	[72194]  = 3		-- Shield Bash
+	[72194]  = 3,		-- Shield Bash
+	[413097] = 5		-- Charge
 }
 
 local spellIds = {
@@ -260,8 +261,9 @@ local spellIds = {
 	[49016]  = "Other",				-- Unholy Frenzy (talent)
 	[45524]  = "Snare",				-- Chains of Ice
 	[58617]  = "Snare",				-- Glyph of Heart Strike
-	[68766]  = "Snare",				-- Desecration (talent)
 	[50436]  = "Snare",				-- Icy Clutch (talent)
+	[68766]  = "Snare",				-- Desecration (talent)
+	[414266] = "Snare",				-- Desecration (talent)
 
 		----------------
 		-- Death Knight Ghoul
@@ -1759,6 +1761,9 @@ local spellIds = {
 	[65925]  = "CC",				-- Unrelenting Assault (damage done reduced by 50%)
 	[68780]  = "CC",				-- Frozen Visage (damage done reduced by 50%)
 	[72341]  = "CC",				-- Hallucinatory Creature (damage done reduced by 50%)
+	[414277] = "CC",				-- Chaired
+	[413991] = "CC",				-- Banana Slip
+	[412544] = "CC",				-- Web Wrap
 	[58976]  = "Disarm",			-- Assaulter Slam, Throw Axe Disarm
 	[48883]  = "Disarm",			-- Disarm
 	[58138]  = "Disarm",			-- Disarm Test
@@ -1798,6 +1803,7 @@ local spellIds = {
 	[61144]  = "Immune",			-- Fire Shield (not immune, damage taken decreased by 50%)
 	[54467]  = "Immune",			-- Bone Armor (not immune, damage taken decreased by 40%)
 	[71822]  = "Immune",			-- Shadow Resonance (not immune, damage taken decreased by 35%)
+	[413172] = "Immune",			-- Diminish Power (not immune, damage taken decreased by 99%)
 	[62712]  = "ImmunePhysical",	-- Grab
 	[54386]  = "ImmunePhysical",	-- Darmuk's Vigilance (chance to dodge increased by 75%)
 	[51946]  = "ImmunePhysical",	-- Evasive Maneuver (chance to dodge increased by 75%)
@@ -1942,6 +1948,7 @@ local spellIds = {
 	[47307]  = "Snare",				-- Test Frozen Tomb
 	[50522]  = "Snare",				-- Gorloc Stomp
 	[69984]  = "Snare",				-- Frostfire Bolt
+	[414011] = "Snare",				-- Frost Trap
 
 	-- PvE
 	--[123456] = "PvE",				-- This is just an example, not a real spell
@@ -2154,6 +2161,7 @@ local spellIds = {
 	[63881]  = "CC",				-- Malady of the Mind
 	[63042]  = "CC",				-- Dominate Mind
 	[63120]  = "CC",				-- Insane
+	[413116] = "CC",				-- Insane
 	[63894]  = "Immune",			-- Shadowy Barrier
 	[64775]  = "Immune",			-- Shadowy Barrier
 	[64175]  = "Immune",			-- Flash Freeze
@@ -2361,6 +2369,7 @@ local spellIds = {
 	[398066] = "CC",				-- Web Wrap
 	[399770] = "CC",				-- Undead Madness
 	[398140] = "Snare",				-- Icy path
+	[412965] = "Snare",				-- Icy Path
 	-- -- The Culling of Stratholme
 	[52696]  = "CC",				-- Constricting Chains
 	[58823]  = "CC",				-- Constricting Chains
@@ -7555,7 +7564,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "3.02"
+		self.VERSION = "3.03"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		if (LoseControlDB.duplicatePlayerPortrait and LoseControlDB.frames.player.anchor == "Blizzard") then
