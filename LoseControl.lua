@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.18
+-- Version: 1.19
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -771,7 +771,7 @@ local spellIds = {
 	-- PvE
 	--[123456] = "PvE",				-- This is just an example, not a real spell
 	------------------------
-	---- PVE CLASSIC SEASON OF MASTERY
+	---- PVE CLASSIC SEASON OF MASTERY AND HARDCORE
 	------------------------
 	[367873] = "CC",				-- Blinding Ash (chance to hit reduced by 50%)
 	[367928] = "CC",				-- Corrupted Slam
@@ -791,6 +791,7 @@ local spellIds = {
 	[369077] = "Root",				-- Wing Buffet
 	[367897] = "Snare",				-- Dream Breath
 	[367724] = "Snare",				-- Dream Fog
+	[413548] = "Immune",			-- Degreelessness Mode
 	------------------------
 	---- PVE CLASSIC
 	------------------------
@@ -4620,7 +4621,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.18"
+		self.VERSION = "1.19"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation

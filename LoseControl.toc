@@ -1,7 +1,8 @@
-## Interface: 11403
-## Title: LoseControl Classic
+## Interface: 11404
+## Title: |TInterface\Addons\LoseControl\micon:16:16|t LoseControl Classic
 ## Author: millanzarreta, Kouri
-## Version: 1.18
+## Version: 1.19
+## IconTexture: Interface\Addons\LoseControl\micon
 ## Notes: Displays the duration of CC effects on your character and other units
 ## Notes-deDE: Zeigt die Dauer von CC-Effekten auf Ihrem Charakter und andere Einheiten an
 ## Notes-esES: Exhibe la duración de los efectos del CC sobre su personaje y otras unidades
