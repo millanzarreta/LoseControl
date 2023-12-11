@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.19
+-- Version: 1.20
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -103,6 +103,16 @@ local interruptsIds = {
 	[19647]  = {8, 2},					-- Spell Lock (felhunter) (rank 2) (Warlock)
 	[19675]  = {4, 1},					-- Feral Charge (Druid)
 	[29443]  = {10, -1},				-- Counterspell (Clutch of Foresight)
+	[408681] = {2, 8},					-- Earth Shock (rank 1) (Shaman) (SoD Rune)
+	[408683] = {2, 9},					-- Earth Shock (rank 2) (Shaman) (SoD Rune)
+	[408685] = {2, 10},					-- Earth Shock (rank 3) (Shaman) (SoD Rune)
+	[408687] = {2, 11},					-- Earth Shock (rank 4) (Shaman) (SoD Rune)
+	[408688] = {2, 12},					-- Earth Shock (rank 5) (Shaman) (SoD Rune)
+	[408689] = {2, 13},					-- Earth Shock (rank 6) (Shaman) (SoD Rune)
+	[408690] = {2, 14},					-- Earth Shock (rank 7) (Shaman) (SoD Rune)
+	[412787] = {5, 1},					-- Disrupt (Warlock) (SoD Rune)
+	[414621] = {2, 1},					-- Skull Bash (Druid) (SoD Rune)
+	[425609] = {2, 1},					-- Rebuke (Paladin) (SoD Rune)
 	-- NPC Interrupts
 	[5133]   = {30, -20, true},			-- Interrupt (PT)
 	[8714]   = {5, -20, true},			-- Overwhelming Musk
@@ -173,6 +183,7 @@ local spellIds = {
 	[17329]  = "Other",				-- Nature's Grasp (rank 6)
 	[22812]  = "Other",				-- Barkskin
 	[29166]  = "Other",				-- Innervate
+	[417045] = "Other",				-- Tiger's Fury (SoD Rune)
 
 	----------------
 	-- Hunter
@@ -204,6 +215,7 @@ local spellIds = {
 	[19263]  = "Other",				-- Deterrence (dodge and Parry chance increased by 25%)
 	[19574]  = "ImmuneSpell",		-- Bestial Wrath (talent) (not immuune to spells, only immune to some CC's)
 	[5384]   = "Other",				-- Feign Death
+	[409495] = "Disarm",			-- Chimera Shot - Scorpid (SoD Rune)
 
 		----------------
 		-- Hunter Pets
@@ -261,6 +273,7 @@ local spellIds = {
 	[13021]  = "Snare",				-- Blast Wave (talent) (rank 5)
 	[12043]  = "Other",				-- Presence of Mind (talent)
 	[12042]  = "Other",				-- Arcane Power (talent)
+	[425121] = "Other",				-- Icy Veins (SoD Rune)
 
 	----------------
 	-- Paladin
@@ -283,7 +296,12 @@ local spellIds = {
 	[10326]  = "CC",				-- Turn Undead (rank 3)
 	[20066]  = "CC",				-- Repentance (talent)
 	[1044]   = "Other",				-- Blessing of Freedom
+	[6940]   = "Other",				-- Blessing of Sacrifice (rank 1)
+	[20729]  = "Other",				-- Blessing of Sacrifice (rank 2)
 	[20216]  = "Other",				-- Divine Favor
+	[407798] = "Other",				-- Seal of Martyrdom (SoD Rune)
+	[407804] = "Other",				-- Divine Sacrifice (30% of all damage taken by party members redirected to the Paladin) (SoD Rune)
+	[407669] = "Snare",				-- Avenger's Shield (SoD Rune)
 
 	----------------
 	-- Priest
@@ -309,6 +327,8 @@ local spellIds = {
 	[17313]  = "Snare",				-- Mind Flay (talent) (rank 4)
 	[17314]  = "Snare",				-- Mind Flay (talent) (rank 5)
 	[18807]  = "Snare",				-- Mind Flay (talent) (rank 6)
+	[425205] = "Other",				-- Power Word: Barrier (damage taken reduced by 25%) (SoD Rune)
+	[407805] = "Other",				-- Sacrifice Redeemed (SoD Rune)
 
 	----------------
 	-- Rogue
@@ -334,6 +354,8 @@ local spellIds = {
 	[14177]  = "Other",				-- Cold Blood (talent)
 	[13877]  = "Other",				-- Blade Flurry
 	[13750]  = "Other",				-- Adrenaline Rush
+	[400009] = "CC",				-- Between the Eyes (SoD Rune)
+	[398196] = "Snare",				-- Quick Draw (SoD Rune)
 
 	----------------
 	-- Shaman
@@ -346,6 +368,8 @@ local spellIds = {
 	[3600]   = "Snare",				-- Earthbind (Earthbind Totem)
 	[16166]  = "Other",				-- Elemental Mastery (talent)
 	[16188]  = "Other",				-- Nature's Swiftness (talent)
+	[409324] = "Other",				-- Ancestral Guidance (SoD Rune)
+	[425336] = "Other",				-- Shamanistic Rage (SoD Rune)
 
 	----------------
 	-- Warlock
@@ -399,8 +423,12 @@ local spellIds = {
 	[12328]  = "Other",				-- Death Wish (talent)
 	[12976]  = "Other",				-- Last Stand (talent)
 	[20230]  = "Other",				-- Retaliation
-	[18499]  = "Other",				-- Berserker Rage
+	[18499]  = "ImmuneSpell",		-- Berserker Rage (not immuune to spells, only immune to some CC's)
 	[1719]   = "Other",				-- Recklessness
+	[411688] = "CC",				-- Charge Stun (SoD Rune)
+	[411684] = "Other",				-- Charge (immune to root, snare and stun effects) (SoD Rune)
+	[402906] = "Other",				-- Flagellation (SoD Rune)
+	[425415] = "Other",				-- Enrage (SoD Rune)
 
 	----------------
 	-- Other
@@ -770,6 +798,60 @@ local spellIds = {
 
 	-- PvE
 	--[123456] = "PvE",				-- This is just an example, not a real spell
+	------------------------
+	---- PVE CLASSIC SEASON OF DISCOVERY
+	------------------------
+	[417856] = "Immune",			-- Altar of the Light
+	[424553] = "Immune",			-- Call Your Shot
+	[401956] = "Immune",			-- Cryomantic Mishap (immune to all spell schools except fire)
+	[421322] = "Immune",			-- Cursed Discovery
+	[431060] = "Immune",			-- Flight Insurance
+	[421239] = "Immune",			-- Heretic Idol
+	[417192] = "Immune",			-- Loa Altar
+	[420543] = "Immune",			-- On the Move
+	[426764] = "Immune",			-- Only Pain
+	[429541] = "Immune",			-- Dark Protection (not immune, damage taken reduced by 99%)
+	[412114] = "Immune",			-- Void Empowerment (not immune, damage taken reduced by 99%)
+	[406973] = "Immune",			-- Aqua Shell (not immune, damage taken reduced by 50%)
+	[415005] = "Immune",			-- Powered (immune to all spell schools except arcane)
+	[415004] = "Immune",			-- Unpowered (immune to all spell schools except arcane)
+	[411993] = "Immune",			-- Shoddy Camouflage (immune to all spell schools except arcane)
+	[414722] = "Immune",			-- Slumbering Spirit (immune to all spell schools except nature)
+	[426923] = "Immune",			-- Fire Form (immune only to fire damage) (vulnerable to frost damage) (damage taken reduced by 75% from other spell schools)
+	[426917] = "Immune",			-- Nature Form (immune only to nature damage) (vulnerable to fire damage) (damage taken reduced by 75% from other spell schools)
+	[426925] = "Immune",			-- Water Form (immune only to frost damage) (vulnerable to nature damage) (damage taken reduced by 75% from other spell schools)
+	[433797] = "Immune",			-- Bladestorm (not immune to dmg, only to LoC)
+	[407546] = "CC",				-- Freezing Arrow
+	[412790] = "CC",				-- Infernal Strike
+	[423631] = "CC",				-- Knockdown
+	[426604] = "CC",				-- Rebooting
+	[422549] = "CC",				-- Back to Work!
+	[429688] = "CC",				-- Dominate Mind
+	[429687] = "CC",				-- Dominate Mind
+	[411959] = "CC",				-- Fear
+	[404275] = "Root",				-- Aqua Strike
+	[407822] = "Root",				-- Frost Arrow
+	[429357] = "Root",				-- Void Blast
+	[429167] = "Root",				-- Corrosive Blast
+	[412570] = "Root",				-- Anti Fear Clip Root
+	[428489] = "Other",				-- Planar Shift (Extraplanar Spidersilk Boots item) (damage taken and dealt reduced by 30%)
+	[429868] = "Other",				-- Void Madness (Void-Touched Leather Gauntlets item) (damage dealt increased by 10%, thread generated increased)
+	[426487] = "Other",				-- Manifesting Dreams (damage taken reduced by 25%)
+	[407025] = "Other",				-- Exposed (damage taken increased by 100%)
+	[407791] = "Other",				-- Aku'mai's Rage (physical damage dealt increased, attack speed increased by 30%)
+	[412326] = "Other",				-- Enlightenment (spell damage done increased by 10%)
+	[408755] = "Other",				-- Blood Offering (damage dealt, armor, resistance and all attributes reduced by 50%)
+	[426811] = "Other",				-- Battlefield Inspiration (health increased by 50% and damage dealt increased by 20%)
+	[427116] = "Other",				-- Battlefield Genius (health increased by 100% and damage dealt increased by 50%)
+	[427117] = "Other",				-- Battlefield Genius (health increased by 200% and damage dealt increased by 100%)
+	[427118] = "Other",				-- Battlefield Genius (health increased by 300% and damage dealt increased by 150%)
+	[427119] = "Other",				-- Battlefield Genius (health increased by 100% and damage dealt increased by 50%)
+	[427120] = "Other",				-- Battlefield Genius (health increased by 200% and damage dealt increased by 100%)
+	[427121] = "Other",				-- Battlefield Genius (health increased by 300% and damage dealt increased by 150%)
+	[425239] = "Snare",				-- Shadowy Chains
+	[426495] = "Snare",				-- Shadowy Chains
+	[420526] = "Snare",				-- Frostbolt
+	[404316] = "Snare",				-- Greater Frostbolt
 	------------------------
 	---- PVE CLASSIC SEASON OF MASTERY AND HARDCORE
 	------------------------
@@ -4621,7 +4703,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.19"
+		self.VERSION = "1.20"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
@@ -5561,7 +5643,9 @@ function LoseControl:UNIT_AURA(unitId, updatedAuras, typeUpdate) -- fired when a
 			-- exceptions
 			if (spellId == 605) or (spellId == 10911) or (spellId == 10912) or (spellId == 24020) then	-- Mind Control and Axe Flurry
 				spellId = 1
-			elseif (spellId == 19574 and (LoseControlDB.customSpellIds[19574] ~= nil) and (self.unitId == "pet" or (playerClass ~= 1 and playerClass ~= 2 and playerClass ~= 5 and playerClass ~= 9))) then	-- Bestial Wrath
+			elseif (spellId == 19574 and (LoseControlDB.customSpellIds[19574] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "pet" or (playerClass ~= 1 and playerClass ~= 2 and playerClass ~= 3 and playerClass ~= 5 and playerClass ~= 9))) then	-- Bestial Wrath
+				newCategory = "Other"
+			elseif (spellId == 18499 and (LoseControlDB.customSpellIds[18499] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "player" or (playerClass ~= 1 and playerClass ~= 2 and playerClass ~= 4 and playerClass ~= 5 and playerClass ~= 9))) then	-- Berserker Rage
 				newCategory = "Other"
 			end
 
