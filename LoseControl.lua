@@ -1,7 +1,7 @@
 --[[
 -------------------------------------------
 -- Addon: LoseControl Classic
--- Version: 1.20
+-- Version: 1.21
 -- Authors: millanzarreta, Kouri
 -------------------------------------------
 
@@ -112,7 +112,7 @@ local interruptsIds = {
 	[408690] = {2, 14},					-- Earth Shock (rank 7) (Shaman) (SoD Rune)
 	[412787] = {5, 1},					-- Disrupt (Warlock) (SoD Rune)
 	[414621] = {2, 1},					-- Skull Bash (Druid) (SoD Rune)
-	[425609] = {2, 1},					-- Rebuke (Paladin) (SoD Rune)
+	[425609] = {3, 1},					-- Rebuke (Paladin) (SoD Rune)
 	-- NPC Interrupts
 	[5133]   = {30, -20, true},			-- Interrupt (PT)
 	[8714]   = {5, -20, true},			-- Overwhelming Musk
@@ -141,7 +141,10 @@ local interruptsIds = {
 	[15122]  = {15, -17, true},			-- Counterspell
 	[20537]  = {15, -18, true},			-- Counterspell
 	[19715]  = {10, -19, true, 10409},	-- Counterspell
-	[20788]  = {0.001, -20, true}		-- Counterspell
+	[20788]  = {0.001, -20, true},		-- Counterspell
+	[432106] = {1, -20, true},			-- Ritual Sacrifice (SoD)
+	[432222] = {0.001, -20, true},		-- Tremble in Fear (SoD)
+	[436834] = {1, -20, true}			-- Widget Volley (SoD)
 }
 local interruptsSpellIdByName = { }
 local coldSnapSpellName
@@ -184,6 +187,8 @@ local spellIds = {
 	[22812]  = "Other",				-- Barkskin
 	[29166]  = "Other",				-- Innervate
 	[417045] = "Other",				-- Tiger's Fury (SoD Rune)
+	[428713] = "Other",				-- Barkskin (physical damage taken reduced by 20%) (SoD Rune)
+	[417141] = "ImmuneSpell",		-- Berserk (fear immune) (SoD Rune)
 
 	----------------
 	-- Hunter
@@ -213,7 +218,7 @@ local spellIds = {
 	[13809]  = "Snare",				-- Frost Trap
 	[13810]  = "Snare",				-- Frost Trap Aura
 	[19263]  = "Other",				-- Deterrence (dodge and Parry chance increased by 25%)
-	[19574]  = "ImmuneSpell",		-- Bestial Wrath (talent) (not immuune to spells, only immune to some CC's)
+	[19574]  = "Immune",			-- Bestial Wrath (talent) (not immune to dmg, only to CC)
 	[5384]   = "Other",				-- Feign Death
 	[409495] = "Disarm",			-- Chimera Shot - Scorpid (SoD Rune)
 
@@ -274,6 +279,11 @@ local spellIds = {
 	[12043]  = "Other",				-- Presence of Mind (talent)
 	[12042]  = "Other",				-- Arcane Power (talent)
 	[425121] = "Other",				-- Icy Veins (SoD Rune)
+	[428739] = "CC",				-- Deep Freeze (SoD Rune)
+	[434754] = "CC",				-- Polymorph: Odd Melon (SoD Rune)
+	[412532] = "Snare",				-- Spellfrost Bolt (SoD Rune)
+	[401502] = "Snare",				-- Frostfire Bolt (SoD Rune)
+	[428888] = "Snare",				-- Temporal Anomaly (SoD Rune)
 
 	----------------
 	-- Paladin
@@ -299,9 +309,10 @@ local spellIds = {
 	[6940]   = "Other",				-- Blessing of Sacrifice (rank 1)
 	[20729]  = "Other",				-- Blessing of Sacrifice (rank 2)
 	[20216]  = "Other",				-- Divine Favor
-	[407798] = "Other",				-- Seal of Martyrdom (SoD Rune)
+	--[407798] = "Other",				-- Seal of Martyrdom (SoD Rune)
 	[407804] = "Other",				-- Divine Sacrifice (30% of all damage taken by party members redirected to the Paladin) (SoD Rune)
 	[407669] = "Snare",				-- Avenger's Shield (SoD Rune)
+	[429147] = "CC",				-- Stun (Purifying Power) (SoD Rune)
 
 	----------------
 	-- Priest
@@ -329,6 +340,8 @@ local spellIds = {
 	[18807]  = "Snare",				-- Mind Flay (talent) (rank 6)
 	[425205] = "Other",				-- Power Word: Barrier (damage taken reduced by 25%) (SoD Rune)
 	[407805] = "Other",				-- Sacrifice Redeemed (SoD Rune)
+	[425294] = "Immune",			-- Dispersion (not immune, damage taken reduced by 90%) (SoD Rune)
+	[402004] = "Immune",			-- Pain Suppression (damage taken reduced by 40%) (SoD Rune)
 
 	----------------
 	-- Rogue
@@ -356,6 +369,7 @@ local spellIds = {
 	[13750]  = "Other",				-- Adrenaline Rush
 	[400009] = "CC",				-- Between the Eyes (SoD Rune)
 	[398196] = "Snare",				-- Quick Draw (SoD Rune)
+	[408699] = "Snare",				-- Waylay (SoD Rune)
 
 	----------------
 	-- Shaman
@@ -370,6 +384,8 @@ local spellIds = {
 	[16188]  = "Other",				-- Nature's Swiftness (talent)
 	[409324] = "Other",				-- Ancestral Guidance (SoD Rune)
 	[425336] = "Other",				-- Shamanistic Rage (SoD Rune)
+	[425876] = "ImmunePhysical",	-- Decoy Totem (not immune, will redirect one melee or ranged attack to the Decoy Totem) (SoD Rune)
+	[436391] = "Other",				-- Decoy Totem (immune to movement impairing effects) (SoD Rune)
 
 	----------------
 	-- Warlock
@@ -389,6 +405,7 @@ local spellIds = {
 	[18708]  = "Other",				-- Fel Domination (talent)
 	[18223]  = "Snare",				-- Curse of Exhaustion (talent)
 	[18118]  = "Snare",				-- Aftermath (talent)
+	[427719] = "Silence",			-- Unstable Affliction (SoD Rune)
 
 		----------------
 		-- Warlock Pets
@@ -398,6 +415,7 @@ local spellIds = {
 		[4511]   = "Immune",		-- Phase Shift (Imp)
 		[19482]  = "CC",			-- War Stomp (Doomguard)
 		[89]     = "Snare",			-- Cripple (Doomguard)
+		[427746] = "CC",			-- Intercept Stun (SoD Rune)
 
 	----------------
 	-- Warrior
@@ -420,11 +438,12 @@ local spellIds = {
 	[12705]  = "Snare",				-- Long Daze (Improved Pummel)
 	[12323]  = "Snare",				-- Piercing Howl (talent)
 	[2565]   = "Other",				-- Shield Block
-	[12328]  = "Other",				-- Death Wish (talent)
+	[12328]  = "ImmuneSpell",		-- Death Wish (talent) (not immune to spells, only immune to some CC)
 	[12976]  = "Other",				-- Last Stand (talent)
 	[20230]  = "Other",				-- Retaliation
-	[18499]  = "ImmuneSpell",		-- Berserker Rage (not immuune to spells, only immune to some CC's)
-	[1719]   = "Other",				-- Recklessness
+	[18499]  = "ImmuneSpell",		-- Berserker Rage (not immune to spells, only immune to some CC)
+	[1719]   = "ImmuneSpell",		-- Recklessness (not immune to spells, only immune to some CC)
+	[403338] = "ImmunePhysical",	-- Intervene (not immune, will redirect one melee or ranged attack to the warrior) (SoD Rune)
 	[411688] = "CC",				-- Charge Stun (SoD Rune)
 	[411684] = "Other",				-- Charge (immune to root, snare and stun effects) (SoD Rune)
 	[402906] = "Other",				-- Flagellation (SoD Rune)
@@ -441,7 +460,7 @@ local spellIds = {
 	[17308]  = "CC",				-- Stun (Hurd Smasher fist weapon)
 	[23454]  = "CC",				-- Stun (The Unstoppable Force weapon)
 	[9179]   = "CC",				-- Stun (Tigule and Foror's Strawberry Ice Cream item)
-	[7744]   = "Other",				-- Will of the Forsaken	(undead racial)
+	[7744]   = "ImmuneSpell",		-- Will of the Forsaken	(undead racial) (immune to charm, fear and sleep)
 	[26635]  = "Other",				-- Berserking (troll racial)
 	[20594]  = "Other",				-- Stoneform (dwarf racial)
 	[13327]  = "CC",				-- Reckless Charge (Goblin Rocket Helmet)
@@ -495,6 +514,7 @@ local spellIds = {
 	[13119]  = "Root",				-- Net-o-Matic (trinket)
 	[13138]  = "Root",				-- Net-o-Matic (trinket)
 	[16566]  = "Root",				-- Net-o-Matic (trinket)
+	[12733]  = "ImmuneSpell",		-- Fearless (Glimmering Mithril Insignia trinket) (fear immune)
 	[23723]  = "Other",				-- Mind Quickening (Mind Quickening Gem trinket)
 	[15752]  = "Disarm",			-- Linken's Boomerang (trinket)
 	[15753]  = "CC",				-- Linken's Boomerang (trinket)
@@ -852,6 +872,55 @@ local spellIds = {
 	[426495] = "Snare",				-- Shadowy Chains
 	[420526] = "Snare",				-- Frostbolt
 	[404316] = "Snare",				-- Greater Frostbolt
+	[435195] = "Immune",			-- Petrification
+	[435205] = "Immune",			-- Pyromantic Mishap
+	[433354] = "Immune",			-- Coming of the Storm
+	[433366] = "Immune",			-- Coming of the Storm
+	[440720] = "Immune",			-- Scooty's Not-Quite-Divine Shield
+	[441785] = "Immune",			-- Drained of Blood
+	[434357] = "Immune",			-- Harness Lightning
+	[425235] = "Immune",			-- Polished Iceblock (stunned and nearly impervious)
+	[427089] = "Immune",			-- Battlemaster Supreme (health increased by 100% and damage dealt increased by 50%)
+	[427090] = "Immune",			-- Battlemaster Supreme (health increased by 100% and damage dealt increased by 50%)
+	[427091] = "Immune",			-- Battlemaster Supreme (health increased by 100% and damage dealt increased by 50%)
+	[427087] = "Immune",			-- Battlefield Genius (health increased by 100% and damage dealt increased by 50%)
+	[427088] = "Immune",			-- Battlefield Genius (health increased by 100% and damage dealt increased by 50%)
+	[427086] = "Immune",			-- Battlefield Genius (health increased by 100% and damage dealt increased by 50%)
+	[436837] = "Immune",			-- Widget Fortress (damage taken reduced by 50%)
+	[436858] = "Immune",			-- [DNT] Combat Dummy I
+	[436861] = "Immune",			-- [DNT] Combat Dummy II
+	[436863] = "Immune",			-- [DNT] Combat Dummy III
+	[437382] = "ImmuneSpell",		-- Reinforced Willpower (Reflective Truesilver Braincage item) (not immune to spells, only immune to silence and interrupt effects)
+	[425226] = "CC",				-- Burning
+	[436100] = "CC",				-- Petrify
+	[438721] = "CC",				-- Frozen Solid
+	[440656] = "CC",				-- High Voltage!
+	[436831] = "CC",				-- Static Fleece
+	[436473] = "CC",				-- Stun (Bloodstorm War Totem weapon)
+	[436537] = "CC",				-- GM Freeze
+	[426604] = "CC",				-- Rebooting
+	[432467] = "CC",				-- Transform
+	[435896] = "CC",				-- Cluck Cluck??
+	[440108] = "CC",				-- Pacify Self
+	[434869] = "CC",				-- Shadow Ritual of Sacrifice
+	[432439] = "CC",				-- Channel
+	[436534] = "CC",				-- Defense Protocol: Goodbye
+	[432222] = "CC",				-- Tremble in Fear
+	[425891] = "CC",				-- Scared
+	[436828] = "Silence",			-- Binary Bleat
+	[435991] = "Root",				-- Entangling Roots
+	[436059] = "Root",				-- Radiation?
+	[436027] = "Root",				-- Grubbis Mad!
+	[441453] = "Root",				-- Electrified Net
+	[436818] = "Root",				-- Sprocketfire Breath
+	[437764] = "Root",				-- Consume
+	[441642] = "Root",				-- Gnomeregan Smash
+	[435359] = "Snare",				-- Hardened to the Core (Wirdal's Hardened Core trinket)
+	[434433] = "Snare",				-- Sludge
+	[424574] = "Snare",				-- Out of breath!
+	[435895] = "Other",				-- Gniodine Dispel (Gniodine Pill Bottle trinket) (immune to snare and immobilizing effects)
+	[436074] = "Other",				-- Trogg Rage (attack and movement speed increased, enraged)
+	[434907] = "Other",				-- Amplified Circuitry (physical damage and attacks speed increased)
 	------------------------
 	---- PVE CLASSIC SEASON OF MASTERY AND HARDCORE
 	------------------------
@@ -4703,7 +4772,7 @@ function LoseControl:ADDON_LOADED(arg1)
 			_G.LoseControlDB.version = DBdefaults.version
 		end
 		LoseControlDB = _G.LoseControlDB
-		self.VERSION = "1.20"
+		self.VERSION = "1.21"
 		self.noCooldownCount = LoseControlDB.noCooldownCount
 		self.noBlizzardCooldownCount = LoseControlDB.noBlizzardCooldownCount
 		self.noGetExtraAuraDurationInformation = LoseControlDB.noGetExtraAuraDurationInformation
@@ -5582,13 +5651,13 @@ function LoseControl:UNIT_AURA(unitId, updatedAuras, typeUpdate) -- fired when a
 					if Priority == maxPriority and expirationTime > maxExpirationTime then
 						maxExpirationTime = expirationTime
 						Duration = duration
-						Icon = icon
+						Icon = icon ~= 237567 and icon or 236295
 						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
 					elseif Priority > maxPriority then
 						maxPriority = Priority
 						maxExpirationTime = expirationTime
 						Duration = duration
-						Icon = icon
+						Icon = icon ~= 237567 and icon or 236295
 						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
 					end
 				end
@@ -5643,9 +5712,19 @@ function LoseControl:UNIT_AURA(unitId, updatedAuras, typeUpdate) -- fired when a
 			-- exceptions
 			if (spellId == 605) or (spellId == 10911) or (spellId == 10912) or (spellId == 24020) then	-- Mind Control and Axe Flurry
 				spellId = 1
-			elseif (spellId == 19574 and (LoseControlDB.customSpellIds[19574] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "pet" or (playerClass ~= 1 and playerClass ~= 2 and playerClass ~= 3 and playerClass ~= 5 and playerClass ~= 9))) then	-- Bestial Wrath
+			elseif (spellId == 19574 and (LoseControlDB.customSpellIds[19574] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "pet")) then	-- Bestial Wrath (hunter) (immune to all CC)
 				newCategory = "Other"
-			elseif (spellId == 18499 and (LoseControlDB.customSpellIds[18499] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "player" or (playerClass ~= 1 and playerClass ~= 2 and playerClass ~= 4 and playerClass ~= 5 and playerClass ~= 9))) then	-- Berserker Rage
+			elseif (spellId == 18499 and (LoseControlDB.customSpellIds[18499] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "player" or (playerClass ~= 1 and playerClass ~= 2 and playerClass ~= 4 and playerClass ~= 5 and playerClass ~= 9))) then	-- Berserker Rage (warrior) (immune to fear and incapacitate)
+				newCategory = "Other"
+			elseif (spellId == 1719 and (LoseControlDB.customSpellIds[1719] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "player" or (playerClass ~= 1 and playerClass ~= 5 and playerClass ~= 9))) then	-- Recklessness (warrior) (immune to fear)
+				newCategory = "Other"
+			elseif (spellId == 12328 and (LoseControlDB.customSpellIds[12328] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "player" or (playerClass ~= 1 and playerClass ~= 5 and playerClass ~= 9))) then	-- Death Wish (warrior) (immune to fear)
+				newCategory = "Other"
+			elseif (spellId == 417141 and (LoseControlDB.customSpellIds[417141] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "player" or (playerClass ~= 1 and playerClass ~= 5 and playerClass ~= 9))) then	-- Berserk (druid) (immune to fear)
+				newCategory = "Other"
+			elseif (spellId == 7744 and (LoseControlDB.customSpellIds[7744] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "player" or (playerClass ~= 1 and playerClass ~= 5 and playerClass ~= 9))) then	-- Will of the Forsaken	(undead racial) (immune to charm, fear and sleep)
+				newCategory = "Other"
+			elseif (spellId == 12733 and (LoseControlDB.customSpellIds[12733] ~= nil) and (reactionToPlayer == "friendly" or self.unitId == "player" or (playerClass ~= 1 and playerClass ~= 5 and playerClass ~= 9))) then	-- Fearless (Glimmering Mithril Insignia trinket) (immune to fear)
 				newCategory = "Other"
 			end
 
@@ -5656,13 +5735,13 @@ function LoseControl:UNIT_AURA(unitId, updatedAuras, typeUpdate) -- fired when a
 					if Priority == maxPriority and expirationTime > maxExpirationTime then
 						maxExpirationTime = expirationTime
 						Duration = duration
-						Icon = icon
+						Icon = icon ~= 237567 and icon or 236295
 						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
 					elseif Priority > maxPriority then
 						maxPriority = Priority
 						maxExpirationTime = expirationTime
 						Duration = duration
-						Icon = icon
+						Icon = icon ~= 237567 and icon or 236295
 						forceEventUnitAuraAtEnd = localForceEventUnitAuraAtEnd
 					end
 				end
@@ -6258,6 +6337,7 @@ function Unlock:OnClick()
 				if frame.enabled and ((anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][k]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][k])=="string") and _GF(anchors[frame.anchor][k]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][k])=="table") and anchors[frame.anchor][k] or frame.anchor == "None"))) then -- only unlock frames whose anchor exists
 					v:RegisterUnitEvents(false)
 					v.textureicon = select(3, GetSpellInfo(keys[random(#keys)]))
+					v.textureicon = v.textureicon ~= 237567 and v.textureicon or 236295
 					if frame.anchor == "Blizzard" and not(v.useCompactPartyFrames) then
 						SetPortraitToTexture(v.texture, v.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
 						v:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
@@ -6309,6 +6389,7 @@ function Unlock:OnClick()
 		if frame.enabled and ((anchors[frame.anchor]~=nil and _G[anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId]]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId])=="string") and _GF(anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId]) or ((anchors[frame.anchor]~=nil and type(anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId])=="table") and anchors[frame.anchor][LCframeplayer2.fakeUnitId or LCframeplayer2.unitId] or frame.anchor == "None"))) then -- only unlock frames whose anchor exists
 			LCframeplayer2:RegisterUnitEvents(false)
 			LCframeplayer2.textureicon = select(3, GetSpellInfo(keys[random(#keys)]))
+			LCframeplayer2.textureicon = LCframeplayer2.textureicon ~= 237567 and LCframeplayer2.textureicon or 236295
 			if frame.anchor == "Blizzard" and not(LCframeplayer2.useCompactPartyFrames) then
 				SetPortraitToTexture(LCframeplayer2.texture, LCframeplayer2.textureicon) -- Sets the texture to be displayed from a file applying a circular opacity mask making it look round like portraits
 				LCframeplayer2:SetSwipeTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMaskSmall")
